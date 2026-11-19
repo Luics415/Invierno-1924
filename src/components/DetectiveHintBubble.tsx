@@ -412,8 +412,9 @@ export const DetectiveHintBubble: React.FC<DetectiveHintBubbleProps> = ({
             onClick={() => setIsRadialOpen(false)}
           >
             <div
+              data-testid="detective-radial-menu"
               onClick={e => e.stopPropagation()}
-              className="relative w-[310px] h-[310px] sm:w-[440px] sm:h-[440px] flex items-center justify-center animate-radial-center"
+              className="relative w-[310px] h-[310px] sm:w-[440px] sm:h-[440px] flex items-center justify-center"
             >
               {/* Anillos giratorios estilo brújula / Arcane */}
               <div className="pointer-events-none absolute inset-3 rounded-full border border-[#b79b65]/35 shadow-[0_0_80px_rgba(0,0,0,0.98)]" />
@@ -481,13 +482,13 @@ export const DetectiveHintBubble: React.FC<DetectiveHintBubbleProps> = ({
                 },
                 {
                   id: 'reset' as const,
-                  label: 'Nuevo Caso',
+                  label: 'Reiniciar',
                   posClass: 'left-2 top-1/2 -translate-y-1/2',
-                  delay: '165ms',
+                  delay: '0ms',
                   icon: <RotateCcw className="w-4 h-4 text-crimson-300" />,
                   onClick: () => {
                     sound.playClick();
-                    startNewCase();
+                    resetGame();
                     setIsRadialOpen(false);
                     setActiveTab(null);
                   },
@@ -497,8 +498,7 @@ export const DetectiveHintBubble: React.FC<DetectiveHintBubbleProps> = ({
                   key={node.id}
                   type="button"
                   onClick={node.onClick}
-                  style={{ transitionDelay: node.delay }}
-                  className={`absolute ${node.posClass} w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-ink-950/95 hover:bg-crimson-950 border border-[#b79b65]/80 hover:border-gold-200 shadow-[0_10px_26px_rgba(0,0,0,0.92)] flex flex-col items-center justify-center gap-0.5 transition-all duration-200 hover:scale-110`}
+                  className={`absolute ${node.posClass} w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-ink-950/95 hover:bg-crimson-950 border border-[#b79b65]/80 hover:border-gold-200 shadow-[0_10px_26px_rgba(0,0,0,0.92)] flex flex-col items-center justify-center gap-0.5 transition-colors`}
                   title={node.label}
                 >
                   {node.icon}

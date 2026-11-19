@@ -613,6 +613,20 @@ export const BookLayout: React.FC<BookLayoutProps> = ({
                 type="button"
                 tabIndex={!isHeaderExpanded ? -1 : undefined}
                 onClick={() => {
+                  startNewCase();
+                }}
+                className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-sm btn-ledger text-gold-200 text-xs sm:text-sm font-desc font-medium transition"
+                title="Nuevo Caso: Generar una nueva partida con otro culpable aleatorio entre los 74"
+                aria-label="Nuevo Caso"
+              >
+                <RefreshCw className="w-3.5 h-3.5 text-gold-400" />
+                <span className="hidden xl:inline">Nuevo Caso</span>
+              </button>
+
+              <button
+                type="button"
+                tabIndex={!isHeaderExpanded ? -1 : undefined}
+                onClick={() => {
                   sound.playPageTurn();
                   changeBookCoverMode(bookCoverMode === 'open' ? 'front' : 'open');
                 }}
@@ -910,10 +924,10 @@ export const BookLayout: React.FC<BookLayoutProps> = ({
               /* ========================================================
                   VISTA DÍA 1-24: DOBLE PLIEGO (RELATO + PASATIEMPO)
                  ======================================================== */
-              <div className="w-full h-full grid grid-cols-1 lg:grid-cols-2 flex-1 min-h-0">
+              <div className="w-full h-full flex flex-col lg:flex-row flex-1 min-h-0">
                 {/* PÁGINA IZQUIERDA (VERSO): RELATO Y PRUEBA DOCUMENTAL */}
                 <section
-                  className={`page-verso p-4 sm:p-5 lg:p-6 lg:pr-8 flex flex-col justify-between font-reading relative min-w-0 min-h-0 ${
+                  className={`page-verso lg:w-1/2 p-4 sm:p-5 lg:p-6 lg:pr-8 flex flex-col justify-between font-reading relative min-w-0 min-h-0 ${
                     mobilePage === 'left' ? 'flex' : 'hidden lg:flex'
                   }`}
                 >
@@ -1074,7 +1088,7 @@ export const BookLayout: React.FC<BookLayoutProps> = ({
 
                 {/* PÁGINA DERECHA (RECTO): MOTOR DE PASATIEMPO */}
                 <section
-                  className={`page-recto p-4 sm:p-5 lg:p-6 lg:pl-8 flex flex-col justify-between font-reading border-t lg:border-t-0 border-parchment-400/70 min-w-0 min-h-0 ${
+                  className={`page-recto lg:w-1/2 p-4 sm:p-5 lg:p-6 lg:pl-8 flex flex-col justify-between font-reading border-t lg:border-t-0 border-parchment-400/70 min-w-0 min-h-0 ${
                     mobilePage === 'right' ? 'flex' : 'hidden lg:flex'
                   }`}
                 >
@@ -1108,7 +1122,7 @@ export const BookLayout: React.FC<BookLayoutProps> = ({
                     <div className="my-auto w-full">{renderPuzzleEngine()}</div>
                   </div>
 
-                  <div className="pt-2 mt-2 border-t border-parchment-400/70 flex items-center justify-between gap-2 shrink-0">
+                  <div data-toolbar="true" className="pt-2 mt-2 border-t border-parchment-400/70 flex items-center justify-between gap-2 shrink-0">
                     <span className="font-mono text-[10px] tracking-widest uppercase text-ink-600">
                       — Pág. {currentDay * 2} —
                     </span>

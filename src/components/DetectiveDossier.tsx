@@ -200,7 +200,7 @@ export const DetectiveDossier: React.FC<DetectiveDossierProps> = ({ onClose, onO
             <div className="min-w-0 flex-1">
               <div className="flex flex-wrap items-center gap-2 min-w-0">
                 <span className="text-[10px] font-mono uppercase tracking-[0.18em] px-2 py-0.5 rounded-[2px] bg-[#5a1218] text-[#e5ca8f] border border-[#b79b65]/40">
-                  Expediente Policial #1924-VA
+                  Expediente Policial N.º 1924-VA
                 </span>
                 <span className="text-[10px] font-mono text-parchment-300/80 hidden sm:inline tabular-nums">
                   Capítulos resueltos: <strong className="text-[#e5ca8f]">{completedDays.length}/{totalDays}</strong>
@@ -934,7 +934,7 @@ export const DetectiveDossier: React.FC<DetectiveDossierProps> = ({ onClose, onO
                     <span className="flex items-center gap-1.5">
                       <MapPin className="w-4 h-4 text-amber-800 shrink-0" /> Las {LOCATIONS.length} Estancias de Villa Acebo
                     </span>
-                    <span className="text-[10px] font-mono text-amber-900">3 P. Baja • 3 P. Alta • 3 Sótano</span>
+                    <span className="text-[10px] font-mono text-amber-900">3 Planta Baja • 3 Planta Alta • 3 Sótano</span>
                   </h3>
 
                   <div className="space-y-2.5">
@@ -962,7 +962,7 @@ export const DetectiveDossier: React.FC<DetectiveDossierProps> = ({ onClose, onO
                                 {l.name}
                               </strong>
                             </div>
-                            <span className="font-mono text-[10px] font-bold uppercase px-2 py-0.5 rounded bg-parchment-200 text-ink-700 border border-amber-900/20 shrink-0">
+                            <span className="font-mono text-[10px] font-bold px-2 py-0.5 rounded bg-parchment-200 text-ink-700 border border-amber-900/20 shrink-0">
                               {l.floor}
                             </span>
                           </div>

@@ -110,7 +110,7 @@ export const MinesweeperPuzzle: React.FC<MinesweeperProps> = ({ config, onSolve,
 
   return (
     <div className="flex flex-col h-full min-w-0 select-none" data-puzzle-type="minesweeper">
-      <div className="flex flex-wrap items-center justify-between gap-2 pb-2 mb-1.5 border-b border-parchment-300">
+      <div data-toolbar="true" className="flex flex-wrap items-center justify-between gap-2 pb-2 mb-1.5 border-b border-parchment-300">
         <div className="flex items-center gap-2">
           <div className="flex items-center bg-parchment-200 rounded p-0.5 border border-parchment-300">
             <button
@@ -124,7 +124,7 @@ export const MinesweeperPuzzle: React.FC<MinesweeperProps> = ({ config, onSolve,
                 tool === 'reveal' ? 'bg-ink-900 text-parchment-50 shadow' : 'text-ink-700'
               }`}
             >
-              <Search className="w-3 h-3" /> Inspeccionar
+              <Search className="w-3 h-3" /> Revelar
             </button>
             <button
               type="button"
@@ -140,8 +140,8 @@ export const MinesweeperPuzzle: React.FC<MinesweeperProps> = ({ config, onSolve,
               <Flag className="w-3 h-3" /> Bandera
             </button>
           </div>
-          <span className="text-[10px] font-mono text-ink-600">
-            Trampas: {displayFlagged.size}/{mines.length} • Seguras: {displayRevealed.size}/{totalSafe}
+          <span data-mine-counter="true" className="text-[10px] font-mono text-ink-600">
+            Minas: {displayFlagged.size}/{mines.length} • Restantes: {Math.max(0, mines.length - displayFlagged.size)} • Seguras: {displayRevealed.size}/{totalSafe}
           </span>
         </div>
 
@@ -209,7 +209,9 @@ export const MinesweeperPuzzle: React.FC<MinesweeperProps> = ({ config, onSolve,
                 <button
                   type="button"
                   key={key}
+                  data-minesweeper-cell={`${r}-${c}`}
                   data-ms-cell={`${r}-${c}`}
+                  data-state={isRevealed ? 'revealed' : isFlagged ? 'flagged' : 'hidden'}
                   data-revealed={isRevealed ? 'true' : 'false'}
                   data-flagged={isFlagged ? 'true' : 'false'}
                   onClick={() => handleCellAction(r, c, tool)}
@@ -224,7 +226,7 @@ export const MinesweeperPuzzle: React.FC<MinesweeperProps> = ({ config, onSolve,
                       ? 'bg-crimson-900/90 text-gold-300 border border-gold-500/70'
                       : 'bg-[#2a2f3a] hover:bg-[#3a4150] text-transparent border border-[#464e5f] cursor-pointer shadow-inner'
                   }`}
-                  aria-label={`Casilla ${r + 1},${c + 1}`}
+                  aria-label={isFlagged ? `Casilla ${r + 1},${c + 1} con bandera` : `Casilla ${r + 1},${c + 1}`}
                 >
                   {isRevealed ? (
                     adj > 0 ? (
@@ -248,7 +250,7 @@ export const MinesweeperPuzzle: React.FC<MinesweeperProps> = ({ config, onSolve,
       {isSolved && (
         <div className="mt-1.5 p-2 bg-gold-100 border-2 border-gold-500 rounded text-center animate-wax-pop">
           <div className="flex items-center justify-center gap-1 text-xs font-bold text-gold-800 uppercase tracking-widest mb-0.5">
-            <CheckCircle2 className="w-4 h-4 text-gold-700" /> Escena Despejada con Éxito
+            <CheckCircle2 className="w-4 h-4 text-gold-700" /> Buscaminas Despejado
           </div>
           {secretMeaning && (
             <p className="font-serif text-xs font-semibold italic text-crimson-950">

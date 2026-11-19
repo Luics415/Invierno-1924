@@ -157,7 +157,7 @@ export const FutoshikiPuzzle: React.FC<FutoshikiProps> = ({ config, onSolve, isS
 
       {/* Cuadrícula con desigualdades intercaladas */}
       <div className="flex-1 flex items-center justify-center py-1 min-h-0">
-        <div className="inline-flex flex-col items-center p-2 sm:p-3 bg-parchment-100 border-2 border-parchment-400 rounded-lg shadow-inner">
+        <div className="grid justify-items-center p-2 sm:p-3 bg-parchment-100 border-2 border-parchment-400 rounded-lg shadow-inner">
           {displayGrid.map((row, r) => (
             <React.Fragment key={r}>
               <div className="flex items-center">
@@ -172,8 +172,9 @@ export const FutoshikiPuzzle: React.FC<FutoshikiProps> = ({ config, onSolve, isS
                       <button
                         type="button"
                         data-futoshiki-cell={`${r}-${c}`}
+                        disabled={initial}
                         onClick={() => {
-                          if (!isSolved) {
+                          if (!isSolved && !initial) {
                             sound.playPencil();
                             setSelectedCell({ r, c });
                           }
@@ -184,7 +185,7 @@ export const FutoshikiPuzzle: React.FC<FutoshikiProps> = ({ config, onSolve, isS
                             : hasViolation
                             ? 'bg-crimson-100 border-crimson-500 text-crimson-900 font-black'
                             : initial
-                            ? 'bg-parchment-200 border-ink-800 text-ink-950 font-black'
+                            ? 'bg-parchment-200 border-ink-800 text-ink-950 font-black cursor-default'
                             : 'bg-parchment-50 border-parchment-500 text-crimson-800 font-bold hover:bg-white'
                         }`}
                       >
@@ -192,7 +193,10 @@ export const FutoshikiPuzzle: React.FC<FutoshikiProps> = ({ config, onSolve, isS
                       </button>
 
                       {c + 1 < size && (
-                        <div className="w-5 sm:w-6 flex items-center justify-center font-mono font-black text-sm text-crimson-800">
+                        <div
+                          data-futoshiki-ineq={hOp ?? undefined}
+                          className="w-5 sm:w-6 flex items-center justify-center font-mono font-black text-sm text-crimson-800"
+                        >
                           {hOp ?? ''}
                         </div>
                       )}
@@ -209,7 +213,10 @@ export const FutoshikiPuzzle: React.FC<FutoshikiProps> = ({ config, onSolve, isS
                     const symbol = vOp === '<' ? '∧' : vOp === '>' ? '∨' : '';
                     return (
                       <React.Fragment key={c}>
-                        <div className="w-10 sm:w-11 flex items-center justify-center font-mono font-black text-sm text-crimson-800 leading-none">
+                        <div
+                          data-futoshiki-ineq={symbol || undefined}
+                          className="w-10 sm:w-11 flex items-center justify-center font-mono font-black text-sm text-crimson-800 leading-none"
+                        >
                           {symbol}
                         </div>
                         {c + 1 < size && <div className="w-5 sm:w-6" />}
@@ -224,7 +231,7 @@ export const FutoshikiPuzzle: React.FC<FutoshikiProps> = ({ config, onSolve, isS
       </div>
 
       {/* Teclado 1..5 */}
-      <div className="mt-2 p-2 bg-parchment-200/80 rounded-lg border border-parchment-300">
+      <div data-toolbar="true" className="mt-2 p-2 bg-parchment-200/80 rounded-lg border border-parchment-300">
         <div className="flex justify-center items-center gap-2">
           {Array.from({ length: size }, (_, i) => i + 1).map(num => (
             <button
@@ -232,7 +239,7 @@ export const FutoshikiPuzzle: React.FC<FutoshikiProps> = ({ config, onSolve, isS
               key={num}
               data-futoshiki-num={num}
               onClick={() => handleNumberInput(num)}
-              disabled={isSolved || !selectedCell || isInitial(selectedCell.r, selectedCell.c)}
+              disabled={isSolved}
               className="w-9 h-9 text-base font-bold font-serif rounded bg-parchment-50 hover:bg-white text-ink-900 border border-parchment-400 hover:border-crimson-700 shadow-sm active:scale-95 disabled:opacity-40 transition"
             >
               {num}
@@ -241,12 +248,13 @@ export const FutoshikiPuzzle: React.FC<FutoshikiProps> = ({ config, onSolve, isS
           <button
             type="button"
             onClick={handleErase}
-            disabled={isSolved || !selectedCell || isInitial(selectedCell.r, selectedCell.c)}
-            className="w-9 h-9 flex items-center justify-center rounded bg-parchment-50 hover:bg-white text-crimson-800 border border-parchment-400 shadow-sm active:scale-95 disabled:opacity-40 transition"
+            disabled={isSolved}
+            className="px-2.5 h-9 flex items-center justify-center gap-1 rounded bg-parchment-50 hover:bg-white text-crimson-800 border border-parchment-400 text-xs font-semibold shadow-sm active:scale-95 disabled:opacity-40 transition"
             title="Borrar casilla"
             aria-label="Borrar casilla"
           >
-            <Delete className="w-4 h-4" />
+            <Delete className="w-3.5 h-3.5" />
+            <span>Borrar</span>
           </button>
         </div>
       </div>
