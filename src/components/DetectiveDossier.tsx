@@ -191,7 +191,7 @@ export const DetectiveDossier: React.FC<DetectiveDossierProps> = ({ onClose, onO
           <div className="flex items-center gap-3 min-w-0 w-full sm:w-auto sm:flex-1">
             <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-full overflow-hidden bg-[#08090c] border border-[#c5a059]/75 flex items-center justify-center shadow-md shrink-0">
               <img
-                src="/app-icon.jpg"
+                src="./app-icon.jpg"
                 alt="Emblema Cuaderno del Detective"
                 draggable={false}
                 className="pointer-events-none w-full h-full object-cover"

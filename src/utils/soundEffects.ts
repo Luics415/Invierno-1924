@@ -187,7 +187,7 @@ class SoundEngine {
   public playGlassShatter() {
     if (this.isMuted) return;
     try {
-      const customAudio = new Audio('/audio/glass-shatter.mp3');
+      const customAudio = new Audio('./audio/glass-shatter.mp3');
       customAudio.volume = 0.42;
       customAudio.play().catch(() => {
         this.synthesizeRealisticGlassShatter();
@@ -334,7 +334,7 @@ class SoundEngine {
   public playHeavyBreathing() {
     if (this.isMuted) return;
     try {
-      const customAudio = new Audio('/audio/breathing.mp3');
+      const customAudio = new Audio('./audio/breathing.mp3');
       customAudio.volume = 0.25;
       customAudio.play().catch(() => {
         this.synthesizeHeavyBreathing();
@@ -404,7 +404,7 @@ class SoundEngine {
     if (this.isMuted) return;
     try {
       const idx = 1 + Math.floor(Math.random() * 3);
-      const whisperAudio = new Audio(`/audio/whisper-${idx}.mp3`);
+      const whisperAudio = new Audio(`./audio/whisper-${idx}.mp3`);
       whisperAudio.volume = 0.22;
       whisperAudio.play().catch(() => {
         this.playColdWhisper();

@@ -6,10 +6,10 @@ import { FinalVerdictModal } from './components/FinalVerdictModal';
 import { ParanormalEngine } from './components/ParanormalEngine';
 
 const ROOM_BACKGROUNDS = [
-  '/portraits/background-1.png',
-  '/portraits/background-2.png',
-  '/portraits/background-3.png',
-  '/portraits/background-4.png',
+  './portraits/background-1.png',
+  './portraits/background-2.png',
+  './portraits/background-3.png',
+  './portraits/background-4.png',
 ];
 
 export const App: React.FC = () => {

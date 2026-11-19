@@ -115,7 +115,7 @@ export const ParanormalHandsVideo: React.FC<ParanormalHandsVideoProps> = ({
     >
       <video
         ref={videoRef}
-        src="/portraits/hands-creappy-movie.mp4"
+        src="./portraits/hands-creappy-movie.mp4"
         playsInline
         preload="auto"
         className="hidden"
