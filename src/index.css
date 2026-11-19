@@ -1,0 +1,677 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html, body, #root {
+    height: 100%;
+  }
+  body {
+    background-color: #090a0c;
+    color: #121316;
+    font-family: 'Cormorant Garamond', Georgia, serif;
+    overflow-x: hidden;
+  }
+}
+
+/* ============================================================================
+   TOMO ARTESANAL DE CUERO PESADO Y PAPEL HUESO DE ARCHIVO (1924)
+   ============================================================================ */
+
+/* Cubierta estilo novela gráfica Arcane/Dishonored: cuero frío con desgaste sutil y trazo de tinta */
+.book-cover-leather {
+  background-color: #101216;
+  background-image:
+    /* Rozaduras sutiles en esquinas y lomo */
+    radial-gradient(circle at 12% 14%, rgba(168, 146, 108, 0.08) 0%, transparent 28%),
+    radial-gradient(circle at 88% 84%, rgba(168, 146, 108, 0.07) 0%, transparent 26%),
+    /* Planos pictóricos angulares */
+    linear-gradient(132deg, rgba(44, 48, 58, 0.42) 0%, rgba(17, 19, 24, 0.88) 48%, rgba(8, 9, 12, 0.98) 100%),
+    /* Micro-arañazos diagonales de uso */
+    repeating-linear-gradient(
+      124deg,
+      rgba(220, 206, 180, 0.018) 0px,
+      rgba(220, 206, 180, 0.018) 1px,
+      transparent 1px,
+      transparent 11px
+    ),
+    repeating-linear-gradient(
+      42deg,
+      rgba(0, 0, 0, 0.16) 0px,
+      rgba(0, 0, 0, 0.16) 2px,
+      transparent 2px,
+      transparent 9px
+    );
+  box-shadow:
+    0 36px 95px -14px rgba(0, 0, 0, 0.96),
+    0 14px 32px rgba(0, 0, 0, 0.9),
+    0 0 0 2px #07080a,
+    0 0 0 3px rgba(176, 152, 106, 0.28),
+    inset 0 2px 2px rgba(255, 244, 224, 0.08),
+    inset 0 -3px 8px rgba(0, 0, 0, 0.95),
+    inset 0 0 46px rgba(0, 0, 0, 0.9);
+}
+
+/* Textura pictórica de desgaste y marcas de tinta sobre la portada */
+.book-arcane-wear {
+  background-image:
+    linear-gradient(118deg, transparent 42%, rgba(215, 196, 158, 0.05) 42.4%, transparent 43%),
+    linear-gradient(245deg, transparent 66%, rgba(215, 196, 158, 0.04) 66.4%, transparent 67%),
+    radial-gradient(ellipse at 24% 78%, rgba(92, 22, 28, 0.14) 0%, transparent 38%),
+    radial-gradient(ellipse at 82% 18%, rgba(185, 160, 114, 0.07) 0%, transparent 32%);
+}
+
+/* Hojas apiladas con grosor orgánico en los bordes laterales */
+.book-pages-edge {
+  box-shadow:
+    -3px 0 0 0 #DDD8CE,
+    -6px 1px 0 0 #CCC6BA,
+    -9px 2px 0 0 #B8B1A3,
+    3px 0 0 0 #DDD8CE,
+    6px 1px 0 0 #CCC6BA,
+    9px 2px 0 0 #B8B1A3,
+    0 20px 44px rgba(0, 0, 0, 0.85);
+}
+
+/* Pliego izquierdo con curvatura natural hacia el lomo central */
+.page-verso {
+  background:
+    linear-gradient(
+      90deg,
+      #DDD7CB 0%,
+      #ECE8DF 4%,
+      #F2EFE8 18%,
+      #F0ECE4 78%,
+      #E1DBD0 95%,
+      #C8C1B4 100%
+    );
+  box-shadow:
+    inset 0 0 40px rgba(28, 26, 22, 0.08),
+    inset -14px 0 24px -10px rgba(9, 10, 12, 0.32);
+}
+
+/* Pliego derecho con curvatura natural desde el lomo central */
+.page-recto {
+  background:
+    linear-gradient(
+      90deg,
+      #C8C1B4 0%,
+      #E1DBD0 5%,
+      #F0ECE4 22%,
+      #F2EFE8 82%,
+      #ECE8DF 96%,
+      #DDD7CB 100%
+    );
+  box-shadow:
+    inset 0 0 40px rgba(28, 26, 22, 0.08),
+    inset 14px 0 24px -10px rgba(9, 10, 12, 0.32);
+}
+
+/* Línea natural del pliegue cosido del libro (sin barra artificial encima) */
+.book-center-seam {
+  background: linear-gradient(
+    90deg,
+    rgba(9, 10, 12, 0.12) 0%,
+    rgba(9, 10, 12, 0.55) 50%,
+    rgba(9, 10, 12, 0.12) 100%
+  );
+}
+
+/* Papel hueso general para modales y tarjetas */
+.paper-aged {
+  background:
+    radial-gradient(circle at 50% 35%, rgba(244, 242, 238, 0.96) 0%, rgba(232, 228, 220, 0.96) 66%, rgba(215, 210, 200, 0.98) 100%);
+  box-shadow:
+    inset 0 0 48px rgba(42, 40, 35, 0.12),
+    inset 0 1px 0 rgba(255, 255, 255, 0.55);
+}
+
+/* Botones artesanales de época */
+.btn-ledger {
+  background: linear-gradient(180deg, #1d1f24 0%, #121317 100%);
+  border: 1px solid rgba(158, 144, 114, 0.35);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.08),
+    0 2px 6px rgba(0, 0, 0, 0.45);
+}
+.btn-ledger:hover {
+  background: linear-gradient(180deg, #272a31 0%, #181a1f 100%);
+  border-color: rgba(206, 196, 174, 0.55);
+}
+
+.btn-crimson-wax {
+  background: linear-gradient(180deg, #6b171c 0%, #480d11 100%);
+  border: 1px solid rgba(184, 171, 142, 0.42);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 220, 220, 0.16),
+    0 3px 10px rgba(27, 3, 4, 0.6);
+}
+.btn-crimson-wax:hover {
+  background: linear-gradient(180deg, #7d1c22 0%, #581015 100%);
+}
+
+/* Inicial capitular sobria y fina */
+.drop-cap-victorian {
+  float: left;
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-size: 2.5rem;
+  line-height: 0.82;
+  font-weight: 600;
+  color: #5A1216;
+  background: linear-gradient(145deg, #F4F2EE 0%, #DFDAD0 100%);
+  border: 1px solid #9E9072;
+  box-shadow:
+    inset 0 0 0 2px rgba(90, 18, 22, 0.08),
+    0 2px 5px rgba(18, 19, 22, 0.14);
+  padding: 0.22rem 0.45rem 0.18rem 0.45rem;
+  margin-right: 0.55rem;
+  margin-top: 0.08rem;
+  border-radius: 0.15rem;
+}
+
+/* Divisores ornamentales finos sin emojis */
+.ornamental-divider {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+}
+.ornamental-divider::before,
+.ornamental-divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(126, 114, 88, 0.55) 50%,
+    transparent 100%
+  );
+}
+
+/* ============================================================================
+   ESTILOS DE DOCUMENTOS PROBATORIOS FRÍOS Y SOBRIOS
+   ============================================================================ */
+
+.typewriter-doc {
+  background-color: #EFECE5;
+  border-left: 3px double #827B6D;
+  box-shadow: inset 0 0 18px rgba(42, 40, 35, 0.08);
+}
+
+.evidence-letter {
+  background: linear-gradient(160deg, #F4F2EE 0%, #E6E2D9 100%);
+  border: 1px solid #B8B1A2;
+  border-left: 4px double #5A1216;
+  box-shadow:
+    0 3px 10px rgba(9, 10, 12, 0.08),
+    inset 0 0 18px rgba(130, 123, 109, 0.1);
+}
+
+.evidence-telegram {
+  background:
+    repeating-linear-gradient(
+      0deg,
+      rgba(130, 123, 109, 0.05) 0px,
+      rgba(130, 123, 109, 0.05) 1px,
+      transparent 1px,
+      transparent 20px
+    ),
+    linear-gradient(135deg, #EEEBE3 0%, #E2DDD2 100%);
+  border: 1.5px dashed #645F54;
+  box-shadow: 0 3px 8px rgba(9, 10, 12, 0.08);
+}
+
+.evidence-autopsy {
+  background: linear-gradient(180deg, #F5F5F3 0%, #E7E6E2 100%);
+  border: 1px solid #A3A5AE;
+  border-top: 4px double #5A1216;
+  box-shadow: 0 3px 8px rgba(9, 10, 12, 0.08);
+}
+
+.evidence-diary {
+  background:
+    repeating-linear-gradient(
+      transparent,
+      transparent 21px,
+      rgba(130, 123, 109, 0.14) 21px,
+      rgba(130, 123, 109, 0.14) 22px
+    ),
+    linear-gradient(135deg, #F2EFE9 0%, #E5E0D5 100%);
+  border: 1px solid #B8B1A2;
+  border-left: 4px solid #645F54;
+}
+
+.evidence-newspaper {
+  background: linear-gradient(135deg, #EBE9E4 0%, #DDD9D0 100%);
+  border-top: 3px double #2A2C32;
+  border-bottom: 3px double #2A2C32;
+  border-left: 1px solid #9E9687;
+  border-right: 1px solid #9E9687;
+}
+
+.evidence-map {
+  background:
+    linear-gradient(rgba(100, 95, 84, 0.07) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(100, 95, 84, 0.07) 1px, transparent 1px),
+    linear-gradient(135deg, #EFECE5 0%, #E2DDD3 100%);
+  background-size: 16px 16px, 16px 16px, 100% 100%;
+  border: 1.5px solid #645F54;
+}
+
+.evidence-photo {
+  background: linear-gradient(135deg, #EEEDE9 0%, #DFDCD5 100%);
+  border: 2px solid #3D3F47;
+  box-shadow: inset 0 0 0 3px #F4F2EE;
+}
+
+/* ============================================================================
+   SELLOS DE LACRE Y ANIMACIÓN DE PASAR PÁGINA 3D SUTIL
+   ============================================================================ */
+
+.wax-seal-badge {
+  background: radial-gradient(circle at 35% 30%, #84282C 0%, #5A1216 55%, #2E0709 100%);
+  box-shadow:
+    0 4px 10px rgba(46, 7, 9, 0.55),
+    inset 0 2px 3px rgba(255, 220, 220, 0.25),
+    inset 0 -2px 4px rgba(27, 3, 4, 0.8);
+  border: 1px solid rgba(158, 144, 114, 0.5);
+}
+
+.wax-seal-gold {
+  background: radial-gradient(circle at 35% 30%, #CEC4AE 0%, #9E9072 55%, #615742 100%);
+  box-shadow:
+    0 4px 10px rgba(42, 40, 35, 0.45),
+    inset 0 2px 3px rgba(255, 255, 255, 0.4),
+    inset 0 -2px 4px rgba(27, 28, 32, 0.65);
+  border: 1px solid rgba(244, 242, 238, 0.55);
+}
+
+/* Custom scrollbar interno discreto */
+::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(61, 63, 71, 0.45);
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(126, 114, 88, 0.75);
+}
+
+@keyframes wax-seal-pop {
+  0% { transform: scale(0.6) rotate(-15deg); opacity: 0; }
+  70% { transform: scale(1.1) rotate(5deg); opacity: 1; }
+  100% { transform: scale(1) rotate(0deg); opacity: 1; }
+}
+
+.animate-wax-pop {
+  animation: wax-seal-pop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+
+/* Animación sutil y elegante de pasar página hacia adelante y atrás */
+@keyframes page-turn-next {
+  0% {
+    opacity: 0.25;
+    transform: perspective(1800px) rotateY(-8deg) scale(0.992);
+    transform-origin: center center;
+  }
+  100% {
+    opacity: 1;
+    transform: perspective(1800px) rotateY(0deg) scale(1);
+    transform-origin: center center;
+  }
+}
+
+@keyframes page-turn-prev {
+  0% {
+    opacity: 0.25;
+    transform: perspective(1800px) rotateY(8deg) scale(0.992);
+    transform-origin: center center;
+  }
+  100% {
+    opacity: 1;
+    transform: perspective(1800px) rotateY(0deg) scale(1);
+    transform-origin: center center;
+  }
+}
+
+/* Hoja translúcida deslizándose en el cambio de página */
+@keyframes leaf-sweep-next {
+  0% {
+    opacity: 0.55;
+    transform: perspective(1800px) rotateY(0deg);
+  }
+  50% {
+    opacity: 0.45;
+  }
+  100% {
+    opacity: 0;
+    transform: perspective(1800px) rotateY(-170deg);
+  }
+}
+
+@keyframes leaf-sweep-prev {
+  0% {
+    opacity: 0.55;
+    transform: perspective(1800px) rotateY(0deg);
+  }
+  50% {
+    opacity: 0.45;
+  }
+  100% {
+    opacity: 0;
+    transform: perspective(1800px) rotateY(170deg);
+  }
+}
+
+.animate-page-turn {
+  animation: page-turn-next 0.45s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+.animate-page-turn-prev {
+  animation: page-turn-prev 0.45s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+.animate-leaf-next {
+  transform-origin: left center;
+  animation: leaf-sweep-next 0.52s cubic-bezier(0.25, 0.8, 0.25, 1) forwards;
+}
+
+.animate-leaf-prev {
+  transform-origin: right center;
+  animation: leaf-sweep-prev 0.52s cubic-bezier(0.25, 0.8, 0.25, 1) forwards;
+}
+
+/* Retrato sutil en reposo / hover */
+@keyframes portrait-breathe {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.016); }
+}
+
+.portrait-idle:hover {
+  animation: portrait-breathe 3.5s ease-in-out infinite;
+}
+
+/* ============================================================================
+   SUCESOS PARANORMALES EN SEGUNDO PLANO
+   ============================================================================ */
+
+@keyframes paranormal-shadow-pass {
+  0% {
+    transform: translateX(-30vw) scaleY(1.05);
+    opacity: 0;
+  }
+  15% {
+    opacity: 0.88;
+  }
+  80% {
+    opacity: 0.82;
+  }
+  100% {
+    transform: translateX(115vw) scaleY(1);
+    opacity: 0;
+  }
+}
+
+.animate-paranormal-shadow {
+  animation: paranormal-shadow-pass 0.68s cubic-bezier(0.2, 0.8, 0.3, 1) forwards;
+}
+
+@keyframes paranormal-light-flicker {
+  0% { opacity: 0; }
+  6% { opacity: 0.94; }
+  12% { opacity: 0.04; }
+  17% { opacity: 0.96; }
+  23% { opacity: 0; }
+  36% { opacity: 0.9; }
+  41% { opacity: 0.12; }
+  47% { opacity: 0.95; }
+  56% { opacity: 0; }
+  74% { opacity: 0.88; }
+  80% { opacity: 0.05; }
+  88% { opacity: 0.72; }
+  100% { opacity: 0; }
+}
+
+.animate-paranormal-flicker {
+  animation: paranormal-light-flicker 0.95s steps(1, end) forwards;
+}
+
+/* Barra superior de cuero cosido estilo libreta de detective */
+.header-leather-bar {
+  background-color: #111317;
+  background-image:
+    linear-gradient(180deg, rgba(36, 39, 46, 0.92) 0%, rgba(16, 18, 22, 0.97) 58%, rgba(9, 10, 13, 0.99) 100%),
+    repeating-linear-gradient(
+      125deg,
+      rgba(220, 206, 180, 0.016) 0px,
+      rgba(220, 206, 180, 0.016) 1px,
+      transparent 1px,
+      transparent 9px
+    );
+  box-shadow:
+    0 14px 32px rgba(0, 0, 0, 0.88),
+    inset 0 1px 0 rgba(255, 244, 220, 0.09),
+    inset 0 -1px 0 rgba(183, 155, 101, 0.28);
+}
+
+/* Hoja arrancada con renglones suaves para la declaración escrita */
+.torn-note-paper {
+  background-color: #faf6eb;
+  background-image:
+    repeating-linear-gradient(
+      180deg,
+      transparent 0px,
+      transparent 23px,
+      rgba(96, 118, 148, 0.14) 24px
+    );
+  box-shadow:
+    0 6px 18px rgba(10, 12, 16, 0.16),
+    inset 0 0 18px rgba(158, 144, 114, 0.16);
+}
+
+/* Manos sombrías emergiendo de los bordes del libro */
+@keyframes snatch-hand-left {
+  0% {
+    transform: translateX(-85%) translateY(8px) rotate(-8deg) scale(0.92);
+    opacity: 0;
+  }
+  25% {
+    transform: translateX(-8%) translateY(0px) rotate(2deg) scale(1);
+    opacity: 0.94;
+  }
+  42% {
+    transform: translateX(4%) translateY(-4px) rotate(5deg) scale(1.04);
+    opacity: 0.96;
+  }
+  65% {
+    transform: translateX(-4%) translateY(2px) rotate(0deg) scale(1);
+    opacity: 0.9;
+  }
+  100% {
+    transform: translateX(-92%) translateY(10px) rotate(-10deg) scale(0.9);
+    opacity: 0;
+  }
+}
+
+@keyframes snatch-hand-right {
+  0% {
+    transform: translateX(85%) translateY(8px) rotate(8deg) scale(0.92);
+    opacity: 0;
+  }
+  25% {
+    transform: translateX(8%) translateY(0px) rotate(-2deg) scale(1);
+    opacity: 0.94;
+  }
+  42% {
+    transform: translateX(-4%) translateY(-4px) rotate(-5deg) scale(1.04);
+    opacity: 0.96;
+  }
+  65% {
+    transform: translateX(4%) translateY(2px) rotate(0deg) scale(1);
+    opacity: 0.9;
+  }
+  100% {
+    transform: translateX(92%) translateY(10px) rotate(10deg) scale(0.9);
+    opacity: 0;
+  }
+}
+
+.animate-snatch-hand-left {
+  animation: snatch-hand-left 2.0s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+.animate-snatch-hand-right {
+  animation: snatch-hand-right 2.0s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+/* Separador de tela asomándose del libro cerrado */
+@keyframes ribbon-sway {
+  0%, 100% {
+    transform: rotate(-1.5deg);
+  }
+  50% {
+    transform: rotate(2deg);
+  }
+}
+
+.animate-ribbon-sway {
+  transform-origin: top center;
+  animation: ribbon-sway 4.2s ease-in-out infinite;
+}
+
+/* Animación de nieve ligera de fondo */
+@keyframes snowfall {
+  0% { transform: translateY(-10px) translateX(0); opacity: 0; }
+  20% { opacity: 0.75; }
+  100% { transform: translateY(100vh) translateX(20px); opacity: 0.15; }
+}
+
+.snow-particle {
+  position: fixed;
+  top: -10px;
+  pointer-events: none;
+  background: #eef2f6;
+  border-radius: 50%;
+  animation: snowfall linear infinite;
+}
+
+/* Entrada escalonada de las 24 ventanas del Archivo Cronológico */
+@keyframes calendar-window-in {
+  0% {
+    opacity: 0;
+    transform: translateY(10px) scale(0.96);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.animate-calendar-window {
+  opacity: 0;
+  animation: calendar-window-in 0.36s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+/* Animaciones del Menú Radial de Detective Azlynn */
+@keyframes radial-center-pop {
+  0% {
+    opacity: 0;
+    transform: scale(0.72);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.animate-radial-center {
+  animation: radial-center-pop 0.34s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+@keyframes radial-ring-slow {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-radial-ring {
+  animation: radial-ring-slow 48s linear infinite;
+}
+
+/* ============================================================================
+   HOJAS LATERALES QUE SOBRESALEN DEL LIBRO ABIERTO (ILUSIÓN DE EXPEDIENTE LLENO)
+   ============================================================================ */
+.book-protruding-sheet {
+  position: absolute;
+  pointer-events: none;
+  background-color: #e5ded0;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.45);
+  border: 1px solid #b5ab96;
+}
+
+/* ============================================================================
+   ROTACIÓN 3D DE FOTOGRAFÍAS (VOLTEAR AL CLIC PARA VER NOTAS TRASERAS)
+   ============================================================================ */
+.photo-flip-card {
+  perspective: 1200px;
+}
+
+.photo-flip-inner {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  transition: transform 0.6s cubic-bezier(0.23, 1, 0.32, 1);
+  transform-style: preserve-3d;
+}
+
+.photo-flip-inner.is-flipped {
+  transform: rotateY(180deg);
+}
+
+.photo-flip-front,
+.photo-flip-back {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+}
+
+.photo-flip-back {
+  transform: rotateY(180deg);
+}
+
+/* ============================================================================
+   LATIDO CARDÍACO VISCERAL EN LA AUDIENCIA FORMAL DE ACUSACIÓN
+   ============================================================================ */
+@keyframes verdict-heartbeat-glow {
+  0%, 100% {
+    box-shadow: inset 0 0 80px rgba(50, 4, 8, 0.82);
+  }
+  15% {
+    box-shadow: inset 0 0 140px rgba(110, 10, 20, 0.95), 0 0 50px rgba(80, 8, 14, 0.5);
+  }
+  30% {
+    box-shadow: inset 0 0 95px rgba(65, 6, 12, 0.86);
+  }
+  45% {
+    box-shadow: inset 0 0 155px rgba(130, 12, 24, 0.98), 0 0 65px rgba(100, 10, 18, 0.6);
+  }
+  70% {
+    box-shadow: inset 0 0 80px rgba(50, 4, 8, 0.82);
+  }
+}
+
+.animate-verdict-heartbeat {
+  animation: verdict-heartbeat-glow 1.12s ease-in-out infinite;
+}
