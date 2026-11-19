@@ -25,7 +25,7 @@ export const SUSPECTS_DIRECTORY: DirectorySuspect[] = [
     motiveSummary:
       'Arturo descubrió sus deudas de juego y los pagarés vencidos esa misma tarde, amenazando con ejecutar su ruina patrimonial antes de medianoche.',
     avatarIcon: '01',
-    portraitGif: '/portraits/01-elena.png',
+    portraitGif: './portraits/01-elena.png',
     attributes: {
       ageGroup: 'adulto',
       handedness: 'diestro',
@@ -57,7 +57,7 @@ export const SUSPECTS_DIRECTORY: DirectorySuspect[] = [
     motiveSummary:
       'Quería impedir que Arturo usurpara y publicara su manuscrito inédito bajo nombre propio.',
     avatarIcon: '02',
-    portraitGif: '/portraits/02-mateo.png',
+    portraitGif: './portraits/02-mateo.png',
     attributes: {
       ageGroup: 'adulto',
       handedness: 'diestro',
@@ -89,7 +89,7 @@ export const SUSPECTS_DIRECTORY: DirectorySuspect[] = [
     motiveSummary:
       'El nuevo testamento suprimía su pensión hereditaria y la dejaba sin sustento en la vejez.',
     avatarIcon: '03',
-    portraitGif: '/portraits/03-beatriz.png',
+    portraitGif: './portraits/03-beatriz.png',
     attributes: {
       ageGroup: 'veterano',
       handedness: 'diestro',
@@ -121,7 +121,7 @@ export const SUSPECTS_DIRECTORY: DirectorySuspect[] = [
     motiveSummary:
       'Buscaba evitar que Arturo reclamara sus deudas de juego y lo denunciara por los caballos empeñados.',
     avatarIcon: '04',
-    portraitGif: '/portraits/04-gonzalo.png',
+    portraitGif: './portraits/04-gonzalo.png',
     attributes: {
       ageGroup: 'adulto',
       handedness: 'zurdo',
@@ -153,7 +153,7 @@ export const SUSPECTS_DIRECTORY: DirectorySuspect[] = [
     motiveSummary:
       'Arturo lo chantajeaba con entregar a la policía las pruebas de los grabados sustituidos.',
     avatarIcon: '05',
-    portraitGif: '/portraits/05-carlos.png',
+    portraitGif: './portraits/05-carlos.png',
     attributes: {
       ageGroup: 'adulto',
       handedness: 'diestro',
@@ -185,7 +185,7 @@ export const SUSPECTS_DIRECTORY: DirectorySuspect[] = [
     motiveSummary:
       'Temía que Arturo hiciera público un compromiso privado secreto y la dejara fuera de toda herencia.',
     avatarIcon: '06',
-    portraitGif: '/portraits/06-ines.png',
+    portraitGif: './portraits/06-ines.png',
     attributes: {
       ageGroup: 'joven',
       handedness: 'ambidiestro',
@@ -217,7 +217,7 @@ export const SUSPECTS_DIRECTORY: DirectorySuspect[] = [
     motiveSummary:
       'La lectura del nuevo testamento le arrebataba su última participación en la herencia familiar.',
     avatarIcon: '07',
-    portraitGif: '/portraits/07-felipe.png',
+    portraitGif: './portraits/07-felipe.png',
     attributes: {
       ageGroup: 'maduro',
       handedness: 'diestro',
@@ -249,7 +249,7 @@ export const SUSPECTS_DIRECTORY: DirectorySuspect[] = [
     motiveSummary:
       'Quería impedir que Arturo revelara un secreto de cuna que deshonraría el apellido Valdemar.',
     avatarIcon: '08',
-    portraitGif: '/portraits/08-leonor.png',
+    portraitGif: './portraits/08-leonor.png',
     attributes: {
       ageGroup: 'veterano',
       handedness: 'diestro',
@@ -281,7 +281,7 @@ export const SUSPECTS_DIRECTORY: DirectorySuspect[] = [
     motiveSummary:
       'Estaba acorralado por la ejecución de sus deudas navieras avaladas por Arturo.',
     avatarIcon: '09',
-    portraitGif: '/portraits/09-hugo.png',
+    portraitGif: './portraits/09-hugo.png',
     attributes: {
       ageGroup: 'joven',
       handedness: 'ambidiestro',
@@ -313,7 +313,7 @@ export const SUSPECTS_DIRECTORY: DirectorySuspect[] = [
     motiveSummary:
       'Defendía su derecho hereditario y su carrera jurídica frente a la desheredación inminente.',
     avatarIcon: '10',
-    portraitGif: '/portraits/10-valentina.png',
+    portraitGif: './portraits/10-valentina.png',
     attributes: {
       ageGroup: 'joven',
       handedness: 'zurdo',
@@ -345,7 +345,7 @@ export const SUSPECTS_DIRECTORY: DirectorySuspect[] = [
     motiveSummary:
       'Buscaba venganza personal por los años de prisión injusta y la ruina a la que Arturo lo condenó.',
     avatarIcon: '11',
-    portraitGif: '/portraits/11-ramiro.png',
+    portraitGif: './portraits/11-ramiro.png',
     attributes: {
       ageGroup: 'adulto',
       handedness: 'diestro',
@@ -377,7 +377,7 @@ export const SUSPECTS_DIRECTORY: DirectorySuspect[] = [
     motiveSummary:
       'Temía ser acusada de sustraer correspondencia y documentos privados del ala este para encubrir a su familia.',
     avatarIcon: '12',
-    portraitGif: '/portraits/12-diana.png',
+    portraitGif: './portraits/12-diana.png',
     attributes: {
       ageGroup: 'joven',
       handedness: 'zurdo',
@@ -413,7 +413,7 @@ export const SUSPECTS_DIRECTORY: DirectorySuspect[] = [
     motiveSummary:
       'Arturo la chantajeaba con un antiguo expediente clínico para obligarla a firmar dictámenes falsos.',
     avatarIcon: '13',
-    portraitGif: '/portraits/13-clara.png',
+    portraitGif: './portraits/13-clara.png',
     attributes: {
       ageGroup: 'maduro',
       handedness: 'ambidiestro',
@@ -445,7 +445,7 @@ export const SUSPECTS_DIRECTORY: DirectorySuspect[] = [
     motiveSummary:
       'Aceptó el compromiso solo para acercarse a Arturo y vengar el suicidio de su padre.',
     avatarIcon: '14',
-    portraitGif: '/portraits/14-sofia.png',
+    portraitGif: './portraits/14-sofia.png',
     attributes: {
       ageGroup: 'joven',
       handedness: 'ambidiestro',
@@ -477,7 +477,7 @@ export const SUSPECTS_DIRECTORY: DirectorySuspect[] = [
     motiveSummary:
       'Necesitaba proteger el secreto del expolio parroquial antes de que Arturo entregara las actas.',
     avatarIcon: '15',
-    portraitGif: '/portraits/15-tomas.png',
+    portraitGif: './portraits/15-tomas.png',
     attributes: {
       ageGroup: 'veterano',
       handedness: 'diestro',
@@ -509,7 +509,7 @@ export const SUSPECTS_DIRECTORY: DirectorySuspect[] = [
     motiveSummary:
       'Debía encubrir sus alteraciones en las escrituras previas antes de la denuncia notarial.',
     avatarIcon: '16',
-    portraitGif: '/portraits/16-alvaro.png',
+    portraitGif: './portraits/16-alvaro.png',
     attributes: {
       ageGroup: 'maduro',
       handedness: 'diestro',
@@ -541,7 +541,7 @@ export const SUSPECTS_DIRECTORY: DirectorySuspect[] = [
     motiveSummary:
       'Sufría chantaje directo de Arturo por las actas reservadas de sus errores quirúrgicos.',
     avatarIcon: '17',
-    portraitGif: '/portraits/17-ernesto.png',
+    portraitGif: './portraits/17-ernesto.png',
     attributes: {
       ageGroup: 'maduro',
       handedness: 'zurdo',
@@ -573,7 +573,7 @@ export const SUSPECTS_DIRECTORY: DirectorySuspect[] = [
     motiveSummary:
       'Buscaba vengar la afrenta pública contra su honor militar y su colección en Madrid.',
     avatarIcon: '18',
-    portraitGif: '/portraits/18-klaus.png',
+    portraitGif: './portraits/18-klaus.png',
     attributes: {
       ageGroup: 'veterano',
       handedness: 'zurdo',
@@ -605,7 +605,7 @@ export const SUSPECTS_DIRECTORY: DirectorySuspect[] = [
     motiveSummary:
       'La ejecución de los pagarés de Arturo en enero la condenaba a perder todas sus fincas por deudas.',
     avatarIcon: '19',
-    portraitGif: '/portraits/19-maria.png',
+    portraitGif: './portraits/19-maria.png',
     attributes: {
       ageGroup: 'adulto',
       handedness: 'diestro',
@@ -637,7 +637,7 @@ export const SUSPECTS_DIRECTORY: DirectorySuspect[] = [
     motiveSummary:
       'Quería recuperar sus textos comprometedores y frenar el libelo editorial con que Arturo lo amenazaba.',
     avatarIcon: '20',
-    portraitGif: '/portraits/20-sebastian.png',
+    portraitGif: './portraits/20-sebastian.png',
     attributes: {
       ageGroup: 'adulto',
       handedness: 'ambidiestro',
@@ -669,7 +669,7 @@ export const SUSPECTS_DIRECTORY: DirectorySuspect[] = [
     motiveSummary:
       'Ansiaba vengarse del hombre que la explotó como falsificadora y planeaba delatarla.',
     avatarIcon: '21',
-    portraitGif: '/portraits/21-teresa.png',
+    portraitGif: './portraits/21-teresa.png',
     attributes: {
       ageGroup: 'adulto',
       handedness: 'diestro',
@@ -701,7 +701,7 @@ export const SUSPECTS_DIRECTORY: DirectorySuspect[] = [
     motiveSummary:
       'Afrontaba quiebra personal y cárcel por las deudas ocultas en el fideicomiso bancario.',
     avatarIcon: '22',
-    portraitGif: '/portraits/22-ignacio.png',
+    portraitGif: './portraits/22-ignacio.png',
     attributes: {
       ageGroup: 'maduro',
       handedness: 'diestro',
@@ -733,7 +733,7 @@ export const SUSPECTS_DIRECTORY: DirectorySuspect[] = [
     motiveSummary:
       'Sufría chantaje laboral y personal de Arturo, quien poseía las llaves de sus archivos reservados.',
     avatarIcon: '23',
-    portraitGif: '/portraits/23-lucia.png',
+    portraitGif: './portraits/23-lucia.png',
     attributes: {
       ageGroup: 'joven',
       handedness: 'diestro',
@@ -765,7 +765,7 @@ export const SUSPECTS_DIRECTORY: DirectorySuspect[] = [
     motiveSummary:
       'Necesitaba recuperar y ocultar los códices y legajos alterados antes de perder su cátedra.',
     avatarIcon: '24',
-    portraitGif: '/portraits/24-daniel.png',
+    portraitGif: './portraits/24-daniel.png',
     attributes: {
       ageGroup: 'veterano',
       handedness: 'diestro',
@@ -797,7 +797,7 @@ export const SUSPECTS_DIRECTORY: DirectorySuspect[] = [
     motiveSummary:
       'La liquidación bursátil ordenada por Arturo lo abocaba a la quiebra y a prisión por deudas.',
     avatarIcon: '25',
-    portraitGif: '/portraits/25-matias.png',
+    portraitGif: './portraits/25-matias.png',
     attributes: {
       ageGroup: 'adulto',
       handedness: 'diestro',
@@ -829,7 +829,7 @@ export const SUSPECTS_DIRECTORY: DirectorySuspect[] = [
     motiveSummary:
       'Quería rescatar los manuscritos poéticos y cartas íntimas que Arturo guardaba bajo llave.',
     avatarIcon: '26',
-    portraitGif: '/portraits/26-carmen.png',
+    portraitGif: './portraits/26-carmen.png',
     attributes: {
       ageGroup: 'adulto',
       handedness: 'diestro',
@@ -861,7 +861,7 @@ export const SUSPECTS_DIRECTORY: DirectorySuspect[] = [
     motiveSummary:
       'Temía que Arturo filtrara su secreto biográfico si publicaba los escándalos financieros de la familia.',
     avatarIcon: '27',
-    portraitGif: '/portraits/27-lucas.png',
+    portraitGif: './portraits/27-lucas.png',
     attributes: {
       ageGroup: 'joven',
       handedness: 'zurdo',
@@ -893,7 +893,7 @@ export const SUSPECTS_DIRECTORY: DirectorySuspect[] = [
     motiveSummary:
       'Buscaba encubrir la entrega ilegal de preparados tóxicos y sedantes sin receta.',
     avatarIcon: '28',
-    portraitGif: '/portraits/28-jaime.png',
+    portraitGif: './portraits/28-jaime.png',
     attributes: {
       ageGroup: 'maduro',
       handedness: 'ambidiestro',
@@ -925,7 +925,7 @@ export const SUSPECTS_DIRECTORY: DirectorySuspect[] = [
     motiveSummary:
       'Arturo la chantajeaba con entregar su antiguo expediente judicial a la prensa teatral.',
     avatarIcon: '29',
-    portraitGif: '/portraits/29-adriana.png',
+    portraitGif: './portraits/29-adriana.png',
     attributes: {
       ageGroup: 'adulto',
       handedness: 'diestro',
@@ -957,7 +957,7 @@ export const SUSPECTS_DIRECTORY: DirectorySuspect[] = [
     motiveSummary:
       'Buscaba vengar la ruina y la muerte de su hermano provocadas por Arturo.',
     avatarIcon: '30',
-    portraitGif: '/portraits/30-aurelio.png',
+    portraitGif: './portraits/30-aurelio.png',
     attributes: {
       ageGroup: 'veterano',
       handedness: 'diestro',
@@ -993,7 +993,7 @@ export const SUSPECTS_DIRECTORY: DirectorySuspect[] = [
     motiveSummary:
       'Afrontaba un despido humillante y sin pensión tras treinta años de servicio.',
     avatarIcon: '31',
-    portraitGif: '/portraits/31-julian.png',
+    portraitGif: './portraits/31-julian.png',
     attributes: {
       ageGroup: 'maduro',
       handedness: 'diestro',
@@ -1025,7 +1025,7 @@ export const SUSPECTS_DIRECTORY: DirectorySuspect[] = [
     motiveSummary:
       'Necesitaba proteger el secreto de su pasado maternal antes de que Arturo lo divulgara.',
     avatarIcon: '32',
-    portraitGif: '/portraits/32-rosaura.png',
+    portraitGif: './portraits/32-rosaura.png',
     attributes: {
       ageGroup: 'maduro',
       handedness: 'diestro',
@@ -1057,7 +1057,7 @@ export const SUSPECTS_DIRECTORY: DirectorySuspect[] = [
     motiveSummary:
       'Temía el despido inmediato sin paga tras sufrir humillaciones públicas en la cocina.',
     avatarIcon: '33',
-    portraitGif: '/portraits/33-bruno.png',
+    portraitGif: './portraits/33-bruno.png',
     attributes: {
       ageGroup: 'adulto',
       handedness: 'ambidiestro',
@@ -1089,7 +1089,7 @@ export const SUSPECTS_DIRECTORY: DirectorySuspect[] = [
     motiveSummary:
       'Buscaba encubrir la desaparición de guarniciones y monturas de las caballerizas.',
     avatarIcon: '34',
-    portraitGif: '/portraits/34-mateo.png',
+    portraitGif: './portraits/34-mateo.png',
     attributes: {
       ageGroup: 'joven',
       handedness: 'diestro',
@@ -1121,7 +1121,7 @@ export const SUSPECTS_DIRECTORY: DirectorySuspect[] = [
     motiveSummary:
       'Guardaba el secreto de las cartas filtradas por soborno antes de ser entregada a la Guardia Civil.',
     avatarIcon: '35',
-    portraitGif: '/portraits/35-francisca.png',
+    portraitGif: './portraits/35-francisca.png',
     attributes: {
       ageGroup: 'joven',
       handedness: 'zurdo',
@@ -1153,7 +1153,7 @@ export const SUSPECTS_DIRECTORY: DirectorySuspect[] = [
     motiveSummary:
       'Se enfrentaba al despido y desahucio de su vivienda tras cuarenta años guardando la finca.',
     avatarIcon: '36',
-    portraitGif: '/portraits/36-evaristo.png',
+    portraitGif: './portraits/36-evaristo.png',
     attributes: {
       ageGroup: 'veterano',
       handedness: 'diestro',
@@ -1185,7 +1185,7 @@ export const SUSPECTS_DIRECTORY: DirectorySuspect[] = [
     motiveSummary:
       'Estaba sometido a chantaje por el contrabando descubierto en el automóvil de la casa.',
     avatarIcon: '37',
-    portraitGif: '/portraits/37-gaspar.png',
+    portraitGif: './portraits/37-gaspar.png',
     attributes: {
       ageGroup: 'adulto',
       handedness: 'diestro',
@@ -1217,7 +1217,7 @@ export const SUSPECTS_DIRECTORY: DirectorySuspect[] = [
     motiveSummary:
       'Ocultaba el secreto familiar de su hermano y temía que Arturo lo delatara a la Guardia Civil.',
     avatarIcon: '38',
-    portraitGif: '/portraits/38-emilia.png',
+    portraitGif: './portraits/38-emilia.png',
     attributes: {
       ageGroup: 'joven',
       handedness: 'zurdo',
@@ -1249,7 +1249,7 @@ export const SUSPECTS_DIRECTORY: DirectorySuspect[] = [
     motiveSummary:
       'Guardaba rencor y sed de venganza tras ser amenazado con exponer su pasado penal.',
     avatarIcon: '39',
-    portraitGif: '/portraits/39-jacinto.png',
+    portraitGif: './portraits/39-jacinto.png',
     attributes: {
       ageGroup: 'maduro',
       handedness: 'diestro',
@@ -1281,7 +1281,7 @@ export const SUSPECTS_DIRECTORY: DirectorySuspect[] = [
     motiveSummary:
       'Temía que descubrieran su secreto tráfico de encajes y telas de la mansión.',
     avatarIcon: '40',
-    portraitGif: '/portraits/40-mercedes.png',
+    portraitGif: './portraits/40-mercedes.png',
     attributes: {
       ageGroup: 'adulto',
       handedness: 'diestro',
@@ -1313,7 +1313,7 @@ export const SUSPECTS_DIRECTORY: DirectorySuspect[] = [
     motiveSummary:
       'Afrontaba el despido inmediato y la pérdida de su huerto tras décadas de servicio.',
     avatarIcon: '41',
-    portraitGif: '/portraits/41-anselmo.png',
+    portraitGif: './portraits/41-anselmo.png',
     attributes: {
       ageGroup: 'maduro',
       handedness: 'zurdo',
@@ -1345,7 +1345,7 @@ export const SUSPECTS_DIRECTORY: DirectorySuspect[] = [
     motiveSummary:
       'Desesperada por el despido anunciado y el desahucio inminente de sus padres.',
     avatarIcon: '42',
-    portraitGif: '/portraits/42-clara.png',
+    portraitGif: './portraits/42-clara.png',
     attributes: {
       ageGroup: 'joven',
       handedness: 'diestro',
@@ -1377,7 +1377,7 @@ export const SUSPECTS_DIRECTORY: DirectorySuspect[] = [
     motiveSummary:
       'Necesitaba encubrir la sustracción continuada de reservas históricas antes del inventario navideño.',
     avatarIcon: '43',
-    portraitGif: '/portraits/43-teodoro.png',
+    portraitGif: './portraits/43-teodoro.png',
     attributes: {
       ageGroup: 'adulto',
       handedness: 'diestro',
@@ -1409,7 +1409,7 @@ export const SUSPECTS_DIRECTORY: DirectorySuspect[] = [
     motiveSummary:
       'Temía el despido inmediato tras descubrir Arturo su antigua condena penitenciaria.',
     avatarIcon: '44',
-    portraitGif: '/portraits/44-aurelia.png',
+    portraitGif: './portraits/44-aurelia.png',
     attributes: {
       ageGroup: 'adulto',
       handedness: 'ambidiestro',
@@ -1441,7 +1441,7 @@ export const SUSPECTS_DIRECTORY: DirectorySuspect[] = [
     motiveSummary:
       'Estaba chantajeado por Arturo a raíz de las facturas fraudulentas del tendido eléctrico.',
     avatarIcon: '45',
-    portraitGif: '/portraits/45-vicente.png',
+    portraitGif: './portraits/45-vicente.png',
     attributes: {
       ageGroup: 'joven',
       handedness: 'zurdo',
@@ -1473,7 +1473,7 @@ export const SUSPECTS_DIRECTORY: DirectorySuspect[] = [
     motiveSummary:
       'Necesitaba proteger el secreto de su identidad frente a la amenaza de expulsión.',
     avatarIcon: '46',
-    portraitGif: '/portraits/46-manuela.png',
+    portraitGif: './portraits/46-manuela.png',
     attributes: {
       ageGroup: 'adulto',
       handedness: 'diestro',
@@ -1505,7 +1505,7 @@ export const SUSPECTS_DIRECTORY: DirectorySuspect[] = [
     motiveSummary:
       'Afrontaba el despido injusto con acusación falsa de robo al concluir las fiestas.',
     avatarIcon: '47',
-    portraitGif: '/portraits/47-patricio.png',
+    portraitGif: './portraits/47-patricio.png',
     attributes: {
       ageGroup: 'maduro',
       handedness: 'diestro',
@@ -1537,7 +1537,7 @@ export const SUSPECTS_DIRECTORY: DirectorySuspect[] = [
     motiveSummary:
       'Arturo la chantajeaba con ejecutar la deuda hipotecaria de su hija viuda si no guardaba silencio.',
     avatarIcon: '48',
-    portraitGif: '/portraits/48-eulalia.png',
+    portraitGif: './portraits/48-eulalia.png',
     attributes: {
       ageGroup: 'veterano',
       handedness: 'diestro',
@@ -1569,7 +1569,7 @@ export const SUSPECTS_DIRECTORY: DirectorySuspect[] = [
     motiveSummary:
       'Estaba acorralado por deudas de apuestas que lo obligaron a sustraer botellas de la casa.',
     avatarIcon: '49',
-    portraitGif: '/portraits/49-fernando.png',
+    portraitGif: './portraits/49-fernando.png',
     attributes: {
       ageGroup: 'joven',
       handedness: 'ambidiestro',
@@ -1601,7 +1601,7 @@ export const SUSPECTS_DIRECTORY: DirectorySuspect[] = [
     motiveSummary:
       'Buscaba encubrir el forcejeo sufrido a oscuras y escapar de los abusos sufridos en la mansión.',
     avatarIcon: '50',
-    portraitGif: '/portraits/50-silvia.png',
+    portraitGif: './portraits/50-silvia.png',
     attributes: {
       ageGroup: 'joven',
       handedness: 'diestro',
@@ -1633,7 +1633,7 @@ export const SUSPECTS_DIRECTORY: DirectorySuspect[] = [
     motiveSummary:
       'Buscaba venganza por el incendio encubierto del hospicio y años de explotación impune.',
     avatarIcon: '51',
-    portraitGif: '/portraits/51-sofia.png',
+    portraitGif: './portraits/51-sofia.png',
     attributes: {
       ageGroup: 'joven',
       handedness: 'zurdo',
@@ -1665,7 +1665,7 @@ export const SUSPECTS_DIRECTORY: DirectorySuspect[] = [
     motiveSummary:
       'Juró venganza tras años de explotación y humillaciones amparadas en su pasado sindical.',
     avatarIcon: '52',
-    portraitGif: '/portraits/52-benjamin.png',
+    portraitGif: './portraits/52-benjamin.png',
     attributes: {
       ageGroup: 'adulto',
       handedness: 'diestro',
@@ -1697,7 +1697,7 @@ export const SUSPECTS_DIRECTORY: DirectorySuspect[] = [
     motiveSummary:
       'Temía el despido inmediato y denuncia por las piezas de plata faltantes en el ajuar.',
     avatarIcon: '53',
-    portraitGif: '/portraits/53-rosario.png',
+    portraitGif: './portraits/53-rosario.png',
     attributes: {
       ageGroup: 'maduro',
       handedness: 'zurdo',
@@ -1729,7 +1729,7 @@ export const SUSPECTS_DIRECTORY: DirectorySuspect[] = [
     motiveSummary:
       'Estaba sometido a chantaje por un tiroteo furtivo encubierto en el coto familiar.',
     avatarIcon: '54',
-    portraitGif: '/portraits/54-cristobal.png',
+    portraitGif: './portraits/54-cristobal.png',
     attributes: {
       ageGroup: 'adulto',
       handedness: 'diestro',
@@ -1765,7 +1765,7 @@ export const SUSPECTS_DIRECTORY: DirectorySuspect[] = [
     motiveSummary:
       'Necesitaba encubrir los expedientes de soborno archivados a favor de Arturo.',
     avatarIcon: '55',
-    portraitGif: '/portraits/55-roman.png',
+    portraitGif: './portraits/55-roman.png',
     attributes: {
       ageGroup: 'maduro',
       handedness: 'diestro',
@@ -1797,7 +1797,7 @@ export const SUSPECTS_DIRECTORY: DirectorySuspect[] = [
     motiveSummary:
       'Buscaba encubrir irregularidades de servicio cometidas bajo coacción de los Valdemar.',
     avatarIcon: '56',
-    portraitGif: '/portraits/56-hector.png',
+    portraitGif: './portraits/56-hector.png',
     attributes: {
       ageGroup: 'joven',
       handedness: 'diestro',
@@ -1829,7 +1829,7 @@ export const SUSPECTS_DIRECTORY: DirectorySuspect[] = [
     motiveSummary:
       'Estaba asfixiado por deudas farmacéuticas contraídas con la financiera de Arturo.',
     avatarIcon: '57',
-    portraitGif: '/portraits/57-melchor.png',
+    portraitGif: './portraits/57-melchor.png',
     attributes: {
       ageGroup: 'veterano',
       handedness: 'diestro',
@@ -1861,7 +1861,7 @@ export const SUSPECTS_DIRECTORY: DirectorySuspect[] = [
     motiveSummary:
       'Albergaba un odio antiguo y sed de venganza por el robo de los montes comunales.',
     avatarIcon: '58',
-    portraitGif: '/portraits/58-casimiro.png',
+    portraitGif: './portraits/58-casimiro.png',
     attributes: {
       ageGroup: 'veterano',
       handedness: 'diestro',
@@ -1893,7 +1893,7 @@ export const SUSPECTS_DIRECTORY: DirectorySuspect[] = [
     motiveSummary:
       'Quería evitar la ejecución de sus deudas y el embargo inmediato de su herrería.',
     avatarIcon: '59',
-    portraitGif: '/portraits/59-nicanor.png',
+    portraitGif: './portraits/59-nicanor.png',
     attributes: {
       ageGroup: 'adulto',
       handedness: 'zurdo',
@@ -1925,7 +1925,7 @@ export const SUSPECTS_DIRECTORY: DirectorySuspect[] = [
     motiveSummary:
       'Necesitaba proteger el secreto de las cintas telegráficas cifradas interceptadas.',
     avatarIcon: '60',
-    portraitGif: '/portraits/60-isidro.png',
+    portraitGif: './portraits/60-isidro.png',
     attributes: {
       ageGroup: 'adulto',
       handedness: 'ambidiestro',
@@ -1957,7 +1957,7 @@ export const SUSPECTS_DIRECTORY: DirectorySuspect[] = [
     motiveSummary:
       'Luchaba por salvar su posada de las deudas acumuladas ante el acoso de Arturo.',
     avatarIcon: '61',
-    portraitGif: '/portraits/61-agueda.png',
+    portraitGif: './portraits/61-agueda.png',
     attributes: {
       ageGroup: 'veterano',
       handedness: 'diestro',
@@ -1989,7 +1989,7 @@ export const SUSPECTS_DIRECTORY: DirectorySuspect[] = [
     motiveSummary:
       'Sufría chantaje directo por una carta certificada y un giro extraviado meses atrás.',
     avatarIcon: '62',
-    portraitGif: '/portraits/62-mauro.png',
+    portraitGif: './portraits/62-mauro.png',
     attributes: {
       ageGroup: 'joven',
       handedness: 'diestro',
@@ -2021,7 +2021,7 @@ export const SUSPECTS_DIRECTORY: DirectorySuspect[] = [
     motiveSummary:
       'Estaba arruinado por los préstamos de acarreo y tarifas exigidas por Arturo.',
     avatarIcon: '63',
-    portraitGif: '/portraits/63-faustino.png',
+    portraitGif: './portraits/63-faustino.png',
     attributes: {
       ageGroup: 'maduro',
       handedness: 'diestro',
@@ -2053,7 +2053,7 @@ export const SUSPECTS_DIRECTORY: DirectorySuspect[] = [
     motiveSummary:
       'Arrastraba una sed de venganza por la muerte impune de su hijo en las obras de la finca.',
     avatarIcon: '64',
-    portraitGif: '/portraits/64-severino.png',
+    portraitGif: './portraits/64-severino.png',
     attributes: {
       ageGroup: 'veterano',
       handedness: 'zurdo',
@@ -2085,7 +2085,7 @@ export const SUSPECTS_DIRECTORY: DirectorySuspect[] = [
     motiveSummary:
       'Quería frenar la ejecución de deudas que cerraba su horno comunal en enero.',
     avatarIcon: '65',
-    portraitGif: '/portraits/65-gregoria.png',
+    portraitGif: './portraits/65-gregoria.png',
     attributes: {
       ageGroup: 'maduro',
       handedness: 'diestro',
@@ -2117,7 +2117,7 @@ export const SUSPECTS_DIRECTORY: DirectorySuspect[] = [
     motiveSummary:
       'Buscaba venganza por el cierre criminal de los pasos vecinales que costó la vida a su hermano.',
     avatarIcon: '66',
-    portraitGif: '/portraits/66-herminio.png',
+    portraitGif: './portraits/66-herminio.png',
     attributes: {
       ageGroup: 'adulto',
       handedness: 'diestro',
@@ -2149,7 +2149,7 @@ export const SUSPECTS_DIRECTORY: DirectorySuspect[] = [
     motiveSummary:
       'Guardaba odio y sed de venganza tras tres inviernos de prisión por denuncia de Arturo.',
     avatarIcon: '67',
-    portraitGif: '/portraits/67-baltasar.png',
+    portraitGif: './portraits/67-baltasar.png',
     attributes: {
       ageGroup: 'adulto',
       handedness: 'zurdo',
@@ -2181,7 +2181,7 @@ export const SUSPECTS_DIRECTORY: DirectorySuspect[] = [
     motiveSummary:
       'Temía la clausura de su escuela y la revelación de un secreto familiar custodiado por Arturo.',
     avatarIcon: '68',
-    portraitGif: '/portraits/68-enriqueta.png',
+    portraitGif: './portraits/68-enriqueta.png',
     attributes: {
       ageGroup: 'maduro',
       handedness: 'diestro',
@@ -2213,7 +2213,7 @@ export const SUSPECTS_DIRECTORY: DirectorySuspect[] = [
     motiveSummary:
       'Custodiaba en silencio el secreto del expolio sacro perpetrado por Arturo.',
     avatarIcon: '69',
-    portraitGif: '/portraits/69-silvestre.png',
+    portraitGif: './portraits/69-silvestre.png',
     attributes: {
       ageGroup: 'veterano',
       handedness: 'diestro',
@@ -2245,7 +2245,7 @@ export const SUSPECTS_DIRECTORY: DirectorySuspect[] = [
     motiveSummary:
       'Estaba acorralada por las deudas de su molino y la pérdida del caudal de agua.',
     avatarIcon: '70',
-    portraitGif: '/portraits/70-amparo.png',
+    portraitGif: './portraits/70-amparo.png',
     attributes: {
       ageGroup: 'adulto',
       handedness: 'ambidiestro',
@@ -2277,7 +2277,7 @@ export const SUSPECTS_DIRECTORY: DirectorySuspect[] = [
     motiveSummary:
       'Arruinado por deudas médicas tras una lesión sin indemnizar y presionado por su pasado.',
     avatarIcon: '71',
-    portraitGif: '/portraits/71-celso.png',
+    portraitGif: './portraits/71-celso.png',
     attributes: {
       ageGroup: 'joven',
       handedness: 'diestro',
@@ -2309,7 +2309,7 @@ export const SUSPECTS_DIRECTORY: DirectorySuspect[] = [
     motiveSummary:
       'Afrontaba el despido fulminante y la pérdida del único sustento tras su rehabilitación.',
     avatarIcon: '72',
-    portraitGif: '/portraits/72-damian.png',
+    portraitGif: './portraits/72-damian.png',
     attributes: {
       ageGroup: 'maduro',
       handedness: 'zurdo',
@@ -2341,7 +2341,7 @@ export const SUSPECTS_DIRECTORY: DirectorySuspect[] = [
     motiveSummary:
       'Acorralada por deudas de renta que amenazaban con clausurar su cantina ferroviaria.',
     avatarIcon: '73',
-    portraitGif: '/portraits/73-virginia.png',
+    portraitGif: './portraits/73-virginia.png',
     attributes: {
       ageGroup: 'adulto',
       handedness: 'ambidiestro',
@@ -2373,7 +2373,7 @@ export const SUSPECTS_DIRECTORY: DirectorySuspect[] = [
     motiveSummary:
       'Necesitaba proteger el secreto de los certificados veterinarios falsificados bajo presión.',
     avatarIcon: '74',
-    portraitGif: '/portraits/74-roque.png',
+    portraitGif: './portraits/74-roque.png',
     attributes: {
       ageGroup: 'adulto',
       handedness: 'diestro',

@@ -457,7 +457,7 @@ export const BookLayout: React.FC<BookLayoutProps> = ({
             {isHeaderExpanded && (
               <div className="hidden sm:block w-8 h-8 rounded-full overflow-hidden border border-[#c5a059]/75 shadow shrink-0 bg-[#08090c]">
                 <img
-                  src="/app-icon.jpg"
+                  src="./app-icon.jpg"
                   alt="Emblema Villa Acebo"
                   draggable={false}
                   className="pointer-events-none w-full h-full object-cover"
@@ -780,7 +780,7 @@ export const BookLayout: React.FC<BookLayoutProps> = ({
                   /* ==================== PORTADA OFICIAL ==================== */
                   <div className="relative w-full h-full flex items-center justify-center">
                     <img
-                      src="/portraits/book-front.png"
+                      src="./portraits/book-front.png"
                       alt="Portada de la Libreta de Investigación: Villa Acebo — Un Asesinato en Navidad"
                       draggable={false}
                       className="pointer-events-none w-full h-full object-fill drop-shadow-[0_28px_65px_rgba(0,0,0,0.96)]"
@@ -825,7 +825,7 @@ export const BookLayout: React.FC<BookLayoutProps> = ({
                   /* ==================== CONTRAPORTADA OFICIAL ==================== */
                   <div className="relative w-full h-full flex items-center justify-center">
                     <img
-                      src="/portraits/book-back.png"
+                      src="./portraits/book-back.png"
                       alt="Contraportada con Sello de Custodia de Villa Acebo"
                       draggable={false}
                       className="pointer-events-none w-full h-full object-fill drop-shadow-[0_28px_65px_rgba(0,0,0,0.96)]"
@@ -1175,7 +1175,7 @@ export const BookLayout: React.FC<BookLayoutProps> = ({
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-full overflow-hidden border border-[#c5a059]/75 bg-[#08090c] flex items-center justify-center shadow-md shrink-0">
                   <img
-                    src="/app-icon.jpg"
+                    src="./app-icon.jpg"
                     alt="Emblema Villa Acebo"
                     draggable={false}
                     className="pointer-events-none w-full h-full object-cover"

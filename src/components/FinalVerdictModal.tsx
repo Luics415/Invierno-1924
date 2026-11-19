@@ -130,7 +130,7 @@ export const FinalVerdictModal: React.FC<FinalVerdictModalProps> = ({ onClose })
           <div className="flex items-center gap-3">
             <div className="w-11 h-11 rounded-full overflow-hidden border border-[#c5a059]/75 bg-[#08090c] flex items-center justify-center shadow-lg shrink-0">
               <img
-                src="/app-icon.jpg"
+                src="./app-icon.jpg"
                 alt="Emblema Tribunal Villa Acebo"
                 draggable={false}
                 className="pointer-events-none w-full h-full object-cover"

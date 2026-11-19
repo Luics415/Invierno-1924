@@ -85,11 +85,11 @@ const MOOD_LABELS: Record<AzlynnMood, string> = {
 };
 
 const AZLYNN_EMOTION_IMAGES: Record<AzlynnMood, string> = {
-  feliz: '/portraits/detective-happy.png',
-  angustiada: '/portraits/detective-worried.png',
-  enojada: '/portraits/detective-angry.png',
-  pensando: '/portraits/detective-thinking.png',
-  asustada: '/portraits/detective-scared.png',
+  feliz: './portraits/detective-happy.png',
+  angustiada: './portraits/detective-worried.png',
+  enojada: './portraits/detective-angry.png',
+  pensando: './portraits/detective-thinking.png',
+  asustada: './portraits/detective-scared.png',
 };
 
 export interface DetectiveSuspectFunnelSummary {
