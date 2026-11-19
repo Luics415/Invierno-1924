@@ -1,0 +1,85 @@
+/** @type {import('tailwindcss').Config} */
+export default {
+  content: [
+    "./index.html",
+    "./src/**/*.{js,ts,jsx,tsx}",
+  ],
+  theme: {
+    extend: {
+      colors: {
+        parchment: {
+          50: '#F4F2EE',
+          100: '#ECE9E2',
+          200: '#E0DBD1',
+          300: '#CFC9BC',
+          400: '#B8B1A2',
+          500: '#9E9687',
+          600: '#827B6D',
+          700: '#645F54',
+          800: '#46423A',
+          900: '#2A2823',
+        },
+        crimson: {
+          50: '#F9F2F2',
+          100: '#F0DEDE',
+          200: '#DFB6B7',
+          300: '#C58486',
+          400: '#A45053',
+          500: '#84282C',
+          600: '#6D1A1E',
+          700: '#5A1216',
+          800: '#450D10',
+          900: '#2E0709',
+          950: '#1B0304',
+        },
+        ink: {
+          50: '#F4F4F5',
+          100: '#E4E4E7',
+          200: '#C9CAD0',
+          300: '#A3A5AE',
+          400: '#787A86',
+          500: '#555761',
+          600: '#3D3F47',
+          700: '#2A2C32',
+          800: '#1B1C20',
+          900: '#121316',
+          950: '#090A0C',
+        },
+        gold: {
+          100: '#F2EFE8',
+          200: '#E2DCCE',
+          300: '#CEC4AE',
+          400: '#B8AB8E',
+          500: '#9E9072',
+          600: '#7E7258',
+          700: '#615742',
+          800: '#453D2E',
+        },
+        pine: {
+          50: '#EEF2F0',
+          100: '#D4DFDA',
+          200: '#ABC0B6',
+          700: '#1F3A30',
+          800: '#162B23',
+          900: '#0E1C17',
+          950: '#070F0C',
+        }
+      },
+      fontFamily: {
+        title: ['"Alex Brush"', '"Cormorant Garamond"', 'Georgia', 'serif'],
+        desc: ['"Cormorant Garamond"', 'Georgia', 'serif'],
+        serif: ['"Cormorant Garamond"', 'Georgia', 'serif'],
+        reading: ['"Cormorant Garamond"', 'Georgia', 'serif'],
+        declaration: ['"Crimson Pro"', 'Georgia', 'serif'],
+        typewriter: ['"Special Elite"', '"Courier Prime"', 'monospace'],
+      },
+      boxShadow: {
+        'book': '0 28px 60px -15px rgba(0, 0, 0, 0.9), 0 0 0 1px rgba(158, 144, 114, 0.18)',
+        'page-left': 'inset -24px 0 34px -14px rgba(9, 10, 12, 0.25)',
+        'page-right': 'inset 24px 0 34px -14px rgba(9, 10, 12, 0.25)',
+        'wax': '0 4px 12px rgba(46, 7, 9, 0.65), inset 0 2px 3px rgba(255, 255, 255, 0.2)',
+      }
+    },
+  },
+  plugins: [],
+}
