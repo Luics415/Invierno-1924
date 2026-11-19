@@ -228,10 +228,10 @@ export const SuspectsAlbum: React.FC<SuspectsAlbumProps> = ({ onStartAdventure }
       <div
         key={s.id}
         onClick={() => openSuspectModal(s)}
-        className={`group relative rounded-sm border transition-all duration-300 cursor-pointer flex flex-col justify-between overflow-hidden ${
+        className={`group relative rounded-sm border transition-colors cursor-pointer flex flex-col justify-between overflow-hidden ${
           isEliminated
             ? 'border-crimson-800/35 bg-[#e3ded5] opacity-80 hover:opacity-100 hover:border-crimson-800/70'
-            : 'border-parchment-400 bg-[#f6f4ef] hover:border-ink-800 hover:-translate-y-0.5 shadow-[0_3px_10px_rgba(12,13,16,0.12)] hover:shadow-[0_10px_22px_rgba(12,13,16,0.22)]'
+            : 'border-parchment-400 bg-[#f6f4ef] hover:border-ink-800 shadow-[0_3px_10px_rgba(12,13,16,0.12)]'
         }`}
       >
         {/* Marco fotográfico principal */}
@@ -313,12 +313,13 @@ export const SuspectsAlbum: React.FC<SuspectsAlbumProps> = ({ onStartAdventure }
               e.stopPropagation();
               toggleManualElimination(s.id);
             }}
-            className={`p-0.5 rounded hover:bg-parchment-300 text-ink-600 hover:text-ink-950 transition shrink-0 ${
+            className={`p-1 rounded hover:bg-parchment-300 text-ink-600 hover:text-ink-950 transition shrink-0 ${
               s.status.isManual ? 'text-crimson-800' : ''
             }`}
             title={s.status.isManual ? 'Quitar descarte manual' : 'Tachar manualmente'}
+            aria-label={s.status.isManual ? 'Quitar descarte manual' : 'Tachar manualmente'}
           >
-            {isEliminated ? <EyeOff className="w-3 h-3" /> : <Eye className="w-3 h-3" />}
+            {isEliminated ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
           </button>
         </div>
       </div>

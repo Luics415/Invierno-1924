@@ -272,6 +272,10 @@ export const useGameStore = create<GameStoreState>()(
       version: 3,
       partialize: state => ({
         caseSeed: state.caseSeed,
+        activeCase: {
+          config: state.activeCase.config,
+          murderNarrative: state.activeCase.murderNarrative,
+        },
         currentDay: state.currentDay,
         unlockedDays: state.unlockedDays,
         completedDays: state.completedDays,
@@ -337,3 +341,13 @@ export const useGameStore = create<GameStoreState>()(
     }
   )
 );
+
+if (typeof window !== 'undefined' && typeof window.localStorage?.getItem === 'function') {
+  try {
+    if (!window.localStorage.getItem('villa-acebo-game-storage')) {
+      useGameStore.setState(s => ({ caseSeed: s.caseSeed }));
+    }
+  } catch {
+    // ignore storage access issues
+  }
+}

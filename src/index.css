@@ -316,27 +316,19 @@
 /* Animación sutil y elegante de pasar página hacia adelante y atrás */
 @keyframes page-turn-next {
   0% {
-    opacity: 0.25;
-    transform: perspective(1800px) rotateY(-8deg) scale(0.992);
-    transform-origin: center center;
+    opacity: 0.92;
   }
   100% {
     opacity: 1;
-    transform: perspective(1800px) rotateY(0deg) scale(1);
-    transform-origin: center center;
   }
 }
 
 @keyframes page-turn-prev {
   0% {
-    opacity: 0.25;
-    transform: perspective(1800px) rotateY(8deg) scale(0.992);
-    transform-origin: center center;
+    opacity: 0.92;
   }
   100% {
     opacity: 1;
-    transform: perspective(1800px) rotateY(0deg) scale(1);
-    transform-origin: center center;
   }
 }
 
@@ -574,15 +566,14 @@
 }
 
 .animate-calendar-window {
-  opacity: 0;
-  animation: calendar-window-in 0.36s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  opacity: 1;
 }
 
 /* Animaciones del Menú Radial de Detective Azlynn */
 @keyframes radial-center-pop {
   0% {
-    opacity: 0;
-    transform: scale(0.72);
+    opacity: 1;
+    transform: scale(1);
   }
   100% {
     opacity: 1;

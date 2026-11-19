@@ -207,12 +207,12 @@ export const AdventCalendar: React.FC<AdventCalendarProps> = ({ onClose }) => {
         </div>
 
         {/* Cuadrícula de 30 Ventanas */}
-        <div className="relative z-10 p-4 sm:p-6 overflow-y-auto flex-1 bg-gradient-to-b from-[#0d0f13]/92 to-[#08090c]/96">
+        <div className="relative z-10 p-3 sm:p-4 overflow-y-auto flex-1 bg-gradient-to-b from-[#0d0f13]/92 to-[#08090c]/96">
           <div
             key={`act-${selectedAct}`}
-            className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 lg:grid-cols-6 gap-3"
+            className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 lg:grid-cols-6 gap-2"
           >
-            {filteredDays.map((d, idx) => {
+            {filteredDays.map(d => {
               const isCompleted = completedDays.includes(d.day);
               const isUnlocked = unlockedDays.includes(d.day) || freePlayMode;
               const isCurrent = currentDay === d.day;
@@ -221,9 +221,8 @@ export const AdventCalendar: React.FC<AdventCalendarProps> = ({ onClose }) => {
                 <div
                   key={d.day}
                   data-calendar-day={d.day}
-                  style={{ animationDelay: `${idx * 16}ms` }}
                   onClick={() => handleSelectDay(d.day, isUnlocked)}
-                  className={`animate-calendar-window group relative rounded-md p-3 flex flex-col justify-between border transition-all duration-300 select-none overflow-hidden ${
+                  className={`group relative rounded-md p-2 flex flex-col justify-between border transition-colors select-none overflow-hidden ${
                     isCurrent
                       ? 'border-gold-400 bg-gradient-to-b from-[#3b1016] via-[#191418] to-[#0e0f13] shadow-[0_0_24px_rgba(212,179,84,0.28)] hover:-translate-y-1 cursor-pointer'
                       : isCompleted

@@ -217,7 +217,9 @@ export const CryptogramPuzzle: React.FC<CryptogramProps> = ({ config, onSolve, i
                   <button
                     type="button"
                     key={cIdx}
+                    data-cipher-code={num}
                     data-cipher-num={num}
+                    data-letter={mappedLetter}
                     onClick={() => handleSelectNumber(num)}
                     className={`flex flex-col items-center transition-all ${
                       isLocked ? 'cursor-default' : 'cursor-pointer'
@@ -281,7 +283,7 @@ export const CryptogramPuzzle: React.FC<CryptogramProps> = ({ config, onSolve, i
                 key={letter}
                 data-cipher-key={letter}
                 onClick={() => handleKeyInput(letter)}
-                disabled={isSolved || selectedNum === null || usedByOther}
+                disabled={isSolved || usedByOther}
                 title={usedByOther ? `Ya asignada al código ${ownerNum}` : `Asignar ${letter}`}
                 className={`w-6 h-7 sm:w-7 sm:h-8 text-xs font-bold rounded border shadow-sm transition active:scale-95 ${
                   usedByOther
@@ -301,7 +303,7 @@ export const CryptogramPuzzle: React.FC<CryptogramProps> = ({ config, onSolve, i
       {isSolved && (
         <div className="mt-2 p-2 bg-gold-100 border-2 border-gold-500 rounded text-center animate-wax-pop">
           <div className="flex items-center justify-center gap-1 text-xs font-bold text-gold-800 uppercase tracking-widest mb-0.5">
-            <CheckCircle2 className="w-4 h-4 text-gold-700" /> Mensaje Descifrado
+            <CheckCircle2 className="w-4 h-4 text-gold-700" /> Mensaje Cifrado Revelado
           </div>
           <p className="font-serif text-xs font-semibold italic text-crimson-950 break-words">
             «{cipherText}»
