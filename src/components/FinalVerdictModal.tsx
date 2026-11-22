@@ -449,13 +449,13 @@ export const FinalVerdictModal: React.FC<FinalVerdictModalProps> = ({ onClose })
             /* ============================================================
                VICTORIA DINÁMICA PARA CUALQUIERA DE LOS 74 CASOS ÚNICOS
                ============================================================ */
-            <div className="space-y-5 animate-wax-pop" data-verdict-outcome="victory">
+            <div className="space-y-5" data-verdict-outcome="victory">
               <div className="p-5 bg-gradient-to-b from-gold-100 via-parchment-100 to-gold-100/90 border-2 border-gold-600 rounded-xl text-center space-y-2 shadow-md">
-                <div className="w-16 h-16 mx-auto rounded-full wax-seal-badge text-gold-200 flex items-center justify-center shadow-lg">
+                <div className="w-16 h-16 mx-auto rounded-full wax-seal-badge text-gold-200 flex items-center justify-center shadow-lg animate-wax-pop">
                   <Scale className="w-7 h-7" />
                 </div>
                 <span className="inline-block text-[10px] font-mono uppercase tracking-[0.25em] text-crimson-900 font-bold">
-                  Expediente Judicial Cerrado • Villa Acebo 1924
+                  Caso Resuelto • Expediente Judicial Cerrado • Villa Acebo 1924
                 </span>
                 <h3 className="font-title text-2xl sm:text-3xl text-crimson-950 pt-1">
                   {activeCase.murderNarrative.headline}
@@ -546,7 +546,7 @@ export const FinalVerdictModal: React.FC<FinalVerdictModalProps> = ({ onClose })
                   className="px-5 py-2.5 bg-ink-950 hover:bg-ink-900 text-gold-300 border border-gold-500/50 rounded-md font-bold font-serif shadow-lg transition flex items-center gap-2"
                 >
                   <CheckCircle className="w-4 h-4 text-gold-400" />
-                  <span>Archivar y Volver al Libro</span>
+                  <span>Archivar Expediente</span>
                 </button>
               </div>
             </div>

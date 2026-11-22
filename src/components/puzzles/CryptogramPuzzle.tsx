@@ -175,17 +175,6 @@ export const CryptogramPuzzle: React.FC<CryptogramProps> = ({ config, onSolve, i
         </div>
       </div>
 
-      {bijectionError && (
-        <div
-          role="alert"
-          data-cryptogram-bijection-error="true"
-          className="p-2 mb-1.5 text-xs rounded border border-crimson-500 bg-crimson-100/90 text-crimson-950 flex items-center gap-1.5"
-        >
-          <AlertTriangle className="w-3.5 h-3.5 text-crimson-700 shrink-0" />
-          <span>{bijectionError}</span>
-        </div>
-      )}
-
       {showHint && (
         <div className="p-2 mb-1.5 text-xs rounded border border-gold-400 bg-gold-100/70 text-ink-800">
           <strong>Pista de Azlynn:</strong> {hints[activeHintIdx]}
@@ -193,17 +182,17 @@ export const CryptogramPuzzle: React.FC<CryptogramProps> = ({ config, onSolve, i
       )}
 
       {/* Texto cifrado */}
-      <div className="flex-1 overflow-y-auto p-2.5 sm:p-3 bg-parchment-100/80 border-2 border-parchment-400 rounded-lg shadow-inner font-serif min-w-0">
-        <div className="flex flex-wrap gap-x-3 gap-y-2.5">
+      <div className="flex-1 max-h-[185px] sm:max-h-[280px] lg:max-h-none overflow-y-auto p-2 sm:p-3 bg-parchment-100/80 border-2 border-parchment-400 rounded-lg shadow-inner font-serif min-w-0">
+        <div className="flex flex-wrap gap-x-2.5 sm:gap-x-3 gap-y-1.5 sm:gap-y-2.5">
           {words.map((word, wIdx) => (
-            <div key={wIdx} className="flex flex-wrap items-end gap-x-0.5 gap-y-1 max-w-full">
+            <div key={wIdx} className="flex flex-wrap items-end gap-x-0.5 gap-y-0.5 max-w-full">
               {word.split('').map((char, cIdx) => {
                 const upper = char.toUpperCase();
                 const num = cipherMap[upper];
 
                 if (!/[A-ZÑ]/.test(upper) || num === undefined) {
                   return (
-                    <span key={cIdx} className="text-base font-bold text-ink-700 pb-1">
+                    <span key={cIdx} className="text-sm sm:text-base font-bold text-ink-700 pb-0.5 sm:pb-1">
                       {char}
                     </span>
                   );
@@ -226,7 +215,7 @@ export const CryptogramPuzzle: React.FC<CryptogramProps> = ({ config, onSolve, i
                     } ${isSelected ? 'scale-105' : ''}`}
                   >
                     <div
-                      className={`w-5 h-6 sm:w-6 sm:h-7 flex items-center justify-center font-bold text-xs sm:text-sm border-b-2 transition ${
+                      className={`w-4 h-5 sm:w-6 sm:h-7 flex items-center justify-center font-bold text-[11px] sm:text-sm border-b-2 transition ${
                         isLocked
                           ? 'border-gold-700 bg-gold-100/80 text-ink-950 font-black'
                           : isSelected
@@ -239,7 +228,7 @@ export const CryptogramPuzzle: React.FC<CryptogramProps> = ({ config, onSolve, i
                       {mappedLetter || '·'}
                     </div>
                     <span
-                      className={`text-[9px] font-mono mt-0.5 ${
+                      className={`text-[8px] sm:text-[9px] font-mono leading-tight mt-0.5 ${
                         isSelected ? 'text-crimson-700 font-bold' : 'text-ink-500'
                       }`}
                     >
@@ -254,25 +243,24 @@ export const CryptogramPuzzle: React.FC<CryptogramProps> = ({ config, onSolve, i
       </div>
 
       {/* Teclado de sustitución biyectiva */}
-      <div className="mt-2 p-2 bg-parchment-200/80 rounded-lg border border-parchment-300">
-        <div className="flex flex-wrap items-center justify-between gap-1 mb-1.5">
-          <span className="text-[10px] font-semibold text-ink-600 uppercase tracking-wider">
+      <div className="mt-1.5 sm:mt-2 p-1.5 sm:p-2 bg-parchment-200/80 rounded-lg border border-parchment-300 shrink-0">
+        <div className="flex items-center justify-between gap-1 mb-1 h-6">
+          <span className="text-[10px] font-semibold text-ink-600 uppercase tracking-wider truncate">
             {selectedNum !== null
-              ? `Asignar letra única al código [${selectedNum}]:`
-              : 'Selecciona un código numérico arriba:'}
+              ? `Código [${selectedNum}] — elige letra única:`
+              : 'Selecciona un código arriba:'}
           </span>
-          {selectedNum !== null && (
-            <button
-              type="button"
-              onClick={handleClearSelected}
-              className="flex items-center gap-1 text-[10px] px-2 py-0.5 text-crimson-800 hover:bg-crimson-100 rounded"
-            >
-              <Delete className="w-3 h-3" /> Borrar
-            </button>
-          )}
+          <button
+            type="button"
+            onClick={handleClearSelected}
+            disabled={selectedNum === null}
+            className="flex items-center gap-1 text-[10px] px-2 py-0.5 text-crimson-800 hover:bg-crimson-100 rounded shrink-0 disabled:opacity-30 disabled:pointer-events-none"
+          >
+            <Delete className="w-3 h-3" /> Borrar
+          </button>
         </div>
 
-        <div className="flex flex-wrap justify-center gap-1">
+        <div className="flex flex-wrap justify-center gap-0.5 sm:gap-1">
           {ALPHABET.map(letter => {
             const ownerNum = assignedLetterToNum.get(letter);
             const usedByOther = ownerNum !== undefined && ownerNum !== selectedNum;
@@ -285,7 +273,7 @@ export const CryptogramPuzzle: React.FC<CryptogramProps> = ({ config, onSolve, i
                 onClick={() => handleKeyInput(letter)}
                 disabled={isSolved || usedByOther}
                 title={usedByOther ? `Ya asignada al código ${ownerNum}` : `Asignar ${letter}`}
-                className={`w-6 h-7 sm:w-7 sm:h-8 text-xs font-bold rounded border shadow-sm transition active:scale-95 ${
+                className={`w-6 h-6 sm:w-7 sm:h-8 text-[11px] sm:text-xs font-bold rounded border shadow-sm transition active:scale-95 ${
                   usedByOther
                     ? 'bg-parchment-300/70 text-ink-400 border-parchment-400 line-through cursor-not-allowed opacity-50'
                     : ownerNum === selectedNum && selectedNum !== null
@@ -299,6 +287,17 @@ export const CryptogramPuzzle: React.FC<CryptogramProps> = ({ config, onSolve, i
           })}
         </div>
       </div>
+
+      {bijectionError && (
+        <div
+          role="alert"
+          data-cryptogram-bijection-error="true"
+          className="mt-1.5 p-2 text-xs rounded border border-crimson-500 bg-crimson-100/90 text-crimson-950 flex items-center gap-1.5 shrink-0"
+        >
+          <AlertTriangle className="w-3.5 h-3.5 text-crimson-700 shrink-0" />
+          <span>{bijectionError}</span>
+        </div>
+      )}
 
       {isSolved && (
         <div className="mt-2 p-2 bg-gold-100 border-2 border-gold-500 rounded text-center animate-wax-pop">

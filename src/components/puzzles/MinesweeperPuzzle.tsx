@@ -174,16 +174,6 @@ export const MinesweeperPuzzle: React.FC<MinesweeperProps> = ({ config, onSolve,
         </div>
       </div>
 
-      {detonationAlert && (
-        <div
-          role="alert"
-          className="p-2 mb-1.5 text-xs rounded border border-crimson-500 bg-crimson-100/90 text-crimson-950 flex items-center gap-1.5"
-        >
-          <AlertTriangle className="w-4 h-4 text-crimson-700 shrink-0" />
-          <span>{detonationAlert}</span>
-        </div>
-      )}
-
       {showHint && (
         <div className="p-2 mb-1.5 text-xs rounded border border-gold-400 bg-gold-100/70 text-ink-800">
           <strong>Pista de Azlynn:</strong> {hints[activeHintIdx]}
@@ -246,6 +236,16 @@ export const MinesweeperPuzzle: React.FC<MinesweeperProps> = ({ config, onSolve,
         <ShieldAlert className="w-3 h-3 text-crimson-700" />
         <span>Clic izquierdo según herramienta • Clic derecho coloca/quita bandera</span>
       </div>
+
+      {detonationAlert && (
+        <div
+          role="alert"
+          className="mt-1.5 p-2 text-xs rounded border border-crimson-500 bg-crimson-100/90 text-crimson-950 flex items-center gap-1.5 shrink-0"
+        >
+          <AlertTriangle className="w-4 h-4 text-crimson-700 shrink-0" />
+          <span>{detonationAlert}</span>
+        </div>
+      )}
 
       {isSolved && (
         <div className="mt-1.5 p-2 bg-gold-100 border-2 border-gold-500 rounded text-center animate-wax-pop">

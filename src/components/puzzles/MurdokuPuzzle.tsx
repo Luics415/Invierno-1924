@@ -202,17 +202,6 @@ export const MurdokuPuzzle: React.FC<MurdokuProps> = ({ config, onSolve, isSolve
         </span>
       </div>
 
-      {mistakeAlert && (
-        <div
-          role="alert"
-          data-murdoku-reset-alert="true"
-          className="p-2 mb-2 text-xs rounded border border-crimson-500 bg-crimson-100/90 text-crimson-950 flex items-start gap-1.5"
-        >
-          <AlertTriangle className="w-4 h-4 text-crimson-700 shrink-0 mt-0.5" />
-          <span>{mistakeAlert}</span>
-        </div>
-      )}
-
       {showHint && (
         <div className="p-2 mb-2 text-xs rounded border border-gold-400 bg-gold-100/70 text-ink-800">
           <strong>Pista de Azlynn:</strong> {hints[activeHintIdx]}
@@ -224,7 +213,7 @@ export const MurdokuPuzzle: React.FC<MurdokuProps> = ({ config, onSolve, isSolve
         <div className="text-[10px] font-semibold text-ink-600 uppercase tracking-wider mb-1">
           Premisas verificadas ({clues.length} — toca para tachar):
         </div>
-        <div className="space-y-1 max-h-28 overflow-y-auto pr-1">
+        <div className="space-y-1 max-h-24 sm:max-h-28 overflow-y-auto pr-1">
           {clues.map((clue, idx) => {
             const isChecked = isSolved || checkedClues.includes(idx);
             return (
@@ -285,6 +274,7 @@ export const MurdokuPuzzle: React.FC<MurdokuProps> = ({ config, onSolve, isSolve
                     type="button"
                     key={b.id}
                     data-murdoku-cell={`${a.id}:${b.id}`}
+                    data-state={state}
                     data-cell-state={state}
                     onClick={() => handleCellClick(a.id, b.id)}
                     className={`w-12 h-8 sm:w-16 sm:h-9 shrink-0 flex items-center justify-center cursor-pointer border-r border-parchment-300 last:border-r-0 transition select-none ${
@@ -315,10 +305,21 @@ export const MurdokuPuzzle: React.FC<MurdokuProps> = ({ config, onSolve, isSolve
         </div>
       </div>
 
+      {mistakeAlert && (
+        <div
+          role="alert"
+          data-murdoku-reset-alert="true"
+          className="mt-2 p-2 text-xs rounded border border-crimson-500 bg-crimson-100/90 text-crimson-950 flex items-start gap-1.5 shrink-0"
+        >
+          <AlertTriangle className="w-4 h-4 text-crimson-700 shrink-0 mt-0.5" />
+          <span>{mistakeAlert}</span>
+        </div>
+      )}
+
       {isSolved && (
         <div className="mt-2 p-2 bg-gold-100 border-2 border-gold-500 rounded text-center animate-wax-pop">
           <div className="flex items-center justify-center gap-1 text-xs font-bold text-gold-800 uppercase tracking-widest mb-0.5">
-            <CheckCircle2 className="w-4 h-4 text-gold-700" /> Matriz Murdoku Verificada
+            <CheckCircle2 className="w-4 h-4 text-gold-700" /> Deducción Murdoku Verificada
           </div>
           <p className="font-serif text-xs font-semibold italic text-crimson-950">
             Todas las relaciones lógicas han quedado demostradas sin margen de error.
