@@ -98,6 +98,10 @@ export const BookLayout: React.FC<BookLayoutProps> = ({
 
   // Estado físico de la libreta: abierta o cerrada (portada / contraportada) para ver el fondo
   const [bookCoverMode, setBookCoverMode] = useState<'open' | 'front' | 'back'>('open');
+
+  useEffect(() => {
+    sound.playPageTurn();
+  }, []);
   const [isFunnelModalOpen, setIsFunnelModalOpen] = useState(false);
   const bookCoverModeRef = useRef(bookCoverMode);
   useEffect(() => {
