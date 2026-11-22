@@ -598,27 +598,46 @@ export const DetectiveDossier: React.FC<DetectiveDossierProps> = ({ onClose, onO
                       return (
                         <div
                           key={w.id}
-                          className={`p-3 rounded-lg border-2 transition text-xs space-y-1.5 shadow-sm min-w-0 ${
+                          className={`p-2.5 rounded-lg border-2 transition text-xs flex items-start gap-3 shadow-sm min-w-0 ${
                             isCompatible
                               ? 'bg-parchment-100 border-amber-900/30 hover:border-crimson-700/60'
                               : 'bg-crimson-50/40 border-crimson-300/60 opacity-65'
                           }`}
                         >
-                          <div className="flex flex-wrap items-center justify-between gap-2 min-w-0">
-                            <strong
-                              className={`font-serif text-ink-950 text-sm ${
-                                !isCompatible
-                                  ? 'line-through decoration-crimson-700 text-ink-600'
-                                  : ''
-                              }`}
-                            >
-                              {w.name}
-                            </strong>
-                            <span className="font-mono text-[10px] font-bold uppercase px-2 py-0.5 rounded border bg-parchment-200 text-ink-700 border-amber-900/20">
-                              {w.category} • {w.material}
-                            </span>
+                          {/* Fotografía instantánea del arma */}
+                          <div className="relative w-14 h-14 bg-[#faf7f0] p-1 border border-ink-900/40 shadow-sm shrink-0 -rotate-1">
+                            <div className="w-full h-full overflow-hidden bg-ink-950 border border-ink-800/50">
+                              <img
+                                src={`./portraits/weapon-${w.id}.png`}
+                                alt={w.name}
+                                loading="lazy"
+                                draggable={false}
+                                className={`w-full h-full object-cover ${
+                                  !isCompatible ? 'grayscale opacity-75' : ''
+                                }`}
+                              />
+                            </div>
                           </div>
-                          <p className="text-ink-700 font-sans leading-relaxed">{w.description}</p>
+
+                          <div className="min-w-0 flex-1 space-y-1">
+                            <div className="flex flex-wrap items-center justify-between gap-1.5 min-w-0">
+                              <strong
+                                className={`font-serif text-ink-950 text-sm ${
+                                  !isCompatible
+                                    ? 'line-through decoration-crimson-700 text-ink-600'
+                                    : ''
+                                }`}
+                              >
+                                {w.name}
+                              </strong>
+                              <span className="font-mono text-[9.5px] font-bold uppercase px-1.5 py-0.5 rounded border bg-parchment-200 text-ink-700 border-amber-900/20">
+                                {w.category} • {w.material}
+                              </span>
+                            </div>
+                            <p className="text-ink-700 font-sans leading-snug text-[11px]">
+                              {w.description}
+                            </p>
+                          </div>
                         </div>
                       );
                     })}
