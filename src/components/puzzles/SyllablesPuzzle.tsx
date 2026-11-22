@@ -143,7 +143,7 @@ export const SyllablesPuzzle: React.FC<SyllablesProps> = ({ config, onSolve, isS
       )}
 
       {/* Lista de palabras clave */}
-      <div className="space-y-2 flex-1 overflow-y-auto pr-1">
+      <div className="space-y-1.5 sm:space-y-2 flex-1 max-h-[205px] sm:max-h-[300px] lg:max-h-none overflow-y-auto pr-1">
         {words.map((w, idx) => {
           const currentSlots = displaySlots[w.id] || [];
           const isRowActive = !isSolved && activeWordId === w.id;
@@ -156,8 +156,9 @@ export const SyllablesPuzzle: React.FC<SyllablesProps> = ({ config, onSolve, isS
             <div
               key={w.id}
               data-syllables-word={w.id}
+              data-word-slot={w.id}
               onClick={() => !isSolved && setActiveWordId(w.id)}
-              className={`p-2 rounded-lg border transition-all cursor-pointer ${
+              className={`p-1.5 sm:p-2 rounded-lg border transition-all cursor-pointer ${
                 isRowExact
                   ? 'border-emerald-600/60 bg-emerald-50/70'
                   : isRowActive
@@ -166,7 +167,7 @@ export const SyllablesPuzzle: React.FC<SyllablesProps> = ({ config, onSolve, isS
               }`}
             >
               <div className="flex items-baseline justify-between gap-2 mb-1">
-                <span className="text-xs font-serif font-bold text-ink-800 min-w-0">
+                <span className="text-[11px] sm:text-xs font-serif font-bold text-ink-800 min-w-0">
                   {idx + 1}. {w.definition}
                 </span>
                 <span className="text-[10px] text-ink-500 font-mono shrink-0 whitespace-nowrap">
@@ -184,11 +185,12 @@ export const SyllablesPuzzle: React.FC<SyllablesProps> = ({ config, onSolve, isS
                     <button
                       type="button"
                       key={slotIdx}
+                      data-syllable-slot="true"
                       onClick={e => {
                         e.stopPropagation();
                         handleRemoveSlot(w.id, slotIdx);
                       }}
-                      className={`min-w-9 h-8 px-1.5 flex items-center justify-center font-bold text-xs rounded border-2 transition-all ${
+                      className={`min-w-8 sm:min-w-9 h-7 sm:h-8 px-1.5 flex items-center justify-center font-bold text-xs rounded border-2 transition-all ${
                         sylObj
                           ? isHighlight
                             ? 'bg-gold-200 border-gold-600 text-gold-950 shadow-sm font-black'
@@ -213,8 +215,8 @@ export const SyllablesPuzzle: React.FC<SyllablesProps> = ({ config, onSolve, isS
       </div>
 
       {/* Banco inferior de sílabas */}
-      <div className="mt-2 p-2 bg-parchment-200/70 rounded-lg border border-parchment-300">
-        <div className="text-[10px] uppercase tracking-wider font-semibold text-ink-600 mb-1.5">
+      <div data-syllable-bank="true" className="mt-1.5 sm:mt-2 p-1.5 sm:p-2 bg-parchment-200/70 rounded-lg border border-parchment-300 shrink-0">
+        <div className="text-[10px] uppercase tracking-wider font-semibold text-ink-600 mb-1">
           Banco de Sílabas (sobrarán {distractorSyllableIds.length} distractoras):
         </div>
         <div className="flex flex-wrap gap-1 max-h-24 overflow-y-auto">
@@ -228,7 +230,7 @@ export const SyllablesPuzzle: React.FC<SyllablesProps> = ({ config, onSolve, isS
                 data-syllable-chip={syl.text}
                 onClick={() => handleSyllableClick(sylId)}
                 disabled={isSolved}
-                className="px-2.5 py-1 text-xs font-bold rounded bg-parchment-50 hover:bg-white border border-parchment-400 text-ink-900 shadow-sm active:scale-95 disabled:opacity-40 transition"
+                className="px-2 sm:px-2.5 py-0.5 sm:py-1 text-[11px] sm:text-xs font-bold rounded bg-parchment-50 hover:bg-white border border-parchment-400 text-ink-900 shadow-sm active:scale-95 disabled:opacity-40 transition"
               >
                 {syl.text}
               </button>
@@ -240,7 +242,7 @@ export const SyllablesPuzzle: React.FC<SyllablesProps> = ({ config, onSolve, isS
       {isSolved && (
         <div className="mt-2 p-2 bg-gold-100 border-2 border-gold-500 rounded text-center animate-wax-pop">
           <div className="flex items-center justify-center gap-1.5 text-xs font-bold text-gold-800 uppercase tracking-widest mb-0.5">
-            <CheckCircle2 className="w-4 h-4 text-gold-700" /> Palabras Clave Reconstruidas
+            <CheckCircle2 className="w-4 h-4 text-gold-700" /> Sílabas Clave Ensambladas
           </div>
           <p className="font-serif text-sm font-black tracking-widest text-crimson-900">
             {secretWord}
