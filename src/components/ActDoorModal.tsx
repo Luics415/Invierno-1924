@@ -7,7 +7,6 @@ import {
   DoorOpen,
   DoorClosed,
   Lock,
-  Skull,
   MapPin,
   Clock,
   FileWarning,
@@ -15,6 +14,7 @@ import {
   CheckSquare,
   Feather,
   ShieldAlert,
+  Paperclip,
 } from 'lucide-react';
 
 interface ActDoorModalProps {
@@ -144,7 +144,7 @@ export const ActDoorModal: React.FC<ActDoorModalProps> = ({
           })}
         </div>
 
-        {/* Cuerpo en doble pliego: Lado Izquierdo = Puerta | Lado Derecho = Expediente (o Clasificado) */}
+        {/* Cuerpo en doble pliego: Lado Izquierdo = Puerta | Lado Derecho = Mapa de Instantáneas (o Clasificado) */}
         <div className="relative z-10 p-4 sm:p-6 overflow-y-auto flex-1 bg-[#efeade]">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 items-stretch">
             {/* ============================================================
@@ -234,9 +234,9 @@ export const ActDoorModal: React.FC<ActDoorModalProps> = ({
             </div>
 
             {/* ============================================================
-                LADO DERECHO: INFORMACIÓN DEL EXPEDIENTE (O SELLO CLASIFICADO)
+                LADO DERECHO: MAPA DE EXPEDIENTE CON INSTANTÁNEAS (O CLASIFICADO)
                ============================================================ */}
-            <div className="bg-[#f8f4ea] border-2 border-[#b5ab96] rounded-sm p-4 sm:p-5 shadow-inner flex flex-col justify-between space-y-4">
+            <div className="bg-[#f8f4ea] border-2 border-[#b5ab96] rounded-sm p-4 sm:p-5 shadow-inner flex flex-col justify-between space-y-3">
               {!isActOpenable ? (
                 <div className="my-auto py-6 px-3 text-center space-y-4">
                   <div className="w-14 h-14 mx-auto rounded-full bg-ink-950 text-gold-300 border-2 border-gold-500/65 flex items-center justify-center shadow-lg">
@@ -289,104 +289,178 @@ export const ActDoorModal: React.FC<ActDoorModalProps> = ({
                   </div>
                 </div>
               ) : (
-                <div className="space-y-3.5">
-                  <div className="flex items-center justify-between gap-2 border-b-2 border-ink-900/25 pb-2">
-                    <span className="font-mono text-xs sm:text-sm font-black uppercase tracking-widest text-ink-950">
-                      {actFile.dateStr}
+                <div className="space-y-3">
+                  {/* Cabecera con clip y fecha */}
+                  <div className="flex items-center justify-between gap-2 border-b-2 border-ink-900/25 pb-1.5">
+                    <span className="font-mono text-xs sm:text-sm font-black uppercase tracking-widest text-ink-950 inline-flex items-center gap-1.5">
+                      <Paperclip className="w-3.5 h-3.5 text-ink-700 -rotate-12" />
+                      <span>{actFile.dateStr}</span>
                     </span>
                     <span className="inline-flex items-center gap-1 text-[11px] font-mono font-bold text-crimson-900 bg-crimson-100/80 px-2 py-0.5 rounded border border-crimson-300">
                       <Clock className="w-3 h-3" /> {actFile.timeDiscovered}
                     </span>
                   </div>
 
-                  <h3 className="font-title text-2xl sm:text-[26px] text-crimson-950 leading-tight">
+                  <h3 className="font-title text-xl sm:text-2xl text-crimson-950 leading-tight">
                     {actFile.headline}
                   </h3>
 
-                  {/* Ficha fotográfica */}
-                  <div className="flex items-start gap-3.5 p-3 rounded-sm bg-[#ede6d6] border border-[#b8ab96] shadow-sm">
-                    <div className="w-20 h-24 sm:w-24 sm:h-28 rounded-[2px] overflow-hidden bg-ink-950 border-2 border-ink-800 shadow shrink-0">
-                      <img
-                        src={actFile.victimPortrait}
-                        alt={`Retrato de ${actFile.victimName}`}
-                        draggable={false}
-                        className="w-full h-full object-cover object-top grayscale contrast-110"
-                      />
-                    </div>
-                    <div className="min-w-0 flex-1 space-y-1">
-                      <span className="inline-flex items-center gap-1 text-[10px] font-mono uppercase tracking-wider font-bold text-crimson-900">
-                        <Skull className="w-3 h-3" /> Expediente • Acto {actFile.doorRoman}
-                      </span>
-                      <div className="font-serif font-black text-base sm:text-lg text-ink-950 leading-tight">
-                        {actFile.victimNumber
-                          ? `#${actFile.victimNumber < 10 ? `0${actFile.victimNumber}` : actFile.victimNumber} `
-                          : ''}
-                        {actFile.victimName}
+                  {/* NODO 1: Párrafo 1 + Flecha + Instantánea del Retrato */}
+                  <div className="grid grid-cols-12 gap-2.5 items-center">
+                    <div className="col-span-7 sm:col-span-8 space-y-1">
+                      <p className="text-xs sm:text-[12.5px] leading-relaxed text-ink-900 text-justify font-reading">
+                        {actFile.situationBrief[0]}
+                      </p>
+                      <div className="flex items-center justify-end gap-1 text-[10px] font-declaration italic text-crimson-900">
+                        <span>ficha del censo</span>
+                        <svg className="w-10 h-4 text-crimson-800/80 shrink-0" viewBox="0 0 48 18" fill="none">
+                          <path
+                            d="M2 12 C 16 14, 30 10, 43 5 M 37 2 L 44 5 L 39 11"
+                            stroke="currentColor"
+                            strokeWidth="1.6"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          />
+                        </svg>
                       </div>
-                      <p className="text-xs font-desc italic text-ink-700">
-                        {actFile.victimRole} • {actFile.victimAge} años
-                      </p>
-                      <p className="text-[11px] font-mono text-ink-800 flex items-center gap-1 pt-0.5">
-                        <MapPin className="w-3 h-3 text-crimson-800 shrink-0" />
-                        <span className="truncate">
-                          {actFile.sceneLocationName} ({actFile.sceneFloor})
-                        </span>
-                      </p>
+                    </div>
+
+                    <div className="col-span-5 sm:col-span-4 flex justify-center">
+                      <div className="relative w-24 sm:w-28 bg-[#faf7f0] p-1.5 pb-2 border border-ink-900/45 shadow-md rotate-[1.8deg]">
+                        <div className="pointer-events-none absolute -top-1.5 left-1/2 -translate-x-1/2 w-9 h-2.5 bg-[#e6dcc4]/90 border border-[#bfb399] -rotate-2 shadow-sm" />
+                        <div className="w-full aspect-[4/4.5] overflow-hidden bg-ink-950 border border-ink-800/60">
+                          <img
+                            src={actFile.victimPortrait}
+                            alt={`Instantánea de ${actFile.victimName}`}
+                            draggable={false}
+                            className="w-full h-full object-cover object-top grayscale contrast-115"
+                          />
+                        </div>
+                        <div className="mt-1 space-y-0.5 text-[8.5px] font-mono leading-tight text-ink-900">
+                          <div className="border-b border-ink-800/25 pb-0.5 font-bold uppercase truncate">
+                            {actFile.victimNumber
+                              ? `#${actFile.victimNumber < 10 ? `0${actFile.victimNumber}` : actFile.victimNumber} `
+                              : ''}
+                            {actFile.victimName}
+                          </div>
+                          <div className="border-b border-ink-800/20 pb-0.5 text-[8px] text-ink-700 truncate">
+                            {actFile.victimAge} años · {actFile.victimRole}
+                          </div>
+                          <div className="text-[8px] text-crimson-900 font-semibold flex items-center gap-0.5 truncate">
+                            <MapPin className="w-2.5 h-2.5 shrink-0" />
+                            <span className="truncate">{actFile.sceneFloor}</span>
+                          </div>
+                        </div>
+                      </div>
                     </div>
                   </div>
 
-                  {/* Fotografía forense */}
-                  {actFile.sceneImage && (
-                    <div className="p-1.5 bg-[#ede6d6] border border-[#b5ab96] rounded-sm shadow-sm">
-                      <div className="relative w-full aspect-[4/3] overflow-hidden bg-ink-950 border border-ink-900">
-                        <img
-                          src={actFile.sceneImage}
-                          alt={`Escena forense: ${actFile.sceneLocationName}`}
-                          draggable={false}
-                          className="w-full h-full object-cover"
-                        />
-                        <span className="absolute bottom-2 right-2 px-2 py-0.5 bg-ink-950/85 border border-gold-400/40 text-[10px] font-mono uppercase tracking-wider text-gold-200">
-                          Placa Forense • {actFile.sceneLocationName}
-                        </span>
+                  {/* NODO 2: Instantánea de la Escena (Izquierda) + Flecha + Párrafo 2 (Derecha) */}
+                  <div className="grid grid-cols-12 gap-2.5 items-center">
+                    <div className="col-span-5 flex flex-col items-center">
+                      <div className="relative w-32 sm:w-36 bg-[#faf7f0] p-1.5 pb-2 border border-ink-900/45 shadow-md -rotate-[1.6deg]">
+                        <div className="pointer-events-none absolute -top-1.5 left-1/2 -translate-x-1/2 w-10 h-2.5 bg-[#e6dcc4]/90 border border-[#bfb399] rotate-1 shadow-sm" />
+                        <div className="w-full aspect-[4/3] overflow-hidden bg-ink-950 border border-ink-800/60">
+                          <img
+                            src={actFile.sceneImage}
+                            alt={`Instantánea de escena: ${actFile.sceneLocationName}`}
+                            draggable={false}
+                            className="w-full h-full object-cover"
+                          />
+                        </div>
+                        <div className="mt-1 flex items-center justify-between text-[8px] font-mono text-ink-800">
+                          <span className="truncate font-bold uppercase">{actFile.sceneLocationName}</span>
+                          <span className="px-1 rounded-full border border-ink-700/50 text-[7.5px] font-bold shrink-0">
+                            P{actFile.doorNumber}
+                          </span>
+                        </div>
+                      </div>
+                      <div className="mt-1 flex items-center gap-1 text-[10px] font-declaration italic text-crimson-900">
+                        <span>¿por qué en esta estancia???</span>
+                        <svg className="w-7 h-3.5 text-crimson-800/80 shrink-0" viewBox="0 0 36 16" fill="none">
+                          <path
+                            d="M2 12 C 12 14, 24 10, 32 3 M 26 2 L 33 3 L 30 9"
+                            stroke="currentColor"
+                            strokeWidth="1.5"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          />
+                        </svg>
                       </div>
                     </div>
-                  )}
 
-                  {/* Crónica narrativa */}
-                  <div className="space-y-2 text-xs sm:text-[13.5px] leading-relaxed text-ink-900 text-justify font-reading">
-                    {actFile.situationBrief.map((p, idx) => (
-                      <p key={idx} className={idx > 0 ? 'indent-4' : ''}>
-                        {p}
+                    <div className="col-span-7 space-y-1.5">
+                      <p className="text-xs sm:text-[12.5px] leading-relaxed text-ink-900 text-justify font-reading">
+                        {actFile.situationBrief[1]}
                       </p>
-                    ))}
+                      <div className="torn-note-paper p-2 rounded-sm border border-[#c5baa4]">
+                        <div className="flex items-center gap-1 text-[8.5px] font-mono uppercase tracking-widest font-bold text-crimson-900">
+                          <Feather className="w-2.5 h-2.5" />
+                          <span>Anotación de Azlynn</span>
+                        </div>
+                        <p className="font-declaration text-[11px] text-ink-950 italic leading-snug mt-0.5">
+                          «{actFile.detectiveNote}»
+                        </p>
+                      </div>
+                    </div>
                   </div>
 
-                  {/* Nota manuscrita de Azlynn */}
-                  <div className="torn-note-paper p-3 rounded-sm border border-[#c5baa4] space-y-1">
-                    <div className="flex items-center gap-1.5 text-[10px] font-mono uppercase tracking-widest font-bold text-crimson-900">
-                      <Feather className="w-3.5 h-3.5" />
-                      <span>Anotación de la Detective Azlynn</span>
+                  {/* NODO 3: Párrafo 3 + Flecha + Instantánea de Arma/Objeto */}
+                  <div className="grid grid-cols-12 gap-2.5 items-center">
+                    <div className="col-span-7 sm:col-span-8 space-y-1">
+                      <p className="text-xs sm:text-[12.5px] leading-relaxed text-ink-900 text-justify font-reading">
+                        {actFile.situationBrief[2]}
+                      </p>
+                      <div className="flex items-center justify-end gap-1 text-[10px] font-declaration italic text-crimson-900">
+                        <span>indicio recolectado</span>
+                        <svg className="w-9 h-3.5 text-crimson-800/80 shrink-0" viewBox="0 0 40 16" fill="none">
+                          <path
+                            d="M2 6 C 14 2, 26 4, 36 10 M 30 12 L 37 10 L 33 4"
+                            stroke="currentColor"
+                            strokeWidth="1.5"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          />
+                        </svg>
+                      </div>
                     </div>
-                    <p className="font-declaration text-xs sm:text-sm text-ink-950 italic leading-relaxed">
-                      «{actFile.detectiveNote}»
-                    </p>
+
+                    <div className="col-span-5 sm:col-span-4 flex justify-center">
+                      <div className="relative w-24 sm:w-28 bg-[#faf7f0] p-1.5 pb-2 border border-ink-900/45 shadow-md rotate-[1.4deg]">
+                        <div className="pointer-events-none absolute -top-1.5 left-1/2 -translate-x-1/2 w-8 h-2.5 bg-[#e6dcc4]/90 border border-[#bfb399] -rotate-1 shadow-sm" />
+                        <div className="w-full aspect-square overflow-hidden bg-ink-950 border border-ink-800/60">
+                          <img
+                            src={actFile.weaponImage}
+                            alt={`Evidencia: ${actFile.weaponName}`}
+                            draggable={false}
+                            className="w-full h-full object-cover"
+                          />
+                        </div>
+                        <div className="mt-1 text-[8px] font-mono text-ink-900 leading-tight text-center">
+                          <span className="block font-bold uppercase text-crimson-900">INDICIO</span>
+                          <span className="block truncate text-ink-700" title={actFile.weaponName}>
+                            {actFile.weaponName}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
                   </div>
 
                   {/* Bloque PENDIENTE */}
-                  <div className="bg-[#ede6d6] border border-crimson-900/35 rounded-sm p-3 space-y-2">
+                  <div className="bg-[#ede6d6] border border-crimson-900/35 rounded-sm p-2.5 space-y-1.5">
                     <div className="flex items-center justify-between border-b border-crimson-900/20 pb-1">
-                      <span className="font-mono text-xs uppercase tracking-widest font-black text-crimson-950 flex items-center gap-1.5">
+                      <span className="font-mono text-[11px] uppercase tracking-widest font-black text-crimson-950 flex items-center gap-1.5">
                         <FileWarning className="w-3.5 h-3.5 text-crimson-800" />
-                        <span>Pendiente en el Acto {actFile.doorRoman}</span>
+                        <span>PENDIENTE EN EL ACTO {actFile.doorRoman}:</span>
                       </span>
                       <span className="text-[10px] font-mono text-ink-600">
                         Progreso: {actCompletedCount}/6 días
                       </span>
                     </div>
-                    <ul className="space-y-1 text-xs text-ink-900 font-reading">
+                    <ul className="space-y-1 text-[11px] text-ink-900 font-reading">
                       {actFile.pendingItems.map((item, idx) => (
-                        <li key={idx} className="flex items-start gap-2">
-                          <CheckSquare className="w-3.5 h-3.5 text-crimson-800 shrink-0 mt-0.5" />
+                        <li key={idx} className="flex items-start gap-1.5">
+                          <CheckSquare className="w-3 h-3 text-crimson-800 shrink-0 mt-0.5" />
                           <span>{item}</span>
                         </li>
                       ))}

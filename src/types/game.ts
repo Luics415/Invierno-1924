@@ -403,6 +403,9 @@ export interface ActCrimeFile {
   sceneLocationName: string;
   sceneFloor: RoomFloor;
   sceneImage: string;
+  weaponId: string;
+  weaponName: string;
+  weaponImage: string;
   headline: string;
   situationBrief: string[];
   detectiveNote: string;

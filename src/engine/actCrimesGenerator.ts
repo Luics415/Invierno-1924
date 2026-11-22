@@ -1,6 +1,6 @@
-import { LOCATIONS, VICTIM } from '../data/narrativeBible';
+import { LOCATIONS, VICTIM, WEAPONS } from '../data/narrativeBible';
 import { SUSPECTS_DIRECTORY } from '../data/suspectsDirectory';
-import type { ActCrimeFile, CaseConfig, DirectorySuspect, GameLocation } from '../types/game';
+import type { ActCrimeFile, CaseConfig, DirectorySuspect, GameLocation, Weapon } from '../types/game';
 import { deriveSeed, mulberry32, shuffle } from './puzzles/prng';
 
 const DOOR_META: ReadonlyArray<{
@@ -74,14 +74,21 @@ function buildSecondaryActFile(
   meta: (typeof DOOR_META)[number],
   victim: DirectorySuspect,
   scene: GameLocation,
+  weapon: Weapon,
   prevVictimName: string
 ): ActCrimeFile {
   const numStr = victim.number < 10 ? `0${victim.number}` : `${victim.number}`;
   const sceneImage = getSceneImageForVictim(scene.id, victim.gender);
+  const weaponFields = {
+    weaponId: weapon.id,
+    weaponName: weapon.name,
+    weaponImage: `./portraits/weapon-${weapon.id}.png`,
+  };
 
   if (meta.act === 2) {
     return {
       ...meta,
+      ...weaponFields,
       victimId: victim.id,
       victimNumber: victim.number,
       victimName: victim.name,
@@ -110,6 +117,7 @@ function buildSecondaryActFile(
   if (meta.act === 3) {
     return {
       ...meta,
+      ...weaponFields,
       victimId: victim.id,
       victimNumber: victim.number,
       victimName: victim.name,
@@ -138,6 +146,7 @@ function buildSecondaryActFile(
   if (meta.act === 4) {
     return {
       ...meta,
+      ...weaponFields,
       victimId: victim.id,
       victimNumber: victim.number,
       victimName: victim.name,
@@ -165,6 +174,7 @@ function buildSecondaryActFile(
 
   return {
     ...meta,
+    ...weaponFields,
     victimId: victim.id,
     victimNumber: victim.number,
     victimName: victim.name,
@@ -205,6 +215,13 @@ export function generateActCrimeFiles(config: CaseConfig): ActCrimeFile[] {
     LOCATIONS.filter(l => l.id !== config.locationId)
   ).slice(0, 5);
 
+  // 5 objetos/armas periciales hallados o inspeccionados en las aperturas de acto
+  const actWeapons = shuffle(
+    rng,
+    WEAPONS.filter(w => w.id !== config.weaponId)
+  ).slice(0, 5);
+  const w0 = actWeapons[0] ?? WEAPONS[0];
+
   const act1Meta = DOOR_META[0];
   const act1File: ActCrimeFile = {
     ...act1Meta,
@@ -217,6 +234,9 @@ export function generateActCrimeFiles(config: CaseConfig): ActCrimeFile[] {
     sceneLocationName: 'Villa Acebo (Escena bajo secreto sumarial)',
     sceneFloor: 'Planta Baja',
     sceneImage: `./portraits/scene-${otherScenes[4]?.id ?? 'salon'}-m.png`,
+    weaponId: w0.id,
+    weaponName: w0.name,
+    weaponImage: `./portraits/weapon-${w0.id}.png`,
     headline: `El patriarca ${VICTIM.name} aparece sin vida en Villa Acebo`,
     situationBrief: [
       `La ventisca de diciembre ha sepultado el único puente que comunica el Paso de Sierra Blanca con el valle. Nadie puede entrar ni salir de Villa Acebo hasta que lleguen los equipos de rescate.`,
@@ -231,10 +251,34 @@ export function generateActCrimeFiles(config: CaseConfig): ActCrimeFile[] {
     ],
   };
 
-  const act2File = buildSecondaryActFile(DOOR_META[1], eligibleVictims[0], otherScenes[0], VICTIM.name);
-  const act3File = buildSecondaryActFile(DOOR_META[2], eligibleVictims[1], otherScenes[1], eligibleVictims[0].name);
-  const act4File = buildSecondaryActFile(DOOR_META[3], eligibleVictims[2], otherScenes[2], eligibleVictims[1].name);
-  const act5File = buildSecondaryActFile(DOOR_META[4], eligibleVictims[3], otherScenes[3], eligibleVictims[2].name);
+  const act2File = buildSecondaryActFile(
+    DOOR_META[1],
+    eligibleVictims[0],
+    otherScenes[0],
+    actWeapons[1] ?? WEAPONS[1],
+    VICTIM.name
+  );
+  const act3File = buildSecondaryActFile(
+    DOOR_META[2],
+    eligibleVictims[1],
+    otherScenes[1],
+    actWeapons[2] ?? WEAPONS[2],
+    eligibleVictims[0].name
+  );
+  const act4File = buildSecondaryActFile(
+    DOOR_META[3],
+    eligibleVictims[2],
+    otherScenes[2],
+    actWeapons[3] ?? WEAPONS[3],
+    eligibleVictims[1].name
+  );
+  const act5File = buildSecondaryActFile(
+    DOOR_META[4],
+    eligibleVictims[3],
+    otherScenes[3],
+    actWeapons[4] ?? WEAPONS[4],
+    eligibleVictims[2].name
+  );
 
   return [act1File, act2File, act3File, act4File, act5File];
 }

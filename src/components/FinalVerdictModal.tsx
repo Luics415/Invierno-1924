@@ -345,13 +345,26 @@ export const FinalVerdictModal: React.FC<FinalVerdictModalProps> = ({ onClose })
                             : 'border-[#b5ab96] bg-[#f8f5ee] hover:bg-[#e8e2d3] hover:border-ink-800 text-ink-900'
                         }`}
                       >
-                        <div className="min-w-0">
-                          <span className="text-xs font-serif font-bold block truncate text-ink-950">
-                            {w.name}
-                          </span>
-                          <span className="text-[10px] font-mono uppercase tracking-wider text-ink-600 block">
-                            {w.category} • {w.material}
-                          </span>
+                        <div className="flex items-center gap-2 min-w-0">
+                          <div className="w-9 h-9 bg-[#faf7f0] p-0.5 border border-ink-900/35 shadow-sm shrink-0">
+                            <img
+                              src={`./portraits/weapon-${w.id}.png`}
+                              alt={w.name}
+                              loading="lazy"
+                              draggable={false}
+                              className={`w-full h-full object-cover ${
+                                !isCompatible && !isSelected ? 'grayscale opacity-75' : ''
+                              }`}
+                            />
+                          </div>
+                          <div className="min-w-0">
+                            <span className="text-xs font-serif font-bold block truncate text-ink-950">
+                              {w.name}
+                            </span>
+                            <span className="text-[10px] font-mono uppercase tracking-wider text-ink-600 block">
+                              {w.category} • {w.material}
+                            </span>
+                          </div>
                         </div>
                         {isSelected && (
                           <div className="w-5 h-5 rounded-full bg-gradient-to-br from-[#7c1925] to-[#440910] border border-[#c5a059] text-gold-200 flex items-center justify-center shrink-0">
