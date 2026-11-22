@@ -69,7 +69,7 @@ export const PrologueModal: React.FC<PrologueModalProps> = ({ onClose, onOpenDoo
               </p>
             </div>
 
-            {/* Historia general del sitio */}
+            {/* Historia general del sitio (sin anticipar futuros crímenes) */}
             <div className="space-y-3 text-sm sm:text-[15px] leading-relaxed text-ink-900 text-justify font-reading">
               <p>
                 <span className="drop-cap-victorian">L</span>a tormenta de nieve más feroz en cuarenta años ha dejado{' '}
@@ -84,10 +84,10 @@ export const PrologueModal: React.FC<PrologueModalProps> = ({ onClose, onOpenDoo
                 en el Álbum de Sospechosos en estricta igualdad de condiciones.
               </p>
               <p className="indent-4">
-                Uno de ellos es el responsable de las muertes que están convirtiendo estas Navidades en una pesadilla.
-                La detective <strong>Azlynn</strong> necesita tu ayuda durante las próximas{' '}
-                <strong>30 jornadas</strong>, divididas tras <strong>5 Puertas</strong> selladas: cada puerta abre un
-                nuevo acto y un nuevo crimen que estrecha el cerco sobre el único culpable.
+                Uno de ellos ha cometido un crimen a sangre fría dentro de la propiedad. La detective{' '}
+                <strong>Azlynn</strong> necesita tu ayuda durante las próximas <strong>30 jornadas</strong>, divididas
+                tras <strong>5 Puertas</strong> selladas en este libro: cada puerta custodia un tramo clasificado del
+                expediente que solo podrá abrirse tras resolver todos los acertijos del acto anterior.
               </p>
             </div>
 
@@ -95,20 +95,20 @@ export const PrologueModal: React.FC<PrologueModalProps> = ({ onClose, onOpenDoo
             <div className="p-4 rounded-sm bg-[#e6dfd0] border border-[#b5ab96] space-y-2.5">
               <div className="flex items-center gap-2 text-xs font-mono uppercase tracking-wider font-bold text-crimson-900">
                 <Scale className="w-4 h-4 text-crimson-800 shrink-0" />
-                <span>Qué deberás descubrir tras cada Puerta</span>
+                <span>Qué deberás descubrir en el expediente</span>
               </div>
               <ol className="space-y-1.5 text-xs sm:text-sm text-ink-900 list-decimal list-inside font-reading">
                 <li>
-                  <strong>La identidad del único asesino</strong> entre los <strong>74 sospechosos</strong> del censo.
+                  <strong>La identidad del único culpable</strong> entre los <strong>74 sospechosos</strong> del censo.
                 </li>
                 <li>
-                  <strong>El arma o método homicida</strong> entre las <strong>18 armas inventariadas</strong> en la mansión.
+                  <strong>El arma o método utilizado</strong> entre las <strong>18 armas inventariadas</strong> en la mansión.
                 </li>
                 <li>
-                  <strong>La estancia exacta del crimen</strong> entre las <strong>9 estancias</strong> (Planta Baja, Planta Alta y Sótano).
+                  <strong>La estancia exacta de los hechos</strong> entre las <strong>9 estancias</strong> (Planta Baja, Planta Alta y Sótano).
                 </li>
                 <li>
-                  <strong>La secuencia de las 5 Puertas y 5 víctimas</strong>: tras cada acto encontrarás una nueva ficha forense que actualiza la situación del encierro.
+                  <strong>El secreto tras las 5 Puertas</strong>: la información de cada nueva puerta permanece estrictamente clasificada hasta cumplir los 6 acertijos del acto previo.
                 </li>
               </ol>
             </div>
@@ -125,8 +125,8 @@ export const PrologueModal: React.FC<PrologueModalProps> = ({ onClose, onOpenDoo
               <div className="p-2.5 rounded bg-parchment-100 border border-[#c5baa4] flex items-center gap-2">
                 <DoorOpen className="w-4 h-4 text-crimson-800 shrink-0" />
                 <div>
-                  <span className="block font-bold text-ink-950">5 Puertas · 5 Víctimas</span>
-                  <span className="text-[10px] text-ink-600">30 jornadas de investigación</span>
+                  <span className="block font-bold text-ink-950">5 Puertas Selladas</span>
+                  <span className="text-[10px] text-ink-600">30 jornadas clasificadas</span>
                 </div>
               </div>
               <div className="p-2.5 rounded bg-parchment-100 border border-[#c5baa4] flex items-center gap-2">
@@ -149,7 +149,7 @@ export const PrologueModal: React.FC<PrologueModalProps> = ({ onClose, onOpenDoo
                 className="px-5 py-2.5 btn-crimson-wax text-parchment-50 rounded-[3px] font-serif font-bold text-xs sm:text-sm flex items-center gap-2 shadow-lg transition"
               >
                 <DoorOpen className="w-4 h-4 text-[#e5ca8f]" />
-                <span>Abrir Puerta I — Ver Primer Crimen</span>
+                <span>Abrir Puerta I — Iniciar Expediente</span>
               </button>
               <button
                 type="button"

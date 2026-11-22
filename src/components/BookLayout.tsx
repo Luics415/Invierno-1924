@@ -86,7 +86,6 @@ export const BookLayout: React.FC<BookLayoutProps> = ({
     completedDays,
     openedDoors,
     openDoor,
-    freePlayMode,
     markDayCompleted,
     unlockedClues,
     manualEliminations,
@@ -209,7 +208,7 @@ export const BookLayout: React.FC<BookLayoutProps> = ({
 
   const navigateToDay = (nextDay: number) => {
     if (nextDay < 0 || nextDay > totalDays) return;
-    if (nextDay > 0 && !freePlayMode && !isDayUnlockedByDoors(nextDay, completedDays)) {
+    if (nextDay > 0 && !isDayUnlockedByDoors(nextDay, completedDays)) {
       const targetAct = Math.ceil(nextDay / 6) as 1 | 2 | 3 | 4 | 5;
       sound.playError();
       setPageDir('next');
@@ -623,7 +622,7 @@ export const BookLayout: React.FC<BookLayoutProps> = ({
                   onOpenActDoor(isAlbum ? 1 : dayData.act, false);
                 }}
                 className="flex items-center gap-1.5 px-2 sm:px-2.5 py-1.5 rounded-sm btn-ledger text-gold-200 text-xs sm:text-sm font-desc font-medium transition"
-                title="Abrir las 5 Puertas y Expedientes de Víctimas por Acto"
+                title="Consultar las 5 Puertas del Expediente"
               >
                 <DoorOpen className="w-3.5 h-3.5 text-gold-400" />
                 <span className="hidden xl:inline">Puertas</span>
@@ -654,7 +653,7 @@ export const BookLayout: React.FC<BookLayoutProps> = ({
                   onOpenDossier();
                 }}
                 className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-sm btn-ledger text-gold-200 text-xs sm:text-sm font-desc font-medium transition"
-                title="Abrir Cuaderno del Detective y Matriz Murdoku"
+                title="Abrir Cuaderno del Detective — Consulta en tiempo real"
               >
                 <BookMarked className="w-3.5 h-3.5 text-gold-400" />
                 <span className="hidden md:inline">Cuaderno</span>
@@ -778,8 +777,8 @@ export const BookLayout: React.FC<BookLayoutProps> = ({
         </header>
       </div>
 
-      {/* Selector móvil de pliego para capítulos diarios */}
-      {!isAlbum && bookCoverMode === 'open' && (
+      {/* Selector móvil de pliego para capítulos diarios y puertas */}
+      {(!isAlbum || doorPreviewAct !== null) && bookCoverMode === 'open' && (
         <div className="lg:hidden w-full flex justify-center mb-2 z-20 shrink-0">
           <div className="w-full max-w-md bg-ink-950/95 p-1 rounded-md border border-gold-500/35 grid grid-cols-2 gap-1 text-xs shadow-lg">
             <button
@@ -796,8 +795,17 @@ export const BookLayout: React.FC<BookLayoutProps> = ({
               }`}
             >
               <BookOpen className="w-3.5 h-3.5 shrink-0" />
-              <span className="sm:hidden">Relato</span>
-              <span className="hidden sm:inline">Pliego Izquierdo: Relato</span>
+              {doorPreviewAct !== null || (!isAlbum && !openedDoors.includes(dayData.act)) ? (
+                <>
+                  <span className="sm:hidden">Puerta</span>
+                  <span className="hidden sm:inline">Pliego Izquierdo: Puerta</span>
+                </>
+              ) : (
+                <>
+                  <span className="sm:hidden">Relato</span>
+                  <span className="hidden sm:inline">Pliego Izquierdo: Relato</span>
+                </>
+              )}
             </button>
             <button
               type="button"
@@ -813,12 +821,21 @@ export const BookLayout: React.FC<BookLayoutProps> = ({
               }`}
             >
               <Puzzle className="w-3.5 h-3.5 shrink-0" />
-              <span className="sm:hidden">Pasatiempo</span>
-              <span className="hidden sm:inline">Pliego Derecho: Pasatiempo</span>
-              {isDayCompleted && (
-                <span className="w-4 h-4 rounded-full bg-gold-300 text-ink-950 flex items-center justify-center shrink-0">
-                  <Check className="w-2.5 h-2.5" strokeWidth={3} />
-                </span>
+              {doorPreviewAct !== null || (!isAlbum && !openedDoors.includes(dayData.act)) ? (
+                <>
+                  <span className="sm:hidden">Expediente</span>
+                  <span className="hidden sm:inline">Pliego Derecho: Expediente</span>
+                </>
+              ) : (
+                <>
+                  <span className="sm:hidden">Pasatiempo</span>
+                  <span className="hidden sm:inline">Pliego Derecho: Pasatiempo</span>
+                  {isDayCompleted && (
+                    <span className="w-4 h-4 rounded-full bg-gold-300 text-ink-950 flex items-center justify-center shrink-0">
+                      <Check className="w-2.5 h-2.5" strokeWidth={3} />
+                    </span>
+                  )}
+                </>
               )}
             </button>
           </div>
@@ -989,7 +1006,7 @@ export const BookLayout: React.FC<BookLayoutProps> = ({
               (() => {
                 const targetAct = (doorPreviewAct ?? dayData.act) as 1 | 2 | 3 | 4 | 5;
                 const actFile = activeCase.acts.find(a => a.act === targetAct) ?? activeCase.acts[0];
-                const unlocked = freePlayMode || isActUnlocked(targetAct, completedDays);
+                const unlocked = isActUnlocked(targetAct, completedDays);
                 const prevStart = (targetAct - 2) * 6 + 1;
                 const prevEnd = (targetAct - 1) * 6;
                 const prevDone =
@@ -1484,7 +1501,7 @@ export const BookLayout: React.FC<BookLayoutProps> = ({
                   className="px-3.5 py-2 rounded-[3px] bg-[#14171d] hover:bg-[#202530] border border-[#b79b65] text-gold-300 text-xs font-serif font-bold transition flex items-center gap-1.5"
                 >
                   <BookMarked className="w-4 h-4 text-gold-400" />
-                  <span>Abrir Matriz Murdoku</span>
+                  <span>Abrir Cuaderno del Detective</span>
                 </button>
               </div>
             </div>

@@ -53,7 +53,6 @@ export const AdventCalendar: React.FC<AdventCalendarProps> = ({ onClose, onOpenA
     activeCase,
     currentDay,
     completedDays,
-    freePlayMode,
     setCurrentDay,
   } = useGameStore();
   const [selectedAct, setSelectedAct] = useState<number | 'all'>('all');
@@ -63,8 +62,7 @@ export const AdventCalendar: React.FC<AdventCalendarProps> = ({ onClose, onOpenA
   const progressPct = Math.round((completedDays.length / totalDays) * 100);
 
   const handleSelectDay = (dayNum: number, isUnlocked: boolean) => {
-    if (!isUnlocked && !freePlayMode) return;
-    sound.playWaxSeal();
+    if (!isUnlocked) return;
     setCurrentDay(dayNum);
     onClose();
   };
@@ -147,7 +145,7 @@ export const AdventCalendar: React.FC<AdventCalendarProps> = ({ onClose, onOpenA
               const actDone = days.filter(
                 d => d.act === act && completedDays.includes(d.day)
               ).length;
-              const actUnlocked = freePlayMode || isActUnlocked(act, completedDays);
+              const actUnlocked = isActUnlocked(act, completedDays);
               return (
                 <button
                   type="button"
@@ -218,44 +216,64 @@ export const AdventCalendar: React.FC<AdventCalendarProps> = ({ onClose, onOpenA
 
         {/* Cuadrícula de 30 Ventanas */}
         <div className="relative z-10 p-3 sm:p-4 overflow-y-auto flex-1 bg-gradient-to-b from-[#0d0f13]/92 to-[#08090c]/96">
-          {/* Franja de las 5 Puertas y Víctimas por Acto */}
+          {/* Franja de las 5 Puertas del Expediente por Acto */}
           {onOpenActDoor && (
             <div className="mb-3 flex flex-wrap items-center justify-between gap-2 p-2.5 rounded-md bg-[#161922]/95 border border-[#b79b65]/30">
               <div className="flex items-center gap-2 text-xs text-parchment-200 min-w-0">
                 <DoorOpen className="w-4 h-4 text-gold-400 shrink-0" />
                 {selectedAct === 'all' ? (
                   <span className="font-desc text-xs">
-                    <strong className="text-gold-200">5 Puertas · 5 Víctimas:</strong> consulta la puerta y el expediente de víctima de cada acto.
+                    <strong className="text-gold-200">5 Puertas del Expediente:</strong> cada puerta custodia un acto clasificado de la investigación.
                   </span>
                 ) : (
                   (() => {
                     const actInfo = activeCase.acts.find(a => a.act === selectedAct);
-                    return actInfo ? (
+                    if (!actInfo) return null;
+                    const actDeclassified = isActUnlocked(actInfo.act, completedDays);
+                    return actDeclassified ? (
                       <span className="font-desc text-xs flex items-center gap-1.5 flex-wrap">
                         <Skull className="w-3.5 h-3.5 text-crimson-400 shrink-0" />
                         <strong className="text-gold-200">Puerta {actInfo.doorRoman}:</strong>
-                        <span>{actInfo.doorTitle} — Víctima: <strong>{actInfo.victimName}</strong></span>
+                        <span>
+                          {actInfo.doorTitle} — Expediente: <strong>{actInfo.victimName}</strong>
+                        </span>
                       </span>
-                    ) : null;
+                    ) : (
+                      <span className="font-desc text-xs flex items-center gap-1.5 flex-wrap">
+                        <Lock className="w-3.5 h-3.5 text-crimson-400 shrink-0" />
+                        <strong className="text-gold-200">Puerta {actInfo.doorRoman}:</strong>
+                        <span className="font-mono text-crimson-300 font-bold">
+                          EXPEDIENTE CLASIFICADO (Completa los 6 acertijos del Acto {actInfo.act - 1})
+                        </span>
+                      </span>
+                    );
                   })()
                 )}
               </div>
               <div className="flex flex-wrap items-center gap-1.5">
                 {selectedAct === 'all' ? (
-                  activeCase.acts.map(a => (
-                    <button
-                      key={a.act}
-                      type="button"
-                      onClick={() => {
-                        sound.playClick();
-                        onOpenActDoor(a.act, false);
-                      }}
-                      className="px-2 py-1 rounded-sm bg-[#222633] hover:bg-[#6e171e] text-gold-200 border border-[#b79b65]/35 text-[10px] font-mono transition"
-                      title={`Abrir Puerta ${a.doorNumber}: ${a.victimName}`}
-                    >
-                      Puerta {a.doorNumber}
-                    </button>
-                  ))
+                  activeCase.acts.map(a => {
+                    const unlocked = isActUnlocked(a.act, completedDays);
+                    return (
+                      <button
+                        key={a.act}
+                        type="button"
+                        onClick={() => {
+                          sound.playClick();
+                          onOpenActDoor(a.act, false);
+                        }}
+                        className="px-2 py-1 rounded-sm bg-[#222633] hover:bg-[#6e171e] text-gold-200 border border-[#b79b65]/35 text-[10px] font-mono transition inline-flex items-center gap-1"
+                        title={
+                          unlocked
+                            ? `Consultar Puerta ${a.doorNumber}: ${a.doorTitle}`
+                            : `Puerta ${a.doorNumber}: Expediente Clasificado`
+                        }
+                      >
+                        {!unlocked && <Lock className="w-2.5 h-2.5 text-crimson-400" />}
+                        <span>Puerta {a.doorNumber}</span>
+                      </button>
+                    );
+                  })
                 ) : (
                   <button
                     type="button"
@@ -266,7 +284,7 @@ export const AdventCalendar: React.FC<AdventCalendarProps> = ({ onClose, onOpenA
                     className="px-3 py-1 rounded-sm btn-crimson-wax text-parchment-50 text-xs font-desc font-semibold flex items-center gap-1.5 transition"
                   >
                     <DoorOpen className="w-3.5 h-3.5 text-gold-300" />
-                    <span>Abrir Puerta {selectedAct} y Víctima</span>
+                    <span>Consultar Puerta {selectedAct}</span>
                   </button>
                 )}
               </div>
@@ -279,7 +297,7 @@ export const AdventCalendar: React.FC<AdventCalendarProps> = ({ onClose, onOpenA
           >
             {filteredDays.map(d => {
               const isCompleted = completedDays.includes(d.day);
-              const isUnlocked = freePlayMode || isDayUnlockedByDoors(d.day, completedDays);
+              const isUnlocked = isDayUnlockedByDoors(d.day, completedDays);
               const isCurrent = currentDay === d.day;
 
               return (

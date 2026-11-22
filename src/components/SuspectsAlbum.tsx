@@ -575,11 +575,11 @@ export const SuspectsAlbum: React.FC<SuspectsAlbumProps> = ({ onStartAdventure }
          ================================================================ */}
       {selectedSuspect && (
         <div
-          className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-3 sm:p-6 overflow-hidden"
+          className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center pt-10 sm:pt-14 pb-3 px-3 sm:px-6 overflow-hidden"
           onClick={closeSuspectModal}
         >
           <div
-            className="relative max-w-xl w-full flex items-center justify-center"
+            className="relative max-w-xl w-full flex items-center justify-center mt-2 sm:mt-4"
             onClick={e => e.stopPropagation()}
           >
             {/* FOTOGRAFÍA SUELTA AGARRADA CON CLIP (3D FLIP CARD AL CLIC, ARRASTRABLE Y ZOOMABLE) */}
@@ -599,14 +599,14 @@ export const SuspectsAlbum: React.FC<SuspectsAlbumProps> = ({ onStartAdventure }
                 transform: `translate3d(${photoDrag.x}px, ${photoDrag.y}px, 0) scale(${photoZoom})`,
               }}
               title="Haz clic sobre la fotografía para voltearla y leer las notas confidenciales al reverso · Arrastra para mover"
-              className={`z-[60] w-44 sm:w-52 bg-[#f5f2ea] p-2 pb-2.5 border border-[#8e8474] shadow-[0_20px_42px_rgba(0,0,0,0.75)] select-none touch-none ${
+              className={`z-[60] w-40 sm:w-48 bg-[#f5f2ea] p-2 pb-2.5 border border-[#8e8474] shadow-[0_20px_42px_rgba(0,0,0,0.75)] select-none touch-none ${
                 isDraggingPhoto
                   ? 'cursor-grabbing transition-none'
                   : 'cursor-grab transition-all duration-300 ease-out'
               } ${
                 isPhotoAside
-                  ? 'fixed sm:absolute right-3 top-3 sm:-right-40 sm:top-6 rotate-[3deg]'
-                  : 'absolute right-3 sm:right-5 -top-3 sm:top-4 rotate-[-2.5deg]'
+                  ? 'fixed sm:absolute right-3 top-6 sm:-right-40 sm:top-8 rotate-[3deg]'
+                  : 'absolute right-3 sm:right-5 top-3 sm:top-5 rotate-[-2.5deg]'
               }`}
             >
               {/* Clip metálico sujetando la foto */}
@@ -759,7 +759,7 @@ export const SuspectsAlbum: React.FC<SuspectsAlbumProps> = ({ onStartAdventure }
             </div>
 
             {/* DOCUMENTO OFICIAL DE LA JEFATURA (1924) */}
-            <div className="bg-[#efeade] border-2 border-[#2a2722] rounded-sm p-4 sm:p-6 w-full shadow-[0_24px_60px_rgba(0,0,0,0.85)] space-y-3.5 font-reading max-h-[90vh] overflow-y-auto relative">
+            <div className="bg-[#efeade] border-2 border-[#2a2722] rounded-sm p-4 sm:p-6 w-full shadow-[0_24px_60px_rgba(0,0,0,0.85)] space-y-3.5 font-reading max-h-[75vh] sm:max-h-[77vh] overflow-y-auto relative">
               {/* Membrete oficial superior */}
               <div className="border-b-2 border-[#2a2722] pb-2.5 pr-28 sm:pr-36">
                 <div className="flex items-center justify-between gap-2 text-[9px] font-mono uppercase tracking-[0.22em] text-[#5c5346]">

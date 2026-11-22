@@ -164,8 +164,8 @@ export const useGameStore = create<GameStoreState>()(
 
       setCurrentDay: (day: number) => {
         const clamped = Math.max(0, Math.min(TOTAL_DAYS, day));
-        const { completedDays, freePlayMode } = get();
-        if (!freePlayMode && clamped > 0 && !isDayUnlockedByDoors(clamped, completedDays)) {
+        const { completedDays } = get();
+        if (clamped > 0 && !isDayUnlockedByDoors(clamped, completedDays)) {
           sound.playError();
           return;
         }
@@ -174,8 +174,8 @@ export const useGameStore = create<GameStoreState>()(
       },
 
       openDoor: (act: number) => {
-        const { completedDays, freePlayMode, openedDoors } = get();
-        if (!freePlayMode && !isActUnlocked(act, completedDays)) {
+        const { completedDays, openedDoors } = get();
+        if (!isActUnlocked(act, completedDays)) {
           sound.playError();
           return;
         }
@@ -392,12 +392,31 @@ export const useGameStore = create<GameStoreState>()(
             ? persisted.caseSeed >>> 0
             : currentState.caseSeed;
         const activeCase = getCaseForSeed(seed);
+        const persistedCompleted = Array.isArray(persisted.completedDays)
+          ? (persisted.completedDays as number[])
+          : currentState.completedDays;
+        const rawOpenedDoors = Array.isArray(persisted.openedDoors)
+          ? (persisted.openedDoors as number[])
+          : currentState.openedDoors;
+        const validOpenedDoors = rawOpenedDoors.filter(act =>
+          isActUnlocked(act, persistedCompleted)
+        );
+        const persistedDay =
+          typeof persisted.currentDay === 'number' ? persisted.currentDay : currentState.currentDay;
+        const safeCurrentDay =
+          persistedDay > 0 && !isDayUnlockedByDoors(persistedDay, persistedCompleted)
+            ? 0
+            : persistedDay;
+
         return {
           ...currentState,
           ...(persisted as Partial<GameStoreState>),
           totalDays: TOTAL_DAYS,
           caseSeed: seed,
           activeCase,
+          currentDay: safeCurrentDay,
+          openedDoors: validOpenedDoors,
+          freePlayMode: false,
         };
       },
       onRehydrateStorage: () => () => {
