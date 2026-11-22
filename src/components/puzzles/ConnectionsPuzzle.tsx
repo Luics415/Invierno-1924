@@ -57,7 +57,7 @@ export const ConnectionsPuzzle: React.FC<ConnectionsProps> = ({ config, onSolve,
 
   const handleToggleItem = (item: string) => {
     if (isSolved) return;
-    sound.playClick();
+    sound.playTileSnap();
     setFeedback(null);
     setSelected(prev => {
       if (prev.includes(item)) return prev.filter(i => i !== item);

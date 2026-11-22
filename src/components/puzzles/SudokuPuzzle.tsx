@@ -62,7 +62,7 @@ export const SudokuPuzzle: React.FC<SudokuProps> = ({ config, onSolve, isSolved,
           return { ...prev, [key]: updatedNotes };
         });
       } else {
-        sound.playClick();
+        sound.playNibClick();
         const newGrid = grid.map((row, ri) =>
           row.map((val, ci) => (ri === r && ci === c ? num : val))
         );

@@ -62,7 +62,11 @@ export const MurdokuPuzzle: React.FC<MurdokuProps> = ({ config, onSolve, isSolve
       return;
     }
 
-    sound.playPencil();
+    if (next === 'check') {
+      sound.playNibClick();
+    } else {
+      sound.playPencil();
+    }
     setMistakeAlert(null);
     const updated: Record<string, MatrixCellState> = { ...cells, [key]: next };
 

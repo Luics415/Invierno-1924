@@ -56,7 +56,7 @@ export const FutoshikiPuzzle: React.FC<FutoshikiProps> = ({ config, onSolve, isS
       const { r, c } = selectedCell;
       if (isInitial(r, c)) return;
 
-      sound.playClick();
+      sound.playNibClick();
       const next = grid.map((row, ri) =>
         row.map((val, ci) => (ri === r && ci === c ? num : val))
       );

@@ -62,7 +62,7 @@ export const MinesweeperPuzzle: React.FC<MinesweeperProps> = ({ config, onSolve,
     if (revealed.has(key)) return;
 
     if (mode === 'flag') {
-      sound.playPencil();
+      sound.playFlagPin();
       setDetonationAlert(null);
       const nextFlags = new Set(flagged);
       if (nextFlags.has(key)) nextFlags.delete(key);
@@ -79,7 +79,7 @@ export const MinesweeperPuzzle: React.FC<MinesweeperProps> = ({ config, onSolve,
     if (flagged.has(key)) return;
 
     if (mineSet.has(key)) {
-      sound.playError();
+      sound.playMildExplosion();
       setRevealed(new Set(initialSet));
       setFlagged(new Set());
       setDetonationAlert(
@@ -88,7 +88,7 @@ export const MinesweeperPuzzle: React.FC<MinesweeperProps> = ({ config, onSolve,
       return;
     }
 
-    sound.playClick();
+    sound.playFuseExtinguish();
     setDetonationAlert(null);
     const nextRevealed = floodRevealSafeCells(rows, cols, mineSet, r, c, revealed);
     setRevealed(nextRevealed);

@@ -74,7 +74,7 @@ export const CryptogramPuzzle: React.FC<CryptogramProps> = ({ config, onSolve, i
         return;
       }
 
-      sound.playClick();
+      sound.playTypewriterKey();
       setBijectionError(null);
       const updated = { ...userMapping, [selectedNum]: upper };
       setUserMapping(updated);

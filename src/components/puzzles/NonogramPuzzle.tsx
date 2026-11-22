@@ -30,7 +30,11 @@ export const NonogramPuzzle: React.FC<NonogramProps> = ({ config, onSolve, isSol
 
   const applyAction = (r: number, c: number, mode: 'fill' | 'cross') => {
     if (isSolved) return;
-    sound.playPencil();
+    if (mode === 'fill') {
+      sound.playHighlighterStroke((r + c) % 6);
+    } else {
+      sound.playPencil();
+    }
     const targetVal: CellMark = mode === 'fill' ? 1 : 2;
     const next = marks.map((row, ri) =>
       row.map((cell, ci) => (ri === r && ci === c ? (cell === targetVal ? 0 : targetVal) : cell))

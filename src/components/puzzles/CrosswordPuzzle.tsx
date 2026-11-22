@@ -100,7 +100,7 @@ export const CrosswordPuzzle: React.FC<CrosswordProps> = ({ config, onSolve, isS
       if (grid[r][c] === null) return;
 
       const upper = letter.toUpperCase();
-      sound.playPencil();
+      sound.playTypewriterKey();
       const next = userGrid.map((row, ri) =>
         row.map((val, ci) => (ri === r && ci === c ? upper : val))
       );

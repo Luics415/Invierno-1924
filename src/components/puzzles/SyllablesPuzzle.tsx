@@ -39,7 +39,7 @@ export const SyllablesPuzzle: React.FC<SyllablesProps> = ({ config, onSolve, isS
 
   const handleSyllableClick = (sylId: string) => {
     if (isSolved) return;
-    sound.playClick();
+    sound.playTileSnap();
 
     const activeWord = words.find(w => w.id === activeWordId);
     if (!activeWord) return;

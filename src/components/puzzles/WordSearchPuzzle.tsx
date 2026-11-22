@@ -76,18 +76,28 @@ export const WordSearchPuzzle: React.FC<WordSearchProps> = ({ config, onSolve, i
 
   const handlePointerDown = (r: number, c: number) => {
     if (isSolved) return;
-    sound.playPencil();
+    sound.playHighlighterStroke(0);
     startCoordRef.current = { r, c };
     selectedCoordsRef.current = [{ r, c }];
     setSelectedCoords([{ r, c }]);
+  };
+
+  const updateSelectionCoords = (coords: { r: number; c: number }[]) => {
+    const prev = selectedCoordsRef.current;
+    const prevLast = prev[prev.length - 1];
+    const nextLast = coords[coords.length - 1];
+    if (!prevLast || !nextLast || prevLast.r !== nextLast.r || prevLast.c !== nextLast.c) {
+      sound.playHighlighterStroke(coords.length - 1);
+    }
+    selectedCoordsRef.current = coords;
+    setSelectedCoords(coords);
   };
 
   const handlePointerEnter = (r: number, c: number) => {
     const start = startCoordRef.current;
     if (!start) return;
     const coords = getLineCoords(start.r, start.c, r, c);
-    selectedCoordsRef.current = coords;
-    setSelectedCoords(coords);
+    updateSelectionCoords(coords);
   };
 
   const handleGridPointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
@@ -96,8 +106,7 @@ export const WordSearchPuzzle: React.FC<WordSearchProps> = ({ config, onSolve, i
     const hit = resolveCellAtPoint(e.clientX, e.clientY);
     if (hit) {
       const coords = getLineCoords(start.r, start.c, hit.r, hit.c);
-      selectedCoordsRef.current = coords;
-      setSelectedCoords(coords);
+      updateSelectionCoords(coords);
     }
   };
 
@@ -115,8 +124,7 @@ export const WordSearchPuzzle: React.FC<WordSearchProps> = ({ config, onSolve, i
     const hit = resolveCellAtPoint(e.touches[0].clientX, e.touches[0].clientY);
     if (hit) {
       const coords = getLineCoords(start.r, start.c, hit.r, hit.c);
-      selectedCoordsRef.current = coords;
-      setSelectedCoords(coords);
+      updateSelectionCoords(coords);
     }
   };
 
