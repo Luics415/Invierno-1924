@@ -3,7 +3,10 @@ import { BookLayout } from './components/BookLayout';
 import { AdventCalendar } from './components/AdventCalendar';
 import { DetectiveDossier } from './components/DetectiveDossier';
 import { FinalVerdictModal } from './components/FinalVerdictModal';
+import { PrologueModal } from './components/PrologueModal';
+import { ActDoorModal } from './components/ActDoorModal';
 import { ParanormalEngine } from './components/ParanormalEngine';
+import { useGameStore } from './store/useGameStore';
 
 const ROOM_BACKGROUNDS = [
   './portraits/background-1.png',
@@ -13,9 +16,15 @@ const ROOM_BACKGROUNDS = [
 ];
 
 export const App: React.FC = () => {
+  const setCurrentDay = useGameStore(s => s.setCurrentDay);
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
   const [isDossierOpen, setIsDossierOpen] = useState(false);
   const [isVerdictOpen, setIsVerdictOpen] = useState(false);
+  const [isPrologueOpen, setIsPrologueOpen] = useState(false);
+  const [actDoorState, setActDoorState] = useState<{
+    act: 1 | 2 | 3 | 4 | 5;
+    startOpened?: boolean;
+  } | null>(null);
   const [isBookOpen, setIsBookOpen] = useState(true);
   const [bgIndex, setBgIndex] = useState(0);
 
@@ -75,13 +84,21 @@ export const App: React.FC = () => {
           onOpenCalendar={() => setIsCalendarOpen(true)}
           onOpenDossier={() => setIsDossierOpen(true)}
           onOpenVerdict={() => setIsVerdictOpen(true)}
+          onOpenPrologue={() => setIsPrologueOpen(true)}
+          onOpenActDoor={(act, startOpened) => setActDoorState({ act, startOpened })}
           onBookOpenChange={setIsBookOpen}
         />
       </div>
 
       {/* Modales e Interfaces flotantes */}
       {isCalendarOpen && (
-        <AdventCalendar onClose={() => setIsCalendarOpen(false)} />
+        <AdventCalendar
+          onClose={() => setIsCalendarOpen(false)}
+          onOpenActDoor={(act, startOpened) => {
+            setIsCalendarOpen(false);
+            setActDoorState({ act, startOpened });
+          }}
+        />
       )}
 
       {isDossierOpen && (
@@ -96,6 +113,25 @@ export const App: React.FC = () => {
 
       {isVerdictOpen && (
         <FinalVerdictModal onClose={() => setIsVerdictOpen(false)} />
+      )}
+
+      {isPrologueOpen && (
+        <PrologueModal
+          onClose={() => setIsPrologueOpen(false)}
+          onOpenDoorOne={() => {
+            setIsPrologueOpen(false);
+            setActDoorState({ act: 1, startOpened: false });
+          }}
+        />
+      )}
+
+      {actDoorState && (
+        <ActDoorModal
+          initialAct={actDoorState.act}
+          startOpened={actDoorState.startOpened}
+          onClose={() => setActDoorState(null)}
+          onEnterActDay={day => setCurrentDay(day)}
+        />
       )}
     </div>
   );

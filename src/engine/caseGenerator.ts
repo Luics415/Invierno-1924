@@ -24,6 +24,7 @@ import {
 } from './clueWriter';
 import { buildDayNarrative, buildMurderNarrative, DAY_CALENDAR } from './narrativeGenerator';
 import { buildDayPuzzle } from './puzzleFactory';
+import { generateActCrimeFiles } from './actCrimesGenerator';
 
 export const TOTAL_DAYS = 30;
 export const DAYS_PER_ACT = 6;
@@ -459,7 +460,9 @@ export function generateCase(
     });
   }
 
-  return { config, murderNarrative, days };
+  const acts = generateActCrimeFiles(config);
+
+  return { config, murderNarrative, acts, days };
 }
 
 function padWithCorroboration(

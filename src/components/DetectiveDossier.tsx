@@ -42,6 +42,7 @@ export const DetectiveDossier: React.FC<DetectiveDossierProps> = ({ onClose, onO
     cycleMatrixCell,
     unlockedClues,
     completedDays,
+    openedDoors,
     manualEliminations,
     toggleManualElimination,
   } = useGameStore();
@@ -78,11 +79,11 @@ export const DetectiveDossier: React.FC<DetectiveDossierProps> = ({ onClose, onO
     return { confirmed, discarded, question, totalCells: SUSPECTS_DIRECTORY.length * (WEAPONS.length + LOCATIONS.length) };
   }, [matrixCells]);
 
-  // Calcular estado de los 74 sospechosos reactivo a pistas y tachas manuales
+  // Calcular estado de los 74 sospechosos reactivo a pistas, víctimas de actos y tachas manuales
   const { suspectsWithStatus, activeCount, eliminatedCount, categoryCounts } = useMemo(() => {
     const list = SUSPECTS_DIRECTORY.map(s => ({
       ...s,
-      status: computeSuspectStatus(s, manualEliminations, unlockedClues, activeCase),
+      status: computeSuspectStatus(s, manualEliminations, unlockedClues, activeCase, openedDoors),
     }));
 
     let active = 0;
@@ -112,7 +113,7 @@ export const DetectiveDossier: React.FC<DetectiveDossierProps> = ({ onClose, onO
       eliminatedCount: eliminated,
       categoryCounts: catMap,
     };
-  }, [manualEliminations, unlockedClues, activeCase]);
+  }, [manualEliminations, unlockedClues, activeCase, openedDoors]);
 
   const matrixSuspects = useMemo(
     () =>
@@ -228,7 +229,6 @@ export const DetectiveDossier: React.FC<DetectiveDossierProps> = ({ onClose, onO
             <button
               type="button"
               onClick={() => {
-                sound.playMysteryBell();
                 onOpenVerdict();
               }}
               className="px-3.5 sm:px-4 py-1.5 btn-crimson-wax text-parchment-50 rounded-[3px] text-xs sm:text-sm font-desc font-semibold flex items-center gap-1.5 shadow-md transition"
