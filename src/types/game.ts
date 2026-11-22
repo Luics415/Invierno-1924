@@ -384,6 +384,31 @@ export interface CaseConfig {
   totalDays: number;
 }
 
+export interface ActCrimeFile {
+  act: 1 | 2 | 3 | 4 | 5;
+  doorNumber: 1 | 2 | 3 | 4 | 5;
+  doorRoman: 'I' | 'II' | 'III' | 'IV' | 'V';
+  doorTitle: string;
+  dayStart: number;
+  dayEnd: number;
+  dateStr: string;
+  timeDiscovered: string;
+  victimId: string;
+  victimNumber?: number;
+  victimName: string;
+  victimAge: number;
+  victimRole: string;
+  victimPortrait: string;
+  sceneLocationId: string;
+  sceneLocationName: string;
+  sceneFloor: RoomFloor;
+  sceneImage: string;
+  headline: string;
+  situationBrief: string[];
+  detectiveNote: string;
+  pendingItems: string[];
+}
+
 export interface GeneratedCase {
   config: CaseConfig;
   murderNarrative: {
@@ -396,6 +421,8 @@ export interface GeneratedCase {
     /** Relato del hallazgo del cadáver, visible desde el prólogo (no revela solución). */
     discovery: string[];
   };
+  /** Las 5 puertas (5 actos) con su víctima y crónica forense progresiva. */
+  acts: ActCrimeFile[];
   days: DayData[];
 }
 

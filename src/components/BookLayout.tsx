@@ -1,5 +1,11 @@
 import React, { useState, useMemo, useRef, useEffect } from 'react';
-import { computeSuspectStatus, useGameStore } from '../store/useGameStore';
+import {
+  computeSuspectStatus,
+  isActUnlocked,
+  isDayUnlockedByDoors,
+  useGameStore,
+} from '../store/useGameStore';
+import { BookDoorSpread } from './BookDoorSpread';
 import { SUSPECTS_DIRECTORY } from '../data/suspectsDirectory';
 import { WEAPONS, LOCATIONS } from '../data/narrativeBible';
 import { evaluateCaseClues } from '../engine/caseGenerator';
@@ -50,6 +56,8 @@ import {
   Puzzle,
   ShieldCheck,
   RefreshCw,
+  DoorOpen,
+  Skull,
   X
 } from 'lucide-react';
 
@@ -57,6 +65,8 @@ interface BookLayoutProps {
   onOpenCalendar: () => void;
   onOpenDossier: () => void;
   onOpenVerdict: () => void;
+  onOpenPrologue: () => void;
+  onOpenActDoor: (act: 1 | 2 | 3 | 4 | 5, startOpened?: boolean) => void;
   onBookOpenChange?: (isOpen: boolean) => void;
 }
 
@@ -64,6 +74,8 @@ export const BookLayout: React.FC<BookLayoutProps> = ({
   onOpenCalendar,
   onOpenDossier,
   onOpenVerdict,
+  onOpenPrologue,
+  onOpenActDoor,
   onBookOpenChange,
 }) => {
   const {
@@ -72,11 +84,17 @@ export const BookLayout: React.FC<BookLayoutProps> = ({
     currentDay,
     setCurrentDay,
     completedDays,
+    openedDoors,
+    openDoor,
+    freePlayMode,
     markDayCompleted,
     unlockedClues,
     manualEliminations,
     startNewCase,
   } = useGameStore();
+
+  // Puerta mostrada directamente como pliego del libro (cuando está sellada o el jugador quiere revisarla)
+  const [doorPreviewAct, setDoorPreviewAct] = useState<1 | 2 | 3 | 4 | 5 | null>(null);
 
   // En pantallas móviles: alternar entre página izquierda (relato) y derecha (puzzle)
   const [mobilePageState, setMobilePageState] = useState<{ day: number; page: 'left' | 'right' }>({
@@ -176,7 +194,7 @@ export const BookLayout: React.FC<BookLayoutProps> = ({
   const suspectFunnel = useMemo(() => {
     const total = SUSPECTS_DIRECTORY.length;
     const remaining = SUSPECTS_DIRECTORY.filter(
-      suspect => !computeSuspectStatus(suspect, manualEliminations, unlockedClues, activeCase).isEliminated
+      suspect => !computeSuspectStatus(suspect, manualEliminations, unlockedClues, activeCase, openedDoors).isEliminated
     ).length;
     const eliminated = total - remaining;
     const percentageRemaining = Math.round((remaining / total) * 100);
@@ -187,17 +205,35 @@ export const BookLayout: React.FC<BookLayoutProps> = ({
       percentageRemaining,
       hasManual: manualEliminations.length > 0,
     };
-  }, [unlockedClues, manualEliminations, activeCase]);
+  }, [unlockedClues, manualEliminations, activeCase, openedDoors]);
 
   const navigateToDay = (nextDay: number) => {
-    if (nextDay === currentDay || nextDay < 0 || nextDay > totalDays) return;
+    if (nextDay < 0 || nextDay > totalDays) return;
+    if (nextDay > 0 && !freePlayMode && !isDayUnlockedByDoors(nextDay, completedDays)) {
+      const targetAct = Math.ceil(nextDay / 6) as 1 | 2 | 3 | 4 | 5;
+      sound.playError();
+      setPageDir('next');
+      setDoorPreviewAct(targetAct);
+      return;
+    }
+    setDoorPreviewAct(null);
+    if (nextDay === currentDay) return;
     setPageDir(nextDay > prevDayRef.current ? 'next' : 'prev');
     prevDayRef.current = nextDay;
     setCurrentDay(nextDay);
   };
 
-  const handlePrevDay = () => navigateToDay(currentDay - 1);
-  const handleNextDay = () => navigateToDay(currentDay + 1);
+  const handlePrevDay = () => {
+    if (doorPreviewAct !== null) {
+      setDoorPreviewAct(null);
+      return;
+    }
+    navigateToDay(currentDay - 1);
+  };
+  const handleNextDay = () => {
+    if (doorPreviewAct !== null) return;
+    navigateToDay(currentDay + 1);
+  };
 
   const handleSolveCurrentPuzzle = () => {
     markDayCompleted(
@@ -569,6 +605,34 @@ export const BookLayout: React.FC<BookLayoutProps> = ({
                 type="button"
                 tabIndex={!isHeaderExpanded ? -1 : undefined}
                 onClick={() => {
+                  sound.playPageTurn();
+                  onOpenPrologue();
+                }}
+                className="flex items-center gap-1.5 px-2 sm:px-2.5 py-1.5 rounded-sm btn-ledger text-gold-200 text-xs sm:text-sm font-desc font-medium transition"
+                title="Leer el Prólogo y ambientación de Villa Acebo (1924)"
+              >
+                <Compass className="w-3.5 h-3.5 text-gold-400" />
+                <span className="hidden xl:inline">Prólogo</span>
+              </button>
+
+              <button
+                type="button"
+                tabIndex={!isHeaderExpanded ? -1 : undefined}
+                onClick={() => {
+                  sound.playClick();
+                  onOpenActDoor(isAlbum ? 1 : dayData.act, false);
+                }}
+                className="flex items-center gap-1.5 px-2 sm:px-2.5 py-1.5 rounded-sm btn-ledger text-gold-200 text-xs sm:text-sm font-desc font-medium transition"
+                title="Abrir las 5 Puertas y Expedientes de Víctimas por Acto"
+              >
+                <DoorOpen className="w-3.5 h-3.5 text-gold-400" />
+                <span className="hidden xl:inline">Puertas</span>
+              </button>
+
+              <button
+                type="button"
+                tabIndex={!isHeaderExpanded ? -1 : undefined}
+                onClick={() => {
                   sound.playClick();
                   onOpenCalendar();
                 }}
@@ -603,7 +667,6 @@ export const BookLayout: React.FC<BookLayoutProps> = ({
                 type="button"
                 tabIndex={!isHeaderExpanded ? -1 : undefined}
                 onClick={() => {
-                  sound.playMysteryBell();
                   onOpenVerdict();
                 }}
                 className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-sm btn-crimson-wax text-parchment-50 text-xs sm:text-sm font-desc font-semibold transition"
@@ -919,7 +982,48 @@ export const BookLayout: React.FC<BookLayoutProps> = ({
               }`}
             />
 
-            {isAlbum ? (
+            {doorPreviewAct !== null || (!isAlbum && !openedDoors.includes(dayData.act)) ? (
+              /* ========================================================
+                  PUERTA FÍSICA DEL ACTO (1–5) INTEGRADA EN EL LIBRO
+                 ======================================================== */
+              (() => {
+                const targetAct = (doorPreviewAct ?? dayData.act) as 1 | 2 | 3 | 4 | 5;
+                const actFile = activeCase.acts.find(a => a.act === targetAct) ?? activeCase.acts[0];
+                const unlocked = freePlayMode || isActUnlocked(targetAct, completedDays);
+                const prevStart = (targetAct - 2) * 6 + 1;
+                const prevEnd = (targetAct - 1) * 6;
+                const prevDone =
+                  targetAct <= 1
+                    ? 6
+                    : completedDays.filter(d => d >= prevStart && d <= prevEnd).length;
+
+                return (
+                  <BookDoorSpread
+                    key={`door-${targetAct}`}
+                    actFile={actFile}
+                    isUnlocked={unlocked}
+                    prevActCompletedCount={prevDone}
+                    mobilePage={mobilePage}
+                    onCrossDoor={() => {
+                      openDoor(targetAct);
+                      setDoorPreviewAct(null);
+                      if (currentDay < actFile.dayStart || currentDay > actFile.dayEnd) {
+                        setCurrentDay(actFile.dayStart);
+                      }
+                    }}
+                    onGoBack={() => {
+                      setDoorPreviewAct(null);
+                      if (targetAct === 1) {
+                        setCurrentDay(0);
+                      } else {
+                        const prevLastDay = (targetAct - 1) * 6;
+                        setCurrentDay(prevLastDay);
+                      }
+                    }}
+                  />
+                );
+              })()
+            ) : isAlbum ? (
               /* ========================================================
                   VISTA ÁLBUM (DÍA 0): ÁLBUM FOTOGRÁFICO PAGINADO
                  ======================================================== */
@@ -954,6 +1058,32 @@ export const BookLayout: React.FC<BookLayoutProps> = ({
                           {dayData.dateStr} • {dayData.hourStr}
                         </span>
                       </div>
+
+                      {(() => {
+                        const actCrime = activeCase.acts.find(a => a.act === dayData.act);
+                        if (!actCrime) return null;
+                        return (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              sound.playClick();
+                              onOpenActDoor(dayData.act, false);
+                            }}
+                            className="w-full mb-2 px-2.5 py-1.5 rounded-sm bg-parchment-200/80 hover:bg-parchment-300/75 border border-crimson-800/30 flex items-center justify-between gap-2 text-left transition group"
+                            title={`Ver Puerta ${actCrime.doorNumber} y expediente forense de ${actCrime.victimName}`}
+                          >
+                            <span className="flex items-center gap-1.5 text-[10px] font-mono font-bold text-crimson-900 min-w-0">
+                              <Skull className="w-3.5 h-3.5 text-crimson-800 shrink-0" />
+                              <span className="truncate">
+                                Puerta {actCrime.doorRoman} • Víctima: {actCrime.victimName}
+                              </span>
+                            </span>
+                            <span className="text-[9px] font-mono uppercase tracking-wider text-ink-700 group-hover:text-crimson-900 shrink-0 inline-flex items-center gap-0.5">
+                              <DoorOpen className="w-3 h-3" /> Abrir
+                            </span>
+                          </button>
+                        );
+                      })()}
 
                       <div className="text-center mb-2.5">
                         <span className="inline-block px-2 py-0.5 rounded-sm bg-parchment-200/90 border border-parchment-400 text-[9px] font-mono uppercase tracking-widest text-crimson-800 font-bold mb-0.5">

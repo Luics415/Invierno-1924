@@ -1,5 +1,9 @@
 import React, { useState } from 'react';
-import { useGameStore } from '../store/useGameStore';
+import {
+  isActUnlocked,
+  isDayUnlockedByDoors,
+  useGameStore,
+} from '../store/useGameStore';
 import { sound } from '../utils/soundEffects';
 import {
   BookOpen,
@@ -10,6 +14,8 @@ import {
   Clock,
   Award,
   Users,
+  DoorOpen,
+  Skull,
   X,
   Check,
 } from 'lucide-react';
@@ -17,6 +23,7 @@ import type { PuzzleType } from '../types/game';
 
 interface AdventCalendarProps {
   onClose: () => void;
+  onOpenActDoor?: (act: 1 | 2 | 3 | 4 | 5, startOpened?: boolean) => void;
 }
 
 const ACT_METADATA: Record<number, { title: string; range: string }> = {
@@ -40,13 +47,12 @@ const PUZZLE_TYPE_LABELS: Record<PuzzleType, string> = {
   minesweeper: 'Buscaminas',
 };
 
-export const AdventCalendar: React.FC<AdventCalendarProps> = ({ onClose }) => {
+export const AdventCalendar: React.FC<AdventCalendarProps> = ({ onClose, onOpenActDoor }) => {
   const {
     totalDays,
     activeCase,
     currentDay,
     completedDays,
-    unlockedDays,
     freePlayMode,
     setCurrentDay,
   } = useGameStore();
@@ -141,6 +147,7 @@ export const AdventCalendar: React.FC<AdventCalendarProps> = ({ onClose }) => {
               const actDone = days.filter(
                 d => d.act === act && completedDays.includes(d.day)
               ).length;
+              const actUnlocked = freePlayMode || isActUnlocked(act, completedDays);
               return (
                 <button
                   type="button"
@@ -152,9 +159,12 @@ export const AdventCalendar: React.FC<AdventCalendarProps> = ({ onClose }) => {
                   className={`px-2 py-1 rounded-sm transition font-desc flex items-center gap-1 ${
                     selectedAct === act
                       ? 'bg-gold-300 text-ink-950 font-bold shadow'
-                      : 'text-parchment-300 hover:text-white'
+                      : actUnlocked
+                      ? 'text-parchment-300 hover:text-white'
+                      : 'text-parchment-300/60 hover:text-parchment-200'
                   }`}
                 >
+                  {!actUnlocked && <Lock className="w-3 h-3 text-crimson-400 shrink-0" />}
                   <span>Acto {act}</span>
                   <span
                     className={`text-[10px] font-mono px-1 rounded-sm ${
@@ -208,13 +218,68 @@ export const AdventCalendar: React.FC<AdventCalendarProps> = ({ onClose }) => {
 
         {/* Cuadrícula de 30 Ventanas */}
         <div className="relative z-10 p-3 sm:p-4 overflow-y-auto flex-1 bg-gradient-to-b from-[#0d0f13]/92 to-[#08090c]/96">
+          {/* Franja de las 5 Puertas y Víctimas por Acto */}
+          {onOpenActDoor && (
+            <div className="mb-3 flex flex-wrap items-center justify-between gap-2 p-2.5 rounded-md bg-[#161922]/95 border border-[#b79b65]/30">
+              <div className="flex items-center gap-2 text-xs text-parchment-200 min-w-0">
+                <DoorOpen className="w-4 h-4 text-gold-400 shrink-0" />
+                {selectedAct === 'all' ? (
+                  <span className="font-desc text-xs">
+                    <strong className="text-gold-200">5 Puertas · 5 Víctimas:</strong> consulta la puerta y el expediente de víctima de cada acto.
+                  </span>
+                ) : (
+                  (() => {
+                    const actInfo = activeCase.acts.find(a => a.act === selectedAct);
+                    return actInfo ? (
+                      <span className="font-desc text-xs flex items-center gap-1.5 flex-wrap">
+                        <Skull className="w-3.5 h-3.5 text-crimson-400 shrink-0" />
+                        <strong className="text-gold-200">Puerta {actInfo.doorRoman}:</strong>
+                        <span>{actInfo.doorTitle} — Víctima: <strong>{actInfo.victimName}</strong></span>
+                      </span>
+                    ) : null;
+                  })()
+                )}
+              </div>
+              <div className="flex flex-wrap items-center gap-1.5">
+                {selectedAct === 'all' ? (
+                  activeCase.acts.map(a => (
+                    <button
+                      key={a.act}
+                      type="button"
+                      onClick={() => {
+                        sound.playClick();
+                        onOpenActDoor(a.act, false);
+                      }}
+                      className="px-2 py-1 rounded-sm bg-[#222633] hover:bg-[#6e171e] text-gold-200 border border-[#b79b65]/35 text-[10px] font-mono transition"
+                      title={`Abrir Puerta ${a.doorNumber}: ${a.victimName}`}
+                    >
+                      Puerta {a.doorNumber}
+                    </button>
+                  ))
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      sound.playClick();
+                      onOpenActDoor(selectedAct as 1 | 2 | 3 | 4 | 5, false);
+                    }}
+                    className="px-3 py-1 rounded-sm btn-crimson-wax text-parchment-50 text-xs font-desc font-semibold flex items-center gap-1.5 transition"
+                  >
+                    <DoorOpen className="w-3.5 h-3.5 text-gold-300" />
+                    <span>Abrir Puerta {selectedAct} y Víctima</span>
+                  </button>
+                )}
+              </div>
+            </div>
+          )}
+
           <div
             key={`act-${selectedAct}`}
             className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 lg:grid-cols-6 gap-2"
           >
             {filteredDays.map(d => {
               const isCompleted = completedDays.includes(d.day);
-              const isUnlocked = unlockedDays.includes(d.day) || freePlayMode;
+              const isUnlocked = freePlayMode || isDayUnlockedByDoors(d.day, completedDays);
               const isCurrent = currentDay === d.day;
 
               return (

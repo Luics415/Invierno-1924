@@ -19,6 +19,8 @@ import { sound } from '../utils/soundEffects';
 
 export interface SuspectStatus {
   isEliminated: boolean;
+  isVictim?: boolean;
+  victimAct?: number;
   reason?: string;
   dayEliminated?: number;
   isManual: boolean;
@@ -28,8 +30,23 @@ export function computeSuspectStatus(
   suspect: DirectorySuspect,
   manualEliminations: readonly string[],
   unlockedClues: readonly Clue[],
-  activeCase: GeneratedCase
+  activeCase: GeneratedCase,
+  openedDoors: readonly number[] = []
 ): SuspectStatus {
+  // Si el personaje cayó como víctima al abrirse una Puerta (Actos II–V), se tacha automáticamente
+  for (const actFile of activeCase.acts) {
+    if (actFile.act >= 2 && openedDoors.includes(actFile.act) && actFile.victimId === suspect.id) {
+      return {
+        isEliminated: true,
+        isVictim: true,
+        victimAct: actFile.act,
+        reason: `Fallecido · Víctima del Acto ${actFile.doorRoman} (${actFile.sceneLocationName})`,
+        dayEliminated: actFile.dayStart,
+        isManual: false,
+      };
+    }
+  }
+
   for (const clue of unlockedClues) {
     const dayRecord = activeCase.days.find(d => d.day === clue.day);
     const eliminated = dayRecord?.unlockedClue.autoEliminations?.suspectsEliminated ?? [];
@@ -57,6 +74,29 @@ export function computeSuspectStatus(
   };
 }
 
+export function isActUnlocked(act: number, completedDays: readonly number[]): boolean {
+  if (act <= 1) return true;
+  const prevStart = (act - 2) * 6 + 1;
+  const prevEnd = (act - 1) * 6;
+  for (let d = prevStart; d <= prevEnd; d++) {
+    if (!completedDays.includes(d)) return false;
+  }
+  return true;
+}
+
+export function getMaxUnlockedAct(completedDays: readonly number[]): 1 | 2 | 3 | 4 | 5 {
+  for (let act = 5; act >= 1; act--) {
+    if (isActUnlocked(act, completedDays)) return act as 1 | 2 | 3 | 4 | 5;
+  }
+  return 1;
+}
+
+export function isDayUnlockedByDoors(day: number, completedDays: readonly number[]): boolean {
+  if (day <= 0) return true;
+  const act = Math.ceil(day / 6);
+  return isActUnlocked(act, completedDays);
+}
+
 interface GameStoreState {
   totalDays: number;
   caseSeed: number;
@@ -64,6 +104,7 @@ interface GameStoreState {
   currentDay: number;
   unlockedDays: number[];
   completedDays: number[];
+  openedDoors: number[];
   unlockedClues: Clue[];
   matrixCells: Record<string, MatrixCellState>;
   manualEliminations: string[];
@@ -73,6 +114,7 @@ interface GameStoreState {
 
   // Acciones
   setCurrentDay: (day: number) => void;
+  openDoor: (act: number) => void;
   setActiveView: (view: 'book' | 'calendar' | 'dossier' | 'verdict') => void;
   markDayCompleted: (
     day: number,
@@ -110,19 +152,38 @@ export const useGameStore = create<GameStoreState>()(
       caseSeed: INITIAL_SEED,
       activeCase: INITIAL_CASE,
       currentDay: 0,
-      unlockedDays: [0, 1],
+      unlockedDays: [0, 1, 2, 3, 4, 5, 6],
       completedDays: [],
+      openedDoors: [],
       unlockedClues: [],
       matrixCells: {},
       manualEliminations: [],
       notes: {},
-      freePlayMode: true,
+      freePlayMode: false,
       activeView: 'book',
 
       setCurrentDay: (day: number) => {
         const clamped = Math.max(0, Math.min(TOTAL_DAYS, day));
+        const { completedDays, freePlayMode } = get();
+        if (!freePlayMode && clamped > 0 && !isDayUnlockedByDoors(clamped, completedDays)) {
+          sound.playError();
+          return;
+        }
         sound.playPageTurn();
         set({ currentDay: clamped, activeView: 'book' });
+      },
+
+      openDoor: (act: number) => {
+        const { completedDays, freePlayMode, openedDoors } = get();
+        if (!freePlayMode && !isActUnlocked(act, completedDays)) {
+          sound.playError();
+          return;
+        }
+        sound.playWoodCreak();
+        sound.playPageTurn();
+        if (!openedDoors.includes(act)) {
+          set({ openedDoors: [...openedDoors, act] });
+        }
       },
 
       setActiveView: view => {
@@ -228,8 +289,9 @@ export const useGameStore = create<GameStoreState>()(
           caseSeed: nextSeed,
           activeCase: nextCase,
           currentDay: 0,
-          unlockedDays: [0, 1],
+          unlockedDays: [0, 1, 2, 3, 4, 5, 6],
           completedDays: [],
+          openedDoors: [],
           unlockedClues: [],
           matrixCells: {},
           manualEliminations: [],
@@ -242,8 +304,9 @@ export const useGameStore = create<GameStoreState>()(
         // Reinicia el progreso manteniendo la semilla actual del caso
         set({
           currentDay: 0,
-          unlockedDays: [0, 1],
+          unlockedDays: [0, 1, 2, 3, 4, 5, 6],
           completedDays: [],
+          openedDoors: [],
           unlockedClues: [],
           matrixCells: {},
           manualEliminations: [],
@@ -263,8 +326,8 @@ export const useGameStore = create<GameStoreState>()(
       },
 
       getSuspectStatus: suspect => {
-        const { manualEliminations, unlockedClues, activeCase } = get();
-        return computeSuspectStatus(suspect, manualEliminations, unlockedClues, activeCase);
+        const { manualEliminations, unlockedClues, activeCase, openedDoors } = get();
+        return computeSuspectStatus(suspect, manualEliminations, unlockedClues, activeCase, openedDoors);
       },
     }),
     {
@@ -279,6 +342,7 @@ export const useGameStore = create<GameStoreState>()(
         currentDay: state.currentDay,
         unlockedDays: state.unlockedDays,
         completedDays: state.completedDays,
+        openedDoors: state.openedDoors,
         unlockedClues: state.unlockedClues,
         matrixCells: state.matrixCells,
         manualEliminations: state.manualEliminations,
@@ -292,13 +356,14 @@ export const useGameStore = create<GameStoreState>()(
           return {
             caseSeed: freshSeed,
             currentDay: 0,
-            unlockedDays: [0, 1],
+            unlockedDays: [0, 1, 2, 3, 4, 5, 6],
             completedDays: [],
+            openedDoors: [],
             unlockedClues: [],
             matrixCells: {},
             manualEliminations: [],
             notes: {},
-            freePlayMode: true,
+            freePlayMode: false,
             activeView: 'book' as const,
           };
         }

@@ -1,5 +1,6 @@
 import React, { useState, useMemo, useRef } from 'react';
 import { SUSPECTS_DIRECTORY, type DirectorySuspect } from '../data/suspectsDirectory';
+import { getSuspectPortraitVideo } from '../data/portraitVideos';
 import { VICTIM } from '../data/narrativeBible';
 import { GENDER_LABELS } from '../types/game';
 import {
@@ -38,6 +39,8 @@ interface SuspectsAlbumProps {
 
 interface SuspectStatusResult {
   isEliminated: boolean;
+  isVictim?: boolean;
+  victimAct?: number;
   reason?: string;
   dayEliminated?: number;
   isManual: boolean;
@@ -48,6 +51,7 @@ export const SuspectsAlbum: React.FC<SuspectsAlbumProps> = ({ onStartAdventure }
     toggleManualElimination,
     manualEliminations,
     unlockedClues,
+    openedDoors,
     activeCase,
   } = useGameStore();
 
@@ -56,6 +60,8 @@ export const SuspectsAlbum: React.FC<SuspectsAlbumProps> = ({ onStartAdventure }
   const [categoryFilter, setCategoryFilter] = useState<string>('all');
   const [selectedSuspect, setSelectedSuspect] = useState<DirectorySuspect | null>(null);
   const [failedPortraits, setFailedPortraits] = useState<Record<string, boolean>>({});
+  const [failedVideos, setFailedVideos] = useState<Record<string, boolean>>({});
+  const [hoveredSuspectId, setHoveredSuspectId] = useState<string | null>(null);
   const [albumPage, setAlbumPage] = useState(0);
   const [turnDirection, setTurnDirection] = useState<'next' | 'prev'>('next');
   const [isPhotoFlipped, setIsPhotoFlipped] = useState(false);
@@ -73,7 +79,7 @@ export const SuspectsAlbum: React.FC<SuspectsAlbumProps> = ({ onStartAdventure }
 
     const list: Array<DirectorySuspect & { status: SuspectStatusResult }> = [];
     for (const s of SUSPECTS_DIRECTORY) {
-      const status = computeSuspectStatus(s, manualEliminations, unlockedClues, activeCase);
+      const status = computeSuspectStatus(s, manualEliminations, unlockedClues, activeCase, openedDoors);
       if (catMap[s.category]) {
         catMap[s.category].total++;
         if (!status.isEliminated) {
@@ -94,12 +100,12 @@ export const SuspectsAlbum: React.FC<SuspectsAlbumProps> = ({ onStartAdventure }
       eliminatedCount: eliminated,
       categoryStats: catMap,
     };
-  }, [manualEliminations, unlockedClues, activeCase]);
+  }, [manualEliminations, unlockedClues, activeCase, openedDoors]);
 
   const selectedStatus = useMemo(() => {
     if (!selectedSuspect) return null;
-    return computeSuspectStatus(selectedSuspect, manualEliminations, unlockedClues, activeCase);
-  }, [selectedSuspect, manualEliminations, unlockedClues, activeCase]);
+    return computeSuspectStatus(selectedSuspect, manualEliminations, unlockedClues, activeCase, openedDoors);
+  }, [selectedSuspect, manualEliminations, unlockedClues, activeCase, openedDoors]);
 
   // Estado de la fotografía sujeta con clip dentro del expediente
   const [isPhotoAside, setIsPhotoAside] = useState(false);
@@ -223,11 +229,19 @@ export const SuspectsAlbum: React.FC<SuspectsAlbumProps> = ({ onStartAdventure }
     const isEliminated = s.status.isEliminated;
     const numLabel = s.number < 10 ? `0${s.number}` : `${s.number}`;
     const hasPortrait = Boolean(s.portraitGif) && !failedPortraits[s.id];
+    const videoSrc = getSuspectPortraitVideo(s.number);
+    const showHoverVideo = Boolean(videoSrc) && hoveredSuspectId === s.id && !failedVideos[s.id];
 
     return (
       <div
         key={s.id}
         onClick={() => openSuspectModal(s)}
+        onMouseEnter={() => {
+          if (videoSrc) setHoveredSuspectId(s.id);
+        }}
+        onMouseLeave={() => {
+          if (hoveredSuspectId === s.id) setHoveredSuspectId(null);
+        }}
         className={`group relative rounded-sm border transition-colors cursor-pointer flex flex-col justify-between overflow-hidden ${
           isEliminated
             ? 'border-crimson-800/35 bg-[#e3ded5] opacity-80 hover:opacity-100 hover:border-crimson-800/70'
@@ -238,19 +252,7 @@ export const SuspectsAlbum: React.FC<SuspectsAlbumProps> = ({ onStartAdventure }
         <div className="p-1 pb-0.5 flex-1 flex flex-col">
           <div className="relative w-full aspect-[4/3.2] bg-ink-950 border border-ink-800 overflow-hidden shadow-inner flex items-center justify-center">
             {hasPortrait ? (
-              /\.(mp4|webm|mov)$/i.test(s.portraitGif!) ? (
-                <video
-                  src={s.portraitGif}
-                  autoPlay
-                  loop
-                  muted
-                  playsInline
-                  onError={() => setFailedPortraits(prev => ({ ...prev, [s.id]: true }))}
-                  className={`w-full h-full object-cover object-top transition-transform duration-500 group-hover:scale-[1.03] ${
-                    isEliminated ? 'grayscale contrast-125 brightness-90' : ''
-                  }`}
-                />
-              ) : (
+              <>
                 <img
                   src={s.portraitGif}
                   alt={`Retrato de ${s.name}`}
@@ -259,7 +261,21 @@ export const SuspectsAlbum: React.FC<SuspectsAlbumProps> = ({ onStartAdventure }
                     isEliminated ? 'grayscale contrast-125 brightness-90' : ''
                   }`}
                 />
-              )
+                {showHoverVideo && videoSrc && (
+                  <video
+                    src={videoSrc}
+                    poster={s.portraitGif}
+                    autoPlay
+                    loop
+                    muted
+                    playsInline
+                    onError={() => setFailedVideos(prev => ({ ...prev, [s.id]: true }))}
+                    className={`pointer-events-none absolute inset-0 w-full h-full object-cover object-[50%_18%] transition-transform duration-500 group-hover:scale-[1.03] ${
+                      isEliminated ? 'grayscale contrast-125 brightness-90' : ''
+                    }`}
+                  />
+                )}
+              </>
             ) : (
               <div className="w-full h-full bg-gradient-to-b from-ink-900 to-ink-950 flex flex-col items-center justify-center gap-1.5 text-ink-500">
                 <User className="w-9 h-9 stroke-[1.1] text-gold-400/45" />
@@ -275,7 +291,11 @@ export const SuspectsAlbum: React.FC<SuspectsAlbumProps> = ({ onStartAdventure }
             </span>
 
             {/* Sello de estado sobre la esquina inferior */}
-            {isEliminated ? (
+            {s.status.isVictim ? (
+              <span className="absolute bottom-1.5 right-1.5 px-1.5 py-0.5 bg-crimson-950/95 border border-gold-400/50 text-gold-200 font-mono text-[8px] font-bold uppercase tracking-wider">
+                Fallecido · Acto {s.status.victimAct}
+              </span>
+            ) : isEliminated ? (
               <span className="absolute bottom-1.5 right-1.5 px-1.5 py-0.5 bg-crimson-900/95 border border-crimson-300/35 text-parchment-50 font-mono text-[8px] font-bold uppercase tracking-wider">
                 {s.status.dayEliminated ? `Exculpado · D.${s.status.dayEliminated}` : 'Tachado'}
               </span>
@@ -600,22 +620,7 @@ export const SuspectsAlbum: React.FC<SuspectsAlbumProps> = ({ onStartAdventure }
                   {/* CARA FRONTAL: RETRATO FOTOGRÁFICO DE LA ÉPOCA */}
                   <div className="photo-flip-front w-full h-full bg-ink-950 border border-ink-800 overflow-hidden flex items-center justify-center">
                     {selectedSuspect.portraitGif && !failedPortraits[selectedSuspect.id] ? (
-                      /\.(mp4|webm|mov)$/i.test(selectedSuspect.portraitGif) ? (
-                        <video
-                          src={selectedSuspect.portraitGif}
-                          autoPlay
-                          loop
-                          muted
-                          playsInline
-                          draggable={false}
-                          onError={() =>
-                            setFailedPortraits(prev => ({ ...prev, [selectedSuspect.id]: true }))
-                          }
-                          className={`pointer-events-none select-none w-full h-full object-cover object-top ${
-                            selectedStatus?.isEliminated ? 'grayscale contrast-125' : ''
-                          }`}
-                        />
-                      ) : (
+                      <>
                         <img
                           src={selectedSuspect.portraitGif}
                           alt={`Retrato de ${selectedSuspect.name}`}
@@ -627,7 +632,28 @@ export const SuspectsAlbum: React.FC<SuspectsAlbumProps> = ({ onStartAdventure }
                             selectedStatus?.isEliminated ? 'grayscale contrast-125' : ''
                           }`}
                         />
-                      )
+                        {(() => {
+                          const modalVideo = getSuspectPortraitVideo(selectedSuspect.number);
+                          if (!modalVideo || failedVideos[selectedSuspect.id]) return null;
+                          return (
+                            <video
+                              src={modalVideo}
+                              poster={selectedSuspect.portraitGif}
+                              autoPlay
+                              loop
+                              muted
+                              playsInline
+                              draggable={false}
+                              onError={() =>
+                                setFailedVideos(prev => ({ ...prev, [selectedSuspect.id]: true }))
+                              }
+                              className={`pointer-events-none select-none absolute inset-0 w-full h-full object-cover object-[50%_18%] ${
+                                selectedStatus?.isEliminated ? 'grayscale contrast-125' : ''
+                              }`}
+                            />
+                          );
+                        })()}
+                      </>
                     ) : (
                       <User className="w-10 h-10 text-gold-400/60 stroke-[1.2]" />
                     )}
