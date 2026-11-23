@@ -1,249 +1,121 @@
-import type { EcuacionesConfig, EcuacionesRow, EcuacionesSymbol } from '../../types/game';
-import { deriveSeed, mulberry32 } from './prng';
+import type { Clue, EcuacionesConfig, EcuacionesRow, EcuacionesSymbol } from '../../types/game';
+import { buildClueMeaning, hashClueTag } from './clueIntegration';
+import { deriveSeed, mulberry32, shuffle } from './prng';
 
-interface EcuacionesTemplate {
-  symbols: EcuacionesSymbol[];
-  equations: EcuacionesRow[];
-  targetSymbols: [string, string, string, string];
-  secretMeaning: string;
-}
-
-const ECUACIONES_TEMPLATES: readonly EcuacionesTemplate[] = [
-  {
-    // Fiel a la página "ECUACIONES" de la imagen de referencia:
-    // 1) snowman (8) - venom (2) = 6
-    // 2) ornament (10 -> use single digits: snowman=7, venom=1, ornament=8, boot=3, candle=5, dagger=2)
-    // Verifiquemos con dígitos de 0 a 9 para cada icono:
-    // snowman = 8, venom = 2, ornament = 9, boot = 4, candle = 6, dagger = 1
-    // 1) snowman (8) - venom (2) = 6
-    // 2) ornament (9) + snowman (8) + snowman (8) = 25
-    // 3) venom (2) + boot (4) + boot (4) + candle (6) = 16
-    // 4) candle (6) - snowman (8) + venom (2) + boot (4) = 4
-    // 5) venom (2) + dagger (1) = 3
-    // Código superior: [dagger][dagger] : [candle][boot] => 1 1 : 6 4
-    symbols: [
-      { id: 'snowman', label: 'Muñeco de Nieve', iconName: 'snowman', value: 8 },
-      { id: 'venom', label: 'Frasco de Veneno', iconName: 'venom', value: 2 },
-      { id: 'ornament', label: 'Esfera de Gala', iconName: 'ornament', value: 9 },
-      { id: 'boot', label: 'Bota de Invierno', iconName: 'boot', value: 4 },
-      { id: 'candle', label: 'Vela de Cera', iconName: 'candle', value: 6 },
-      { id: 'dagger', label: 'Arma / Estilete', iconName: 'dagger', value: 1 },
-    ],
-    equations: [
-      {
-        id: 'eq-1',
-        terms: [
-          { symbolId: 'snowman', op: '+' },
-          { symbolId: 'venom', op: '-' },
-        ],
-        result: 6,
-      },
-      {
-        id: 'eq-2',
-        terms: [
-          { symbolId: 'ornament', op: '+' },
-          { symbolId: 'snowman', op: '+' },
-          { symbolId: 'snowman', op: '+' },
-        ],
-        result: 25,
-      },
-      {
-        id: 'eq-3',
-        terms: [
-          { symbolId: 'venom', op: '+' },
-          { symbolId: 'boot', op: '+' },
-          { symbolId: 'boot', op: '+' },
-          { symbolId: 'candle', op: '+' },
-        ],
-        result: 16,
-      },
-      {
-        id: 'eq-4',
-        terms: [
-          { symbolId: 'candle', op: '+' },
-          { symbolId: 'snowman', op: '-' },
-          { symbolId: 'venom', op: '+' },
-          { symbolId: 'boot', op: '+' },
-        ],
-        result: 4,
-      },
-      {
-        id: 'eq-5',
-        terms: [
-          { symbolId: 'venom', op: '+' },
-          { symbolId: 'dagger', op: '+' },
-        ],
-        result: 3,
-      },
-      {
-        id: 'eq-6',
-        terms: [
-          { symbolId: 'snowman', op: '+' },
-          { symbolId: 'candle', op: '+' },
-          { symbolId: 'dagger', op: '-' },
-        ],
-        result: 13,
-      },
-    ],
-    targetSymbols: ['dagger', 'dagger', 'candle', 'boot'],
-    secretMeaning: 'Marcador horario deducido de las ecuaciones periciales (11:64 / código 1164)',
-  },
-  {
-    // Segundo set con solución única directa:
-    // key = 5, bell = 3, candle = 7, venom = 4, dagger = 2, ornament = 9
-    symbols: [
-      { id: 'key', label: 'Llave Maestra', iconName: 'key', value: 5 },
-      { id: 'bell', label: 'Campana del Reloj', iconName: 'bell', value: 3 },
-      { id: 'candle', label: 'Vela de Cera', iconName: 'candle', value: 7 },
-      { id: 'venom', label: 'Frasco de Veneno', iconName: 'venom', value: 4 },
-      { id: 'dagger', label: 'Estilete de Plata', iconName: 'dagger', value: 2 },
-      { id: 'ornament', label: 'Esfera de Cristal', iconName: 'ornament', value: 9 },
-    ],
-    equations: [
-      {
-        id: 'eq-1',
-        terms: [
-          { symbolId: 'key', op: '+' },
-          { symbolId: 'key', op: '+' },
-        ],
-        result: 10,
-      },
-      {
-        id: 'eq-2',
-        terms: [
-          { symbolId: 'key', op: '+' },
-          { symbolId: 'bell', op: '+' },
-        ],
-        result: 8,
-      },
-      {
-        id: 'eq-3',
-        terms: [
-          { symbolId: 'candle', op: '+' },
-          { symbolId: 'bell', op: '-' },
-        ],
-        result: 4,
-      },
-      {
-        id: 'eq-4',
-        terms: [
-          { symbolId: 'candle', op: '+' },
-          { symbolId: 'venom', op: '+' },
-          { symbolId: 'bell', op: '+' },
-        ],
-        result: 14,
-      },
-      {
-        id: 'eq-5',
-        terms: [
-          { symbolId: 'ornament', op: '+' },
-          { symbolId: 'venom', op: '-' },
-          { symbolId: 'dagger', op: '+' },
-        ],
-        result: 7,
-      },
-      {
-        id: 'eq-6',
-        terms: [
-          { symbolId: 'ornament', op: '+' },
-          { symbolId: 'dagger', op: '+' },
-        ],
-        result: 11,
-      },
-    ],
-    targetSymbols: ['dagger', 'bell', 'venom', 'key'],
-    secretMeaning: 'Hora clave reconstruida en el reloj de la torre (23:45)',
-  },
-  {
-    // Tercer set:
-    // snowman = 6, boot = 3, candle = 8, key = 2, venom = 5, dagger = 9
-    symbols: [
-      { id: 'snowman', label: 'Muñeco de Nieve', iconName: 'snowman', value: 6 },
-      { id: 'boot', label: 'Bota de Invierno', iconName: 'boot', value: 3 },
-      { id: 'candle', label: 'Vela de Cera', iconName: 'candle', value: 8 },
-      { id: 'key', label: 'Llave Maestra', iconName: 'key', value: 2 },
-      { id: 'venom', label: 'Frasco de Veneno', iconName: 'venom', value: 5 },
-      { id: 'dagger', label: 'Estilete de Plata', iconName: 'dagger', value: 9 },
-    ],
-    equations: [
-      {
-        id: 'eq-1',
-        terms: [
-          { symbolId: 'snowman', op: '+' },
-          { symbolId: 'snowman', op: '+' },
-        ],
-        result: 12,
-      },
-      {
-        id: 'eq-2',
-        terms: [
-          { symbolId: 'snowman', op: '+' },
-          { symbolId: 'boot', op: '-' },
-        ],
-        result: 3,
-      },
-      {
-        id: 'eq-3',
-        terms: [
-          { symbolId: 'candle', op: '+' },
-          { symbolId: 'boot', op: '+' },
-        ],
-        result: 11,
-      },
-      {
-        id: 'eq-4',
-        terms: [
-          { symbolId: 'candle', op: '+' },
-          { symbolId: 'key', op: '-' },
-          { symbolId: 'boot', op: '+' },
-        ],
-        result: 9,
-      },
-      {
-        id: 'eq-5',
-        terms: [
-          { symbolId: 'venom', op: '+' },
-          { symbolId: 'key', op: '+' },
-        ],
-        result: 7,
-      },
-      {
-        id: 'eq-6',
-        terms: [
-          { symbolId: 'dagger', op: '+' },
-          { symbolId: 'venom', op: '-' },
-          { symbolId: 'key', op: '+' },
-        ],
-        result: 6,
-      },
-    ],
-    targetSymbols: ['key', 'boot', 'venom', 'candle'],
-    secretMeaning: 'Registro numérico del casillero de servicio (23:58)',
-  },
+const SYMBOL_CATALOG: readonly Omit<EcuacionesSymbol, 'value'>[] = [
+  { id: 'snowman', label: 'Muñeco de Nieve', iconName: 'snowman' },
+  { id: 'venom', label: 'Frasco de Veneno', iconName: 'venom' },
+  { id: 'ornament', label: 'Esfera de Gala', iconName: 'ornament' },
+  { id: 'boot', label: 'Bota de Invierno', iconName: 'boot' },
+  { id: 'candle', label: 'Vela de Cera', iconName: 'candle' },
+  { id: 'dagger', label: 'Estilete de Plata', iconName: 'dagger' },
+  { id: 'key', label: 'Llave Maestra', iconName: 'key' },
+  { id: 'bell', label: 'Campana del Reloj', iconName: 'bell' },
 ];
 
-export function generateEcuaciones(seed: number, day = 1): EcuacionesConfig {
-  const derived = deriveSeed(seed, day, 'ecuaciones');
-  const rng = mulberry32(derived);
-  const tpl =
-    ECUACIONES_TEMPLATES[
-      (day + Math.floor(rng() * ECUACIONES_TEMPLATES.length)) % ECUACIONES_TEMPLATES.length
-    ];
+const MEANING_TEMPLATES: readonly string[] = [
+  'Marcador numérico deducido de las ecuaciones periciales',
+  'Hora clave reconstruida en el mecanismo de la torre',
+  'Registro numérico del casillero de servicio de Villa Acebo',
+  'Cifra verificada en el inventario forense de Azlynn',
+];
 
-  const valueMap = new Map(tpl.symbols.map(s => [s.id, s.value]));
-  const targetCode = tpl.targetSymbols.map(id => valueMap.get(id) ?? 0) as [
-    number,
-    number,
-    number,
-    number,
+export function generateEcuaciones(seed: number, day = 1, clue?: Clue): EcuacionesConfig {
+  const derived = deriveSeed(seed, day, `ecuaciones:${hashClueTag(clue)}`);
+  const rng = mulberry32(derived);
+
+  // Pick 6 symbols and assign distinct values in 0..9
+  const chosenMeta = shuffle(rng, SYMBOL_CATALOG).slice(0, 6);
+  const chosenValues = shuffle(rng, [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]).slice(0, 6);
+
+  const symbols: EcuacionesSymbol[] = chosenMeta.map((meta, idx) => ({
+    ...meta,
+    value: chosenValues[idx],
+  }));
+
+  const [s0, s1, s2, s3, s4, s5] = symbols;
+
+  // Sistema triangular de 6 ecuaciones con términos '+' y '-' que determina
+  // de forma única cada símbolo s0..s5 en el dominio 0..9:
+  const equations: EcuacionesRow[] = [
+    {
+      id: 'eq-1',
+      terms: [
+        { symbolId: s0.id, op: '+' },
+        { symbolId: s0.id, op: '+' },
+      ],
+      result: s0.value + s0.value,
+    },
+    {
+      id: 'eq-2',
+      terms: [
+        { symbolId: s0.id, op: '+' },
+        { symbolId: s1.id, op: '+' },
+      ],
+      result: s0.value + s1.value,
+    },
+    {
+      id: 'eq-3',
+      terms: [
+        { symbolId: s2.id, op: '+' },
+        { symbolId: s1.id, op: '-' },
+      ],
+      result: s2.value - s1.value,
+    },
+    {
+      id: 'eq-4',
+      terms: [
+        { symbolId: s2.id, op: '+' },
+        { symbolId: s3.id, op: '+' },
+        { symbolId: s1.id, op: '+' },
+      ],
+      result: s2.value + s3.value + s1.value,
+    },
+    {
+      id: 'eq-5',
+      terms: [
+        { symbolId: s4.id, op: '+' },
+        { symbolId: s3.id, op: '-' },
+        { symbolId: s0.id, op: '+' },
+      ],
+      result: s4.value - s3.value + s0.value,
+    },
+    {
+      id: 'eq-6',
+      terms: [
+        { symbolId: s5.id, op: '+' },
+        { symbolId: s4.id, op: '+' },
+        { symbolId: s1.id, op: '-' },
+      ],
+      result: s5.value + s4.value - s1.value,
+    },
   ];
 
+  const targetSymbols: [string, string, string, string] = [
+    s5.id,
+    s3.id,
+    s4.id,
+    s2.id,
+  ];
+  const targetCode: [number, number, number, number] = [
+    s5.value,
+    s3.value,
+    s4.value,
+    s2.value,
+  ];
+
+  const hh = String((targetCode[0] * 10 + targetCode[1]) % 24).padStart(2, '0');
+  const mm = String((targetCode[2] * 10 + targetCode[3]) % 60).padStart(2, '0');
+  const tplText =
+    MEANING_TEMPLATES[(day + Math.floor(rng() * MEANING_TEMPLATES.length)) % MEANING_TEMPLATES.length];
+  const baseMeaning = `${tplText} (código ${targetCode.join('')} · ${hh}:${mm} h)`;
+
   return {
-    symbols: tpl.symbols,
-    equations: tpl.equations,
-    targetSymbols: tpl.targetSymbols,
+    symbols,
+    equations,
+    targetSymbols,
     targetCode,
-    secretMeaning: tpl.secretMeaning,
+    secretMeaning: buildClueMeaning(baseMeaning, clue),
   };
 }
 

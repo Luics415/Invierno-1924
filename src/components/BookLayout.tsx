@@ -9,6 +9,10 @@ import { BookDoorSpread } from './BookDoorSpread';
 import { SUSPECTS_DIRECTORY } from '../data/suspectsDirectory';
 import { WEAPONS, LOCATIONS } from '../data/narrativeBible';
 import { evaluateCaseClues } from '../engine/caseGenerator';
+import {
+  getPuzzleManualVerificationSpec,
+  verifyManualPuzzleInput,
+} from '../engine/puzzles/clueIntegration';
 import type { DayData } from '../types/game';
 import { sound } from '../utils/soundEffects';
 
@@ -62,6 +66,8 @@ import {
   RefreshCw,
   DoorOpen,
   Skull,
+  PenTool,
+  KeyRound,
   X
 } from 'lucide-react';
 
@@ -70,6 +76,7 @@ interface BookLayoutProps {
   onOpenDossier: () => void;
   onOpenVerdict: () => void;
   onOpenPrologue: () => void;
+  onOpenGameMode?: () => void;
   onOpenActDoor: (act: 1 | 2 | 3 | 4 | 5, startOpened?: boolean) => void;
   onBookOpenChange?: (isOpen: boolean) => void;
 }
@@ -79,6 +86,7 @@ export const BookLayout: React.FC<BookLayoutProps> = ({
   onOpenDossier,
   onOpenVerdict,
   onOpenPrologue,
+  onOpenGameMode,
   onOpenActDoor,
   onBookOpenChange,
 }) => {
@@ -93,6 +101,7 @@ export const BookLayout: React.FC<BookLayoutProps> = ({
     markDayCompleted,
     unlockedClues,
     manualEliminations,
+    gameMode,
     startNewCase,
   } = useGameStore();
 
@@ -191,6 +200,22 @@ export const BookLayout: React.FC<BookLayoutProps> = ({
   const dayData = days.find(d => d.day === currentDay) || days[0];
   const isDayCompleted = completedDays.includes(dayData.day);
 
+  // Estado para el Modo Manual: días cuyo tablero ya fue resuelto pero aguardan confirmación manual escrita
+  const [boardSolvedMap, setBoardSolvedMap] = useState<Record<string, boolean>>({});
+  const [manualInputs, setManualInputs] = useState<Record<string, string>>({});
+  const [manualErrorDayKey, setManualErrorDayKey] = useState<string | null>(null);
+  const [showManualHelperKey, setShowManualHelperKey] = useState<string | null>(null);
+
+  const currentDayKey = `${activeCase.config.seed}-${dayData.day}`;
+  const isBoardSolved = isDayCompleted || Boolean(boardSolvedMap[currentDayKey]);
+  const manualInput = manualInputs[currentDayKey] ?? '';
+  const hasManualError = manualErrorDayKey === currentDayKey;
+  const showManualHelper = showManualHelperKey === currentDayKey;
+  const manualSpec = useMemo(
+    () => getPuzzleManualVerificationSpec(dayData.puzzle, dayData.unlockedClue),
+    [dayData.puzzle, dayData.unlockedClue]
+  );
+
   const clueEval = useMemo(() => evaluateCaseClues(unlockedClues), [unlockedClues]);
 
   // Cálculo reactivo del Embudo de Sospechosos (74 -> 1)
@@ -252,6 +277,25 @@ export const BookLayout: React.FC<BookLayoutProps> = ({
       },
       dayData.unlockedClue.autoEliminations
     );
+  };
+
+  const handlePuzzleBoardSolved = () => {
+    if (gameMode === 'manual') {
+      setBoardSolvedMap(prev => ({ ...prev, [currentDayKey]: true }));
+      return;
+    }
+    handleSolveCurrentPuzzle();
+  };
+
+  const handleConfirmManualResult = (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    if (verifyManualPuzzleInput(dayData.puzzle, dayData.unlockedClue, manualInput)) {
+      setManualErrorDayKey(null);
+      handleSolveCurrentPuzzle();
+    } else {
+      sound.playError();
+      setManualErrorDayKey(currentDayKey);
+    }
   };
 
   // [TEMPORAL - TEST] Completar automáticamente todos los días de un acto (1..5)
@@ -390,8 +434,8 @@ export const BookLayout: React.FC<BookLayoutProps> = ({
           <WordSearchPuzzle
             key={puzzleKey}
             config={dayData.puzzle.config}
-            onSolve={handleSolveCurrentPuzzle}
-            isSolved={isDayCompleted}
+            onSolve={handlePuzzleBoardSolved}
+            isSolved={isBoardSolved}
             hints={dayData.puzzle.hints}
           />
         );
@@ -400,8 +444,8 @@ export const BookLayout: React.FC<BookLayoutProps> = ({
           <SyllablesPuzzle
             key={puzzleKey}
             config={dayData.puzzle.config}
-            onSolve={handleSolveCurrentPuzzle}
-            isSolved={isDayCompleted}
+            onSolve={handlePuzzleBoardSolved}
+            isSolved={isBoardSolved}
             hints={dayData.puzzle.hints}
           />
         );
@@ -410,8 +454,8 @@ export const BookLayout: React.FC<BookLayoutProps> = ({
           <CryptogramPuzzle
             key={puzzleKey}
             config={dayData.puzzle.config}
-            onSolve={handleSolveCurrentPuzzle}
-            isSolved={isDayCompleted}
+            onSolve={handlePuzzleBoardSolved}
+            isSolved={isBoardSolved}
             hints={dayData.puzzle.hints}
           />
         );
@@ -420,8 +464,8 @@ export const BookLayout: React.FC<BookLayoutProps> = ({
           <SudokuPuzzle
             key={puzzleKey}
             config={dayData.puzzle.config}
-            onSolve={handleSolveCurrentPuzzle}
-            isSolved={isDayCompleted}
+            onSolve={handlePuzzleBoardSolved}
+            isSolved={isBoardSolved}
             hints={dayData.puzzle.hints}
           />
         );
@@ -430,8 +474,8 @@ export const BookLayout: React.FC<BookLayoutProps> = ({
           <MurdokuPuzzle
             key={puzzleKey}
             config={dayData.puzzle.config}
-            onSolve={handleSolveCurrentPuzzle}
-            isSolved={isDayCompleted}
+            onSolve={handlePuzzleBoardSolved}
+            isSolved={isBoardSolved}
             hints={dayData.puzzle.hints}
           />
         );
@@ -440,8 +484,8 @@ export const BookLayout: React.FC<BookLayoutProps> = ({
           <CrosswordPuzzle
             key={puzzleKey}
             config={dayData.puzzle.config}
-            onSolve={handleSolveCurrentPuzzle}
-            isSolved={isDayCompleted}
+            onSolve={handlePuzzleBoardSolved}
+            isSolved={isBoardSolved}
             hints={dayData.puzzle.hints}
           />
         );
@@ -450,8 +494,8 @@ export const BookLayout: React.FC<BookLayoutProps> = ({
           <FutoshikiPuzzle
             key={puzzleKey}
             config={dayData.puzzle.config}
-            onSolve={handleSolveCurrentPuzzle}
-            isSolved={isDayCompleted}
+            onSolve={handlePuzzleBoardSolved}
+            isSolved={isBoardSolved}
             hints={dayData.puzzle.hints}
           />
         );
@@ -460,8 +504,8 @@ export const BookLayout: React.FC<BookLayoutProps> = ({
           <ConnectionsPuzzle
             key={puzzleKey}
             config={dayData.puzzle.config}
-            onSolve={handleSolveCurrentPuzzle}
-            isSolved={isDayCompleted}
+            onSolve={handlePuzzleBoardSolved}
+            isSolved={isBoardSolved}
             hints={dayData.puzzle.hints}
           />
         );
@@ -470,8 +514,8 @@ export const BookLayout: React.FC<BookLayoutProps> = ({
           <NonogramPuzzle
             key={puzzleKey}
             config={dayData.puzzle.config}
-            onSolve={handleSolveCurrentPuzzle}
-            isSolved={isDayCompleted}
+            onSolve={handlePuzzleBoardSolved}
+            isSolved={isBoardSolved}
             hints={dayData.puzzle.hints}
           />
         );
@@ -480,8 +524,8 @@ export const BookLayout: React.FC<BookLayoutProps> = ({
           <MinesweeperPuzzle
             key={puzzleKey}
             config={dayData.puzzle.config}
-            onSolve={handleSolveCurrentPuzzle}
-            isSolved={isDayCompleted}
+            onSolve={handlePuzzleBoardSolved}
+            isSolved={isBoardSolved}
             hints={dayData.puzzle.hints}
           />
         );
@@ -490,8 +534,8 @@ export const BookLayout: React.FC<BookLayoutProps> = ({
           <SeptagramaPuzzle
             key={puzzleKey}
             config={dayData.puzzle.config}
-            onSolve={handleSolveCurrentPuzzle}
-            isSolved={isDayCompleted}
+            onSolve={handlePuzzleBoardSolved}
+            isSolved={isBoardSolved}
             hints={dayData.puzzle.hints}
           />
         );
@@ -500,8 +544,8 @@ export const BookLayout: React.FC<BookLayoutProps> = ({
           <CodificadosPuzzle
             key={puzzleKey}
             config={dayData.puzzle.config}
-            onSolve={handleSolveCurrentPuzzle}
-            isSolved={isDayCompleted}
+            onSolve={handlePuzzleBoardSolved}
+            isSolved={isBoardSolved}
             hints={dayData.puzzle.hints}
           />
         );
@@ -510,8 +554,8 @@ export const BookLayout: React.FC<BookLayoutProps> = ({
           <EcuacionesPuzzle
             key={puzzleKey}
             config={dayData.puzzle.config}
-            onSolve={handleSolveCurrentPuzzle}
-            isSolved={isDayCompleted}
+            onSolve={handlePuzzleBoardSolved}
+            isSolved={isBoardSolved}
             hints={dayData.puzzle.hints}
           />
         );
@@ -520,8 +564,8 @@ export const BookLayout: React.FC<BookLayoutProps> = ({
           <EncajadosPuzzle
             key={puzzleKey}
             config={dayData.puzzle.config}
-            onSolve={handleSolveCurrentPuzzle}
-            isSolved={isDayCompleted}
+            onSolve={handlePuzzleBoardSolved}
+            isSolved={isBoardSolved}
             hints={dayData.puzzle.hints}
           />
         );
@@ -737,6 +781,25 @@ export const BookLayout: React.FC<BookLayoutProps> = ({
               >
                 <Gavel className="w-3.5 h-3.5 text-gold-300" />
                 <span className="hidden xl:inline">Veredicto</span>
+              </button>
+
+              <button
+                type="button"
+                tabIndex={!isHeaderExpanded ? -1 : undefined}
+                onClick={() => {
+                  onOpenGameMode?.();
+                }}
+                className={`flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-sm text-xs sm:text-sm font-desc font-medium transition ${
+                  gameMode === 'manual'
+                    ? 'bg-[#3f1419] border border-gold-500/70 text-gold-200 shadow-sm'
+                    : 'btn-ledger text-gold-200'
+                }`}
+                title="Cambiar entre Modo Automático y Modo Manual de transcripción de resultados"
+              >
+                <PenTool className="w-3.5 h-3.5 text-gold-400" />
+                <span className="hidden xl:inline">
+                  Modo: {gameMode === 'manual' ? 'Manual' : 'Automático'}
+                </span>
               </button>
 
               <button
@@ -1360,6 +1423,100 @@ export const BookLayout: React.FC<BookLayoutProps> = ({
                   <div className="flex-1 min-h-0 overflow-y-auto pr-1 flex flex-col w-full">
                     <div className="my-auto w-full">{renderPuzzleEngine()}</div>
                   </div>
+
+                  {/* Panel de Transcripción y Confirmación Manual (solo en Modo Manual cuando aún no está lacrado) */}
+                  {gameMode === 'manual' && !isDayCompleted && (
+                    <div className="mt-2 shrink-0">
+                      {!isBoardSolved ? (
+                        <div className="px-3 py-2 rounded-sm bg-parchment-200/85 border border-amber-900/35 text-[11px] font-desc text-ink-800 flex items-center justify-between gap-2">
+                          <div className="flex items-center gap-1.5 min-w-0">
+                            <PenTool className="w-3.5 h-3.5 text-crimson-800 shrink-0" />
+                            <span>
+                              <strong>Modo Manual (Paso 1/2):</strong> Resuelve el ejercicio superior para revelar la clave en el tablero y habilitar su escritura manual.
+                            </span>
+                          </div>
+                          <span className="text-[10px] font-mono uppercase tracking-wider px-1.5 py-0.5 rounded bg-parchment-300 text-ink-700 shrink-0">
+                            {manualSpec.formatHint}
+                          </span>
+                        </div>
+                      ) : (
+                        <form
+                          onSubmit={handleConfirmManualResult}
+                          className="p-2.5 sm:p-3 rounded-sm bg-[#faf4e4] border-2 border-crimson-800 ring-1 ring-gold-500 shadow-md space-y-2 animate-wax-pop"
+                        >
+                          <div className="flex flex-wrap items-center justify-between gap-1.5">
+                            <span className="inline-flex items-center gap-1.5 text-[10px] font-mono font-black uppercase tracking-wider text-crimson-900">
+                              <KeyRound className="w-3.5 h-3.5 text-crimson-800 shrink-0" />
+                              Modo Manual (Paso 2/2) • Escribe el Resultado Descubierto
+                            </span>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                sound.playClick();
+                                setShowManualHelperKey(
+                                  showManualHelper ? null : currentDayKey
+                                );
+                              }}
+                              className="text-[10px] font-mono underline text-amber-900 hover:text-crimson-900"
+                            >
+                              {showManualHelper ? 'Ocultar guía de lectura' : '¿De dónde sale el resultado?'}
+                            </button>
+                          </div>
+
+                          <p className="text-xs font-reading text-ink-900 leading-snug">
+                            {manualSpec.promptLabel}
+                          </p>
+
+                          {showManualHelper && (
+                            <div className="p-2 rounded bg-gold-100/90 border border-gold-500 text-[11px] font-sans text-ink-900 space-y-0.5">
+                              <div>
+                                <strong>Formato esperado:</strong> {manualSpec.formatHint}
+                              </div>
+                              <div>
+                                <strong>Resultado leído del tablero:</strong>{' '}
+                                <span className="font-mono font-bold text-crimson-900">
+                                  «{manualSpec.expectedDisplay}»
+                                </span>{' '}
+                                <span className="text-ink-700">
+                                  (Vinculado con: {dayData.unlockedClue.impact})
+                                </span>
+                              </div>
+                            </div>
+                          )}
+
+                          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+                            <input
+                              type="text"
+                              value={manualInput}
+                              onChange={e => {
+                                setManualInputs(prev => ({
+                                  ...prev,
+                                  [currentDayKey]: e.target.value,
+                                }));
+                                if (hasManualError) setManualErrorDayKey(null);
+                              }}
+                              placeholder={`Escribe el resultado (${manualSpec.formatHint})...`}
+                              aria-label="Escribir resultado manual del ejercicio"
+                              className="flex-1 px-2.5 py-1.5 text-xs sm:text-sm font-mono font-bold uppercase rounded-sm bg-white border border-amber-900/50 text-ink-950 placeholder:text-ink-400 placeholder:font-normal focus:outline-none focus:border-crimson-800"
+                            />
+                            <button
+                              type="submit"
+                              className="px-4 py-1.5 rounded-sm btn-crimson-wax text-parchment-50 font-serif font-bold text-xs sm:text-sm flex items-center justify-center gap-1.5 shadow transition shrink-0"
+                            >
+                              <Check className="w-3.5 h-3.5 text-gold-300" />
+                              <span>Confirmar Resultado</span>
+                            </button>
+                          </div>
+
+                          {hasManualError && (
+                            <p className="text-[11px] font-sans font-semibold text-crimson-800">
+                              El término o código escrito no coincide con el resultado revelado en el tablero ({manualSpec.formatHint}). Revisa las casillas clave o pulsa «¿De dónde sale el resultado?».
+                            </p>
+                          )}
+                        </form>
+                      )}
+                    </div>
+                  )}
 
                   <div data-toolbar="true" className="pt-2 mt-2 border-t border-parchment-400/70 flex items-center justify-between gap-2 shrink-0">
                     <span className="font-mono text-[10px] tracking-widest uppercase text-ink-600">

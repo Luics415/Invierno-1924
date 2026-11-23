@@ -1,4 +1,5 @@
-import type { ConnectionsConfig, ConnectionsGroup } from '../../types/game';
+import type { Clue, ConnectionsConfig, ConnectionsGroup } from '../../types/game';
+import { buildClueMeaning, hashClueTag } from './clueIntegration';
 import { deriveSeed, mulberry32 } from './prng';
 
 const CONNECTIONS_BANKS: readonly {
@@ -123,18 +124,23 @@ const CONNECTIONS_BANKS: readonly {
   },
 ];
 
-export function generateConnections(seed: number, day = 1): ConnectionsConfig {
-  const derived = deriveSeed(seed, day, 'connections');
+export function generateConnections(seed: number, day = 1, clue?: Clue): ConnectionsConfig {
+  const derived = deriveSeed(seed, day, `connections:${hashClueTag(clue)}`);
   const rng = mulberry32(derived);
-  const bank = CONNECTIONS_BANKS[(day + Math.floor(rng() * CONNECTIONS_BANKS.length)) % CONNECTIONS_BANKS.length];
+  const bank =
+    CONNECTIONS_BANKS[(day + Math.floor(rng() * CONNECTIONS_BANKS.length)) % CONNECTIONS_BANKS.length];
 
   return {
-    groups: bank.groups.map(g => ({
+    groups: bank.groups.map((g, idx) => ({
       ...g,
+      category:
+        idx === 0 && clue
+          ? `${g.category} · ${clue.impact}`
+          : g.category,
       items: [...g.items] as [string, string, string, string],
     })) as [ConnectionsGroup, ConnectionsGroup, ConnectionsGroup, ConnectionsGroup],
     maxMistakes: 4,
-    secretMeaning: bank.secretMeaning,
+    secretMeaning: buildClueMeaning(bank.secretMeaning, clue),
   };
 }
 
@@ -167,6 +173,8 @@ export function validateConnections(
   config: ConnectionsConfig,
   solvedGroupIds: string[]
 ): boolean {
+  if (solvedGroupIds.length !== config.groups.length) return false;
   const solvedSet = new Set(solvedGroupIds);
+  if (solvedSet.size !== config.groups.length) return false;
   return config.groups.every(g => solvedSet.has(g.id));
 }

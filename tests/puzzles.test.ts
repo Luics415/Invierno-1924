@@ -45,6 +45,22 @@ import {
   generateMinesweeper,
   validateMinesweeper,
 } from '../src/engine/puzzles/minesweeper';
+import {
+  generateSeptagrama,
+  validateSeptagrama,
+} from '../src/engine/puzzles/septagrama';
+import {
+  generateCodificados,
+  validateCodificados,
+} from '../src/engine/puzzles/codificados';
+import {
+  generateEcuaciones,
+  validateEcuaciones,
+} from '../src/engine/puzzles/ecuaciones';
+import {
+  generateEncajados,
+  validateEncajados,
+} from '../src/engine/puzzles/encajados';
 import type { MatrixCellState } from '../src/types/game';
 
 describe('M3 All 10 Exclusive Logic Minigame Engines', () => {
@@ -226,6 +242,61 @@ describe('M3 All 10 Exclusive Logic Minigame Engines', () => {
         }
       }
       expect(validateMinesweeper(cfg, allSafe)).toBe(true);
+    }
+  });
+
+  it('11. Septagrama: 7-letter flower with center letter in all words and shaded secret word', () => {
+    for (const day of [3, 15]) {
+      const cfg = generateSeptagrama(19241224, day);
+      expect(cfg.outerLetters).toHaveLength(6);
+      expect(cfg.words.length).toBeGreaterThanOrEqual(7);
+      const allowed = new Set([cfg.centerLetter, ...cfg.outerLetters]);
+      for (const w of cfg.words) {
+        expect(w.answer.includes(cfg.centerLetter)).toBe(true);
+        for (const ch of w.answer) {
+          expect(allowed.has(ch)).toBe(true);
+        }
+      }
+      const extracted = cfg.words.map(w => w.answer[w.highlightIndex]).join('');
+      expect(extracted).toBe(cfg.secretWord);
+
+      const solvedMap: Record<string, string> = {};
+      for (const w of cfg.words) solvedMap[w.id] = w.answer;
+      expect(validateSeptagrama(cfg, solvedMap)).toBe(true);
+    }
+  });
+
+  it('12. Codificados: 4-digit secret code with 5 Mastermind-style deduction clues', () => {
+    for (const day of [2, 16, 29]) {
+      const cfg = generateCodificados(19241224, day);
+      expect(cfg.secretCode).toHaveLength(4);
+      expect(cfg.clues).toHaveLength(5);
+      expect(validateCodificados(cfg, cfg.secretCode)).toBe(true);
+      expect(validateCodificados(cfg, [null, 0, 0, 0])).toBe(false);
+    }
+  });
+
+  it('13. Ecuaciones: icon equations solving uniquely to the 4-digit target code', () => {
+    for (const day of [4, 17]) {
+      const cfg = generateEcuaciones(19241224, day);
+      expect(cfg.targetSymbols).toHaveLength(4);
+      expect(cfg.targetCode).toHaveLength(4);
+      expect(cfg.equations.length).toBeGreaterThanOrEqual(5);
+      expect(validateEcuaciones(cfg, cfg.targetCode)).toBe(true);
+      expect(validateEcuaciones(cfg, [0, 0, 0, 0])).toBe(false);
+    }
+  });
+
+  it('14. Encajados: intersecting grid with word bank, anchor cells, and shaded key cells', () => {
+    for (const day of [5, 18, 30]) {
+      const cfg = generateEncajados(19241224, day);
+      expect(cfg.slots.length).toBeGreaterThanOrEqual(5);
+      expect(cfg.wordBank).toHaveLength(cfg.slots.length);
+      expect(cfg.givenCells.length).toBeGreaterThanOrEqual(1);
+      expect(cfg.keyCells.length).toBeGreaterThanOrEqual(4);
+      const spelled = cfg.keyCells.map(p => cfg.grid[p.r][p.c]).join('');
+      expect(spelled).toBe(cfg.secretWord);
+      expect(validateEncajados(cfg, cfg.grid)).toBe(true);
     }
   });
 });

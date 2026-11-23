@@ -2,6 +2,8 @@ import { describe, expect, it } from 'vitest';
 import { SUSPECTS_DIRECTORY } from '../src/data/suspectsDirectory';
 import { LOCATIONS, WEAPONS } from '../src/data/narrativeBible';
 import {
+  CLUE_SCHEDULE,
+  DAYS_PER_ACT,
   PUZZLE_SCHEDULE,
   TOTAL_DAYS,
   evaluateCaseClues,
@@ -22,6 +24,10 @@ const EXPECTED_PUZZLE_TYPES: PuzzleType[] = [
   'connections',
   'nonogram',
   'minesweeper',
+  'septagrama',
+  'codificados',
+  'ecuaciones',
+  'encajados',
 ];
 
 describe('M2 Case Engine — 74 Unique Cases, Uniformity & 30-Day Campaign', () => {
@@ -122,21 +128,58 @@ describe('M2 Case Engine — 74 Unique Cases, Uniformity & 30-Day Campaign', () 
     }
   });
 
-  it('schedules all 10 exclusive R4 puzzle types evenly (3x each = 30 days) with no consecutive repeats', () => {
+  it('schedules all 14 puzzle types across 30 days (2-3x, 12x2 + 2x3) with zero consecutive/intra-act repeats and dimension coherence', () => {
     expect(PUZZLE_SCHEDULE).toHaveLength(30);
+    expect(CLUE_SCHEDULE).toHaveLength(30);
+
     const counts = new Map<PuzzleType, number>();
+    const dimensionsByType = new Map<PuzzleType, Set<'S' | 'W' | 'R'>>();
+
     for (let i = 0; i < PUZZLE_SCHEDULE.length; i++) {
       const t = PUZZLE_SCHEDULE[i];
+      const dim = CLUE_SCHEDULE[i];
       expect(EXPECTED_PUZZLE_TYPES).toContain(t);
       counts.set(t, (counts.get(t) ?? 0) + 1);
+      const dims = dimensionsByType.get(t) ?? new Set<'S' | 'W' | 'R'>();
+      dims.add(dim);
+      dimensionsByType.set(t, dims);
+
       if (i > 0) {
         expect(PUZZLE_SCHEDULE[i]).not.toBe(PUZZLE_SCHEDULE[i - 1]);
       }
     }
-    expect(counts.size).toBe(10);
+
+    expect(counts.size).toBe(14);
+    let twoCount = 0;
+    let threeCount = 0;
     for (const t of EXPECTED_PUZZLE_TYPES) {
-      expect(counts.get(t)).toBe(3);
+      const c = counts.get(t) ?? 0;
+      expect(c).toBeGreaterThanOrEqual(2);
+      expect(c).toBeLessThanOrEqual(3);
+      if (c === 2) twoCount++;
+      if (c === 3) threeCount++;
     }
+    expect(twoCount).toBe(12);
+    expect(threeCount).toBe(2);
+
+    // Zero intra-act repeats (5 acts x 6 days)
+    for (let act = 0; act < TOTAL_DAYS / DAYS_PER_ACT; act++) {
+      const actSlice = PUZZLE_SCHEDULE.slice(act * DAYS_PER_ACT, (act + 1) * DAYS_PER_ACT);
+      expect(new Set(actSlice).size).toBe(DAYS_PER_ACT);
+    }
+
+    // Dimension coherence: nonogram strictly on W/R, minesweeper includes R, >= 11/14 span >= 2 dims
+    for (let i = 0; i < PUZZLE_SCHEDULE.length; i++) {
+      if (PUZZLE_SCHEDULE[i] === 'nonogram') {
+        expect(CLUE_SCHEDULE[i]).not.toBe('S');
+      }
+    }
+    expect(dimensionsByType.get('nonogram')?.has('R')).toBe(true);
+    expect(dimensionsByType.get('nonogram')?.has('W')).toBe(true);
+    expect(dimensionsByType.get('minesweeper')?.has('R')).toBe(true);
+
+    const multiDimCount = Array.from(dimensionsByType.values()).filter(d => d.size >= 2).length;
+    expect(multiDimCount).toBeGreaterThanOrEqual(11);
   });
 
   it('is strictly deterministic for a given seed and contains zero emojis or legacy Justo Segura text', () => {

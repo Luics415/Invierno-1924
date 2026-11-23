@@ -6,6 +6,7 @@ import type {
   MotiveTag,
   PresenceWing,
   SuspectCategory,
+  SuspectGender,
   VisualMarker,
   WeaponCategory,
   WeaponMaterial,
@@ -25,22 +26,38 @@ export const AGE_GROUP_LABEL: Record<AgeGroup, string> = {
 };
 
 export const AGE_GROUP_SHORT: Record<AgeGroup, string> = {
-  joven: 'menor de 35',
-  adulto: 'de 35 a 49',
-  maduro: 'de 50 a 59',
-  veterano: '60 o más',
+  joven: 'menor de 35 años',
+  adulto: 'de 35 a 49 años',
+  maduro: 'de 50 a 59 años',
+  veterano: '60 años o más',
 };
 
 export const HANDEDNESS_LABEL: Record<Handedness, string> = {
-  diestro: 'es diestro y golpea con la mano derecha',
-  zurdo: 'es zurdo y golpea con la mano izquierda',
-  ambidiestro: 'es ambidiestro y maneja ambas manos con igual destreza',
+  diestro: 'es diestro (mano derecha dominante)',
+  zurdo: 'es zurdo (mano izquierda dominante)',
+  ambidiestro: 'es ambidiestro (maneja ambas manos por igual)',
 };
 
 export const HANDEDNESS_SHORT: Record<Handedness, string> = {
   diestro: 'diestro',
   zurdo: 'zurdo',
   ambidiestro: 'ambidiestro',
+};
+
+export const GENDER_SHORT: Record<SuspectGender, string> = {
+  M: 'masculino',
+  F: 'femenino',
+  'Trans M': 'hombre trans',
+  'Trans F': 'mujer trans',
+  NB: 'no binario',
+};
+
+export const GENDER_CLAUSE_LABEL: Record<SuspectGender, string> = {
+  M: 'consta como masculino en el censo',
+  F: 'consta como femenino en el censo',
+  'Trans M': 'consta como hombre trans en el censo',
+  'Trans F': 'consta como mujer trans en el censo',
+  NB: 'consta como persona no binaria en el censo',
 };
 
 export const VISUAL_MARKER_LABEL: Record<VisualMarker, string> = {
@@ -73,6 +90,14 @@ export const PRESENCE_WING_LABEL: Record<PresenceWing, string> = {
   torre: 'la torre',
 };
 
+export const PRESENCE_WING_SHORT: Record<PresenceWing, string> = {
+  ala_este: 'ala este',
+  ala_oeste: 'ala oeste',
+  planta_baja: 'planta baja',
+  sotano: 'sótano',
+  torre: 'torre',
+};
+
 export const FORENSIC_TRACE_LABEL: Record<ForensicTrace, string> = {
   tinta: 'tinta ferrogálica',
   tabaco: 'hebras de tabaco',
@@ -99,6 +124,17 @@ export const MOTIVE_LABEL: Record<MotiveTag, string> = {
   encubrimiento: 'encubrir un fraude o una irregularidad',
 };
 
+export const MOTIVE_SHORT: Record<MotiveTag, string> = {
+  herencia: 'herencia',
+  deuda: 'deuda',
+  chantaje: 'chantaje',
+  venganza: 'venganza',
+  secreto: 'secreto del pasado',
+  despido: 'despido o desahucio',
+  manuscrito: 'manuscrito',
+  encubrimiento: 'encubrimiento de fraude',
+};
+
 export const ACCESS_LEVEL_LABEL: Record<AccessLevel, string> = {
   llave_maestra: 'disponía de una llave maestra',
   anfitrion: 'tenía acceso de anfitrión a todas las estancias nobles',
@@ -109,7 +145,7 @@ export const ACCESS_LEVEL_LABEL: Record<AccessLevel, string> = {
 
 export const ACCESS_LEVEL_SHORT: Record<AccessLevel, string> = {
   llave_maestra: 'llave maestra',
-  anfitrion: 'acceso de anfitrión',
+  anfitrion: 'permiso de anfitrión',
   servicio_interior: 'pasillos de servicio',
   invitado_libre: 'invitado sin restricciones',
   paso_restringido: 'paso restringido',
@@ -128,6 +164,14 @@ export const WEAPON_CATEGORY_LABEL: Record<WeaponCategory, string> = {
   cortante: 'un arma de filo cortante',
   estrangulamiento: 'un lazo o cordón de estrangulamiento',
   veneno: 'un veneno',
+};
+
+export const WEAPON_CATEGORY_SHORT: Record<WeaponCategory, string> = {
+  contundente: 'contundente',
+  punzante: 'punzante',
+  cortante: 'cortante',
+  estrangulamiento: 'estrangulamiento',
+  veneno: 'veneno',
 };
 
 export const WEAPON_MATERIAL_LABEL: Record<WeaponMaterial, string> = {
@@ -173,6 +217,27 @@ export const WOUND_PATTERN_LABEL: Record<string, string> = {
   paralisis_respiratoria: 'una parálisis respiratoria progresiva',
 };
 
+export const WOUND_PATTERN_SHORT: Record<string, string> = {
+  fractura_hundida: 'fractura craneal hundida',
+  traumatismo_lineal: 'traumatismo lineal',
+  laceracion_vitrea: 'laceraciones con vidrio',
+  contusion_craneal: 'contusión craneal',
+  puncion_doble_filo: 'punción de doble filo',
+  puncion_estrellada: 'punción estrellada',
+  puncion_estrecha_profunda: 'punción estrecha profunda',
+  puncion_unica_fina: 'punción única y fina',
+  incision_limpia: 'incisión quirúrgica',
+  corte_profundo_ancho: 'corte profundo y ancho',
+  corte_doble_borde: 'corte de doble borde',
+  tajo_astillado: 'tajo con astillas',
+  surco_trenzado_ancho: 'surco ancho trenzado',
+  surco_fino_continuo: 'surco fino continuo',
+  compresion_difusa: 'compresión difusa',
+  fallo_cardiaco: 'fallo cardíaco súbito',
+  asfixia_celular: 'asfixia celular',
+  paralisis_respiratoria: 'parálisis respiratoria',
+};
+
 export const FLOOR_LABEL: Record<string, string> = {
   'Planta Baja': 'la planta baja',
   'Planta Alta': 'la planta alta',
@@ -186,8 +251,22 @@ export const LOCK_TYPE_LABEL: Record<string, string> = {
   combinacion_hierro: 'una estancia con cerradura de combinación de hierro',
 };
 
+export const LOCK_TYPE_SHORT: Record<string, string> = {
+  sin_cerradura: 'sin cerradura',
+  pestillo_interior: 'pestillo interior',
+  cerrojo_maestro: 'cerrojo de llave maestra',
+  combinacion_hierro: 'combinación de hierro',
+};
+
 export const SURFACE_LABEL: Record<string, string> = {
   roble: 'tarima de roble',
+  marmol: 'mármol',
+  piedra: 'piedra',
+  ladrillo: 'ladrillo',
+};
+
+export const SURFACE_SHORT: Record<string, string> = {
+  roble: 'roble',
   marmol: 'mármol',
   piedra: 'piedra',
   ladrillo: 'ladrillo',
@@ -201,15 +280,16 @@ export const AMBIENT_TRACE_LABEL: Record<string, string> = {
   harina: 'harina',
 };
 
-/** Normaliza un texto a mayúsculas sin tildes (conserva la Ñ) para pasatiempos. */
+/** Normaliza un texto a mayúsculas sin tildes (conserva la Ñ y dígitos 0-9) para pasatiempos. */
 export function toPuzzleText(input: string): string {
   return input
+    .replaceAll('\u0000', ' ')
     .toUpperCase()
-    .replace(/Ñ/g, 'ENYETOKEN')
     .normalize('NFD')
+    .replace(/N\u0303/g, '\u0000')
     .replace(/[\u0300-\u036f]/g, '')
-    .replace(/ENYETOKEN/g, 'Ñ')
-    .replace(/[^A-ZÑ ]/g, ' ')
+    .replaceAll('\u0000', 'Ñ')
+    .replace(/[^A-ZÑ0-9 ]/g, ' ')
     .replace(/\s+/g, ' ')
     .trim();
 }

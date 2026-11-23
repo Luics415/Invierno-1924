@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { sound } from '../../utils/soundEffects';
-import { RotateCcw, Lightbulb, CheckCircle2, Delete, AlertTriangle } from 'lucide-react';
+import { RotateCcw, Lightbulb, CheckCircle2, Delete, AlertTriangle, KeyRound } from 'lucide-react';
 import type { FutoshikiConfig } from '../../types/game';
 import { getFutoshikiViolations, validateFutoshiki } from '../../engine/puzzles/futoshiki';
 
@@ -12,7 +12,7 @@ interface FutoshikiProps {
 }
 
 export const FutoshikiPuzzle: React.FC<FutoshikiProps> = ({ config, onSolve, isSolved, hints }) => {
-  const { size, initialGrid, solution, inequalities, secretCodeMeaning } = config;
+  const { size, initialGrid, solution, inequalities, keyCells, secretCodeMeaning } = config;
 
   const [grid, setGrid] = useState<(number | null)[][]>(() =>
     initialGrid.map(row => [...row])
@@ -29,6 +29,19 @@ export const FutoshikiPuzzle: React.FC<FutoshikiProps> = ({ config, onSolve, isS
   const violations = useMemo(
     () => getFutoshikiViolations(config, displayGrid),
     [config, displayGrid]
+  );
+
+  const keyCellMap = useMemo(() => {
+    const map = new Map<string, number>();
+    (keyCells ?? []).forEach((k, idx) => {
+      map.set(`${k.r}-${k.c}`, idx + 1);
+    });
+    return map;
+  }, [keyCells]);
+
+  const unlockedCode = useMemo(
+    () => (keyCells ?? []).map(k => solution[k.r]?.[k.c] ?? '').join(''),
+    [keyCells, solution]
   );
 
   const isInitial = useCallback(
@@ -165,6 +178,8 @@ export const FutoshikiPuzzle: React.FC<FutoshikiProps> = ({ config, onSolve, isS
                   const initial = isInitial(r, c);
                   const isSelected = selectedCell?.r === r && selectedCell?.c === c;
                   const hasViolation = violations.has(`${r}-${c}`);
+                  const keyOrder = keyCellMap.get(`${r}-${c}`);
+                  const isKeyCell = keyOrder !== undefined;
                   const hOp = c + 1 < size ? getHorizOp(r, c) : null;
 
                   return (
@@ -172,6 +187,7 @@ export const FutoshikiPuzzle: React.FC<FutoshikiProps> = ({ config, onSolve, isS
                       <button
                         type="button"
                         data-futoshiki-cell={`${r}-${c}`}
+                        data-key-cell={isKeyCell ? keyOrder : undefined}
                         disabled={initial}
                         onClick={() => {
                           if (!isSolved && !initial) {
@@ -179,16 +195,21 @@ export const FutoshikiPuzzle: React.FC<FutoshikiProps> = ({ config, onSolve, isS
                             setSelectedCell({ r, c });
                           }
                         }}
-                        className={`w-10 h-10 sm:w-11 sm:h-11 rounded border-2 font-serif text-base sm:text-lg flex items-center justify-center transition ${
+                        className={`relative w-10 h-10 sm:w-11 sm:h-11 rounded border-2 font-serif text-base sm:text-lg flex items-center justify-center transition ${
                           isSelected
                             ? 'bg-crimson-200 border-crimson-700 text-crimson-950 font-black'
                             : hasViolation
                             ? 'bg-crimson-100 border-crimson-500 text-crimson-900 font-black'
                             : initial
                             ? 'bg-parchment-200 border-ink-800 text-ink-950 font-black cursor-default'
+                            : isKeyCell
+                            ? 'bg-gold-100/80 border-gold-600 ring-1 ring-gold-500 text-crimson-900 font-bold hover:bg-gold-50'
                             : 'bg-parchment-50 border-parchment-500 text-crimson-800 font-bold hover:bg-white'
                         }`}
                       >
+                        {isKeyCell && (
+                          <KeyRound className="w-2.5 h-2.5 text-gold-700 absolute top-0.5 right-0.5 pointer-events-none" />
+                        )}
                         {val ?? ''}
                       </button>
 
@@ -209,7 +230,6 @@ export const FutoshikiPuzzle: React.FC<FutoshikiProps> = ({ config, onSolve, isS
                 <div className="flex items-center h-5 sm:h-6">
                   {row.map((_, c) => {
                     const vOp = getVertOp(r, c);
-                    // Top < Bottom => ∧ (top is smaller, points toward smaller); Top > Bottom => ∨ (bottom is smaller)
                     const symbol = vOp === '<' ? '∧' : vOp === '>' ? '∨' : '';
                     return (
                       <React.Fragment key={c}>
@@ -263,6 +283,11 @@ export const FutoshikiPuzzle: React.FC<FutoshikiProps> = ({ config, onSolve, isS
         <div className="mt-2 p-2 bg-gold-100 border-2 border-gold-500 rounded text-center animate-wax-pop">
           <div className="flex items-center justify-center gap-1 text-xs font-bold text-gold-800 uppercase tracking-widest mb-0.5">
             <CheckCircle2 className="w-4 h-4 text-gold-700" /> Futoshiki Resuelto
+            {unlockedCode && (
+              <span className="ml-1.5 px-1.5 py-0.5 rounded bg-ink-950 text-gold-300 font-mono tracking-widest">
+                {unlockedCode}
+              </span>
+            )}
           </div>
           {secretCodeMeaning && (
             <p className="font-serif text-xs font-semibold italic text-crimson-950">

@@ -1,4 +1,4 @@
-import type { Clue, DayPuzzle, PuzzleType } from '../types/game';
+import type { CaseConfig, Clue, DayPuzzle, PuzzleType } from '../types/game';
 import { generateSudoku } from './puzzles/sudoku';
 import { generateWordSearch } from './puzzles/wordsearch';
 import { generateMurdoku } from './puzzles/murdoku';
@@ -18,13 +18,14 @@ export function buildDayPuzzle(
   type: PuzzleType,
   seed: number,
   day: number,
-  clue: Clue
+  clue: Clue,
+  caseConfig?: CaseConfig
 ): DayPuzzle {
   const focusHint = `Objetivo forense del día ${day}: ${clue.impact}.`;
 
   switch (type) {
     case 'sudoku': {
-      const config = generateSudoku(seed, day);
+      const config = generateSudoku(seed, day, clue);
       return {
         type: 'sudoku',
         config,
@@ -40,7 +41,7 @@ export function buildDayPuzzle(
     }
 
     case 'wordsearch': {
-      const config = generateWordSearch(seed, day);
+      const config = generateWordSearch(seed, day, clue);
       return {
         type: 'wordsearch',
         config,
@@ -56,7 +57,7 @@ export function buildDayPuzzle(
     }
 
     case 'murdoku': {
-      const config = generateMurdoku(seed, day);
+      const config = generateMurdoku(seed, day, clue, caseConfig);
       return {
         type: 'murdoku',
         config,
@@ -72,7 +73,7 @@ export function buildDayPuzzle(
     }
 
     case 'syllables': {
-      const config = generateSyllables(seed, day);
+      const config = generateSyllables(seed, day, clue);
       return {
         type: 'syllables',
         config,
@@ -88,7 +89,7 @@ export function buildDayPuzzle(
     }
 
     case 'cryptogram': {
-      const config = generateCryptogram(seed, day);
+      const config = generateCryptogram(seed, day, clue);
       return {
         type: 'cryptogram',
         config,
@@ -104,7 +105,7 @@ export function buildDayPuzzle(
     }
 
     case 'crossword': {
-      const config = generateCrossword(seed, day);
+      const config = generateCrossword(seed, day, clue);
       return {
         type: 'crossword',
         config,
@@ -120,7 +121,7 @@ export function buildDayPuzzle(
     }
 
     case 'futoshiki': {
-      const config = generateFutoshiki(seed, day);
+      const config = generateFutoshiki(seed, day, clue);
       return {
         type: 'futoshiki',
         config,
@@ -136,7 +137,7 @@ export function buildDayPuzzle(
     }
 
     case 'connections': {
-      const config = generateConnections(seed, day);
+      const config = generateConnections(seed, day, clue);
       return {
         type: 'connections',
         config,
@@ -152,7 +153,7 @@ export function buildDayPuzzle(
     }
 
     case 'nonogram': {
-      const config = generateNonogram(seed, day);
+      const config = generateNonogram(seed, day, clue);
       return {
         type: 'nonogram',
         config,
@@ -168,7 +169,7 @@ export function buildDayPuzzle(
     }
 
     case 'minesweeper': {
-      const config = generateMinesweeper(seed, day);
+      const config = generateMinesweeper(seed, day, clue);
       return {
         type: 'minesweeper',
         config,
@@ -184,7 +185,7 @@ export function buildDayPuzzle(
     }
 
     case 'septagrama': {
-      const config = generateSeptagrama(seed, day);
+      const config = generateSeptagrama(seed, day, clue);
       return {
         type: 'septagrama',
         config,
@@ -200,7 +201,7 @@ export function buildDayPuzzle(
     }
 
     case 'codificados': {
-      const config = generateCodificados(seed, day);
+      const config = generateCodificados(seed, day, clue);
       return {
         type: 'codificados',
         config,
@@ -216,7 +217,7 @@ export function buildDayPuzzle(
     }
 
     case 'ecuaciones': {
-      const config = generateEcuaciones(seed, day);
+      const config = generateEcuaciones(seed, day, clue);
       return {
         type: 'ecuaciones',
         config,
@@ -232,7 +233,7 @@ export function buildDayPuzzle(
     }
 
     case 'encajados': {
-      const config = generateEncajados(seed, day);
+      const config = generateEncajados(seed, day, clue);
       return {
         type: 'encajados',
         config,

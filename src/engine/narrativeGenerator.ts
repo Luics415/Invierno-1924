@@ -1,5 +1,6 @@
 import type {
   Clue,
+  CluePredicate,
   DayData,
   DirectorySuspect,
   GameLocation,
@@ -47,7 +48,7 @@ export const DAY_CALENDAR: readonly DayCalendarMeta[] = [
   { title: 'Placas Reveladas', subtitle: 'Fotografías del vestíbulo bajo luz de magnesio', dateStr: '14 de diciembre', hourStr: '02:10 h' },
   { title: 'Análisis de Residuos', subtitle: 'Reactivos sobre la herida mortal', dateStr: '15 de diciembre', hourStr: '02:25 h' },
   { title: 'Polvo en las Suelas', subtitle: 'El pavimento delata la habitación exacta', dateStr: '16 de diciembre', hourStr: '02:40 h' },
-  { title: 'El Ángulo del Golpe', subtitle: 'Biometría y destreza del atacante', dateStr: '17 de diciembre', hourStr: '02:55 h' },
+  { title: 'Indicios Biométricos', subtitle: 'Dominancia, postura y rastros físicos', dateStr: '17 de diciembre', hourStr: '02:55 h' },
   { title: 'Cartas sin Franqueo', subtitle: 'Correspondencia interceptada antes de la cena', dateStr: '18 de diciembre', hourStr: '03:10 h' },
 
   // Acto IV: El Cerco se Estrecha (Días 19–24)
@@ -56,7 +57,7 @@ export const DAY_CALENDAR: readonly DayCalendarMeta[] = [
   { title: 'El Testigo de la Ventisca', subtitle: 'Una confesión arrancada bajo presión', dateStr: '21 de diciembre', hourStr: '03:55 h' },
   { title: 'Aromas del Crimen', subtitle: 'Humo, cera, licor y humedad en las ropas', dateStr: '22 de diciembre', hourStr: '04:10 h' },
   { title: 'La Coartada Quebrada', subtitle: 'El reloj de la galería desmiente una declaración', dateStr: '23 de diciembre', hourStr: '04:25 h' },
-  { title: 'Inventario Definitivo', subtitle: 'El último descarte del arsenal de Villa Acebo', dateStr: '24 de diciembre', hourStr: '04:40 h' },
+  { title: 'Inventario Definitivo', subtitle: 'Penúltimo cribado del arsenal de Villa Acebo', dateStr: '24 de diciembre', hourStr: '04:40 h' },
 
   // Acto V: La Verdad de las 30 Jornadas (Días 25–30)
   { title: 'Cruce de Expedientes', subtitle: 'Azlynn ordena las pruebas sobre el escritorio', dateStr: '25 de diciembre', hourStr: '04:55 h' },
@@ -157,6 +158,67 @@ const AZLYNN_OBSERVATIONS: readonly string[] = [
   'Entre las cenizas y los legajos cerrados con lacre, aparece una pista que enlaza directamente el momento del apagón con los movimientos previos a la cena de Nochebuena.',
 ];
 
+function describePredicateScope(pred: CluePredicate): string {
+  switch (pred.kind) {
+    case 'suspectAttr':
+      switch (pred.field) {
+        case 'ageGroup':
+          return 'la franja de edad del autor';
+        case 'handedness':
+          return 'la lateralidad dominante del culpable';
+        case 'visualMarker':
+          return 'el rasgo visual distintivo';
+        case 'presenceWing':
+          return 'el sector de desplazamiento durante el apagón';
+        case 'forensicTrace':
+          return 'el rastro microscópico en las solapas';
+        case 'motiveTag':
+          return 'el móvil del homicidio';
+        case 'accessLevel':
+          return 'el nivel de acceso en la mansión';
+      }
+    case 'suspectIdentity':
+      switch (pred.field) {
+        case 'category':
+          return 'el círculo del censo implicado';
+        case 'gender':
+          return 'el perfil censal de género';
+        case 'id':
+          return 'la verificación de una coartada individual';
+      }
+    case 'suspectAgeRange':
+      return 'la horquilla cronológica de edad del culpable';
+    case 'weaponConcealable':
+      return 'el volumen y ocultamiento del arma';
+    case 'weaponAttr':
+      switch (pred.field) {
+        case 'category':
+          return 'la categoría del arma homicida';
+        case 'material':
+          return 'el material del instrumento';
+        case 'forensicTrace':
+          return 'los residuos adheridos a la lesión';
+        case 'woundPattern':
+          return 'la firma anatómica de la herida';
+        case 'id':
+          return 'el cotejo de un objeto del inventario';
+      }
+    case 'roomAttr':
+      switch (pred.field) {
+        case 'floor':
+          return 'la planta de la mansión';
+        case 'lockType':
+          return 'el tipo de cerradura de la estancia';
+        case 'surfaceMaterial':
+          return 'el material del pavimento';
+        case 'ambientTrace':
+          return 'el rastro ambiental de la escena';
+        case 'id':
+          return 'la inspección de una estancia concreta';
+      }
+  }
+}
+
 export function buildDayNarrative(params: BuildDayNarrativeParams): DayData['narrative'] {
   const { seed, day, clue, description, culprit } = params;
   const rng = mulberry32(deriveSeed(seed, day, 'day-narrative'));
@@ -178,9 +240,12 @@ export function buildDayNarrative(params: BuildDayNarrativeParams): DayData['nar
   const evidenceTitleBase = pickOne(rng, EVIDENCE_TITLES[description.evidenceType]);
   const evidenceTitle = `${evidenceTitleBase} — Expediente ${day < 10 ? `0${day}` : day}/30`;
 
+  const topic = clue.predicates?.[0]
+    ? describePredicateScope(clue.predicates[0])
+    : 'un dato clave del sumario';
   const evidenceContent =
     `[CLASIFICADO · JORNADA ${day}] Registro en proceso de verificación forense. ` +
-    `Al resolver el análisis lógico del pliego derecho, el expediente confirmará el hallazgo correspondiente a: ${clue.impact.toLowerCase()}.`;
+    `Al resolver el análisis lógico del pliego derecho, el expediente revelará la conclusión verificada sobre ${topic}.`;
 
   return {
     storyText: [intro, focusSentence],

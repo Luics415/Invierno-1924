@@ -1,4 +1,5 @@
-import type { FutoshikiConfig, FutoshikiInequality } from '../../types/game';
+import type { Clue, FutoshikiConfig, FutoshikiInequality } from '../../types/game';
+import { buildClueMeaning, hashClueTag } from './clueIntegration';
 import { deriveSeed, mulberry32, pickOne, shuffle } from './prng';
 
 const FUTOSHIKI_MEANINGS: readonly string[] = [
@@ -115,8 +116,8 @@ export function countFutoshikiSolutions(
   return count;
 }
 
-export function generateFutoshiki(seed: number, day = 1): FutoshikiConfig {
-  const derived = deriveSeed(seed, day, 'futoshiki');
+export function generateFutoshiki(seed: number, day = 1, clue?: Clue): FutoshikiConfig {
+  const derived = deriveSeed(seed, day, `futoshiki:${hashClueTag(clue)}`);
   const rng = mulberry32(derived);
   const size = 5;
   const solution = generateLatinSquare(size, rng);
@@ -198,7 +199,7 @@ export function generateFutoshiki(seed: number, day = 1): FutoshikiConfig {
     solution,
     inequalities,
     keyCells,
-    secretCodeMeaning: pickOne(rng, FUTOSHIKI_MEANINGS),
+    secretCodeMeaning: buildClueMeaning(pickOne(rng, FUTOSHIKI_MEANINGS), clue),
   };
 }
 

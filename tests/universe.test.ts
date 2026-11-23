@@ -88,7 +88,7 @@ describe('M1 Data Universe — 74 Suspects, 18 Weapons, 9 Rooms', () => {
 
   it('verifies every suspect portraitGif points to an existing file in public/', () => {
     for (const suspect of SUSPECTS_DIRECTORY) {
-      expect(suspect.portraitGif.includes('/portraits/')).toBe(true);
+      expect(suspect.portraitGif.startsWith('./portraits/')).toBe(true);
       const relativePath = suspect.portraitGif.replace(/^\/+/, '');
       const fullPath = path.join(WORKSPACE_ROOT, 'public', relativePath);
       expect(fs.existsSync(fullPath), `Missing portrait file: ${fullPath}`).toBe(true);

@@ -110,12 +110,15 @@ interface GameStoreState {
   manualEliminations: string[];
   notes: Record<number, string>;
   freePlayMode: boolean;
+  gameMode: 'auto' | 'manual';
+  hasSelectedGameMode: boolean;
   activeView: 'book' | 'calendar' | 'dossier' | 'verdict';
 
   // Acciones
   setCurrentDay: (day: number) => void;
   openDoor: (act: number) => void;
   setActiveView: (view: 'book' | 'calendar' | 'dossier' | 'verdict') => void;
+  setGameMode: (mode: 'auto' | 'manual') => void;
   markDayCompleted: (
     day: number,
     clue: Clue,
@@ -160,6 +163,8 @@ export const useGameStore = create<GameStoreState>()(
       manualEliminations: [],
       notes: {},
       freePlayMode: false,
+      gameMode: 'auto',
+      hasSelectedGameMode: false,
       activeView: 'book',
 
       setCurrentDay: (day: number) => {
@@ -189,6 +194,11 @@ export const useGameStore = create<GameStoreState>()(
       setActiveView: view => {
         sound.playPageTurn();
         set({ activeView: view });
+      },
+
+      setGameMode: mode => {
+        sound.playClick();
+        set({ gameMode: mode, hasSelectedGameMode: true });
       },
 
       markDayCompleted: (day, clue, autoEliminations) => {
@@ -296,6 +306,7 @@ export const useGameStore = create<GameStoreState>()(
           matrixCells: {},
           manualEliminations: [],
           notes: {},
+          hasSelectedGameMode: seed !== undefined ? get().hasSelectedGameMode : false,
           activeView: 'book',
         });
       },
@@ -348,6 +359,8 @@ export const useGameStore = create<GameStoreState>()(
         manualEliminations: state.manualEliminations,
         notes: state.notes,
         freePlayMode: state.freePlayMode,
+        gameMode: state.gameMode,
+        hasSelectedGameMode: state.hasSelectedGameMode,
         activeView: state.activeView,
       }),
       migrate: (persistedState, version) => {

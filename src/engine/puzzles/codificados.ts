@@ -1,21 +1,18 @@
-import type { CodificadosClue, CodificadosConfig } from '../../types/game';
-import { deriveSeed, mulberry32 } from './prng';
+import type { Clue, CodificadosClue, CodificadosConfig } from '../../types/game';
+import { buildClueMeaning, hashClueTag } from './clueIntegration';
+import { deriveSeed, mulberry32, shuffle } from './prng';
 
-interface CodificadosPreset {
+interface CodificadosBasePattern {
   secretCode: [number, number, number, number];
   attempts: [number, number, number, number][];
-  secretMeaning: string;
+  meaningTemplate: string;
 }
 
-const CODIFICADOS_PRESETS: readonly CodificadosPreset[] = [
+// Patrones base verificados con solución única en {0..9}^4.
+// Al aplicar cualquier permutación biyectiva de los dígitos 0..9,
+// la unicidad de la solución se conserva exactamente y genera miles de códigos distintos.
+const BASE_PATTERNS: readonly CodificadosBasePattern[] = [
   {
-    // Inspirado directamente en la página "CODIFICADOS" del libro:
-    // Pista 1: 9078 (0,0) -> descarta 9,0,7,8
-    // Pista 2: 2837 (1 exacta, 1 mal colocada)
-    // Pista 3: 6758 (0 exactas, 1 mal colocada)
-    // Pista 4: 8396 (1 exacta, 0 mal colocadas)
-    // Pista 5: 3846 (1 exacta, 1 mal colocada)
-    // Solución única con dígitos distintos: 5 2 3 4 o verifiquemos con el motor exacto:
     secretCode: [2, 4, 3, 5],
     attempts: [
       [9, 0, 7, 8],
@@ -24,7 +21,7 @@ const CODIFICADOS_PRESETS: readonly CodificadosPreset[] = [
       [8, 3, 9, 4],
       [1, 8, 3, 6],
     ],
-    secretMeaning: 'Hora exacta registrada en el cronógrafo roto del despacho (24:35 / código 2435)',
+    meaningTemplate: 'Registro del cronógrafo pericial del despacho',
   },
   {
     secretCode: [1, 9, 2, 4],
@@ -35,7 +32,7 @@ const CODIFICADOS_PRESETS: readonly CodificadosPreset[] = [
       [9, 6, 1, 7],
       [5, 9, 3, 4],
     ],
-    secretMeaning: 'Combinación del candado del archivo privado de Don Arturo (1924)',
+    meaningTemplate: 'Combinación del candado del archivo privado de Don Arturo',
   },
   {
     secretCode: [3, 7, 0, 6],
@@ -46,7 +43,7 @@ const CODIFICADOS_PRESETS: readonly CodificadosPreset[] = [
       [9, 5, 0, 1],
       [8, 2, 6, 3],
     ],
-    secretMeaning: 'Número de serie del expediente lacrado en la caja fuerte (3706)',
+    meaningTemplate: 'Número de serie del expediente lacrado en la caja fuerte',
   },
   {
     secretCode: [4, 8, 1, 5],
@@ -57,7 +54,7 @@ const CODIFICADOS_PRESETS: readonly CodificadosPreset[] = [
       [9, 1, 5, 3],
       [7, 3, 1, 5],
     ],
-    secretMeaning: 'Código telegráfico de emergencia interceptado antes de la ventisca (4815)',
+    meaningTemplate: 'Código telegráfico de emergencia interceptado antes de la ventisca',
   },
 ];
 
@@ -126,16 +123,25 @@ export function formatCodificadosClueText(exactCount: number, misplacedCount: nu
   return `${total} cifras pertenecen al código (${exactCount} bien colocadas, ${misplacedCount} mal colocadas).`;
 }
 
-export function generateCodificados(seed: number, day = 1): CodificadosConfig {
-  const derived = deriveSeed(seed, day, 'codificados');
+export function generateCodificados(seed: number, day = 1, clue?: Clue): CodificadosConfig {
+  const derived = deriveSeed(seed, day, `codificados:${hashClueTag(clue)}`);
   const rng = mulberry32(derived);
-  const preset =
-    CODIFICADOS_PRESETS[
-      (day + Math.floor(rng() * CODIFICADOS_PRESETS.length)) % CODIFICADOS_PRESETS.length
-    ];
+  const pattern =
+    BASE_PATTERNS[(day + Math.floor(rng() * BASE_PATTERNS.length)) % BASE_PATTERNS.length];
 
-  const clues: CodificadosClue[] = preset.attempts.map((attempt, idx) => {
-    const { exactCount, misplacedCount } = scoreCodificadosAttempt(preset.secretCode, attempt);
+  // Permutación biyectiva de 0..9 para variedad procedural preservando solución única
+  const digitMap = shuffle(rng, [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
+  const mapQuad = (q: readonly [number, number, number, number]): [number, number, number, number] => [
+    digitMap[q[0]],
+    digitMap[q[1]],
+    digitMap[q[2]],
+    digitMap[q[3]],
+  ];
+
+  const secretCode = mapQuad(pattern.secretCode);
+  const clues: CodificadosClue[] = pattern.attempts.map((rawAttempt, idx) => {
+    const attempt = mapQuad(rawAttempt);
+    const { exactCount, misplacedCount } = scoreCodificadosAttempt(secretCode, attempt);
     return {
       id: `pista-${idx + 1}`,
       attempt,
@@ -145,10 +151,14 @@ export function generateCodificados(seed: number, day = 1): CodificadosConfig {
     };
   });
 
+  const hh = String((secretCode[0] * 10 + secretCode[1]) % 24).padStart(2, '0');
+  const mm = String((secretCode[2] * 10 + secretCode[3]) % 60).padStart(2, '0');
+  const baseMeaning = `${pattern.meaningTemplate} (código ${secretCode.join('')} · ${hh}:${mm} h)`;
+
   return {
-    secretCode: [...preset.secretCode] as [number, number, number, number],
+    secretCode,
     clues,
-    secretMeaning: preset.secretMeaning,
+    secretMeaning: buildClueMeaning(baseMeaning, clue),
   };
 }
 

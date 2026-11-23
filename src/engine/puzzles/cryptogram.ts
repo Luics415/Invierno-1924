@@ -1,4 +1,5 @@
-import type { CryptogramConfig } from '../../types/game';
+import type { Clue, CryptogramConfig } from '../../types/game';
+import { hashClueTag, toAlphaOnlyPhrase } from './clueIntegration';
 import { deriveSeed, mulberry32, shuffle } from './prng';
 
 const CIPHER_PHRASES: readonly string[] = [
@@ -19,11 +20,24 @@ const CIPHER_PHRASES: readonly string[] = [
   'CADA TESTIGO ESCONDE UNA VERDAD SOBRE LA HERENCIA',
 ];
 
-export function generateCryptogram(seed: number, day = 1): CryptogramConfig {
-  const derived = deriveSeed(seed, day, 'cryptogram');
+function buildClueCipherPhrase(clue: Clue, fallbackPhrase: string): string {
+  const combined = toAlphaOnlyPhrase(
+    `${clue.keyphrase ?? ''} ${clue.impact} ${clue.text}`
+  );
+  const words = combined.split(' ').filter(Boolean);
+  if (words.length >= 4) {
+    return words.slice(0, 12).join(' ');
+  }
+  return toAlphaOnlyPhrase(`${combined} ${fallbackPhrase}`).split(' ').slice(0, 12).join(' ');
+}
+
+export function generateCryptogram(seed: number, day = 1, clue?: Clue): CryptogramConfig {
+  const derived = deriveSeed(seed, day, `cryptogram:${hashClueTag(clue)}`);
   const rng = mulberry32(derived);
 
-  const cipherText = CIPHER_PHRASES[(day + Math.floor(rng() * CIPHER_PHRASES.length)) % CIPHER_PHRASES.length];
+  const fallbackPhrase =
+    CIPHER_PHRASES[(day + Math.floor(rng() * CIPHER_PHRASES.length)) % CIPHER_PHRASES.length];
+  const cipherText = clue ? buildClueCipherPhrase(clue, fallbackPhrase) : fallbackPhrase;
   const letterCounts = new Map<string, number>();
 
   for (const ch of cipherText) {

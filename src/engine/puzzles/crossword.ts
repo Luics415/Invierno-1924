@@ -1,4 +1,5 @@
-import type { CrosswordConfig, CrosswordEntry } from '../../types/game';
+import type { Clue, CrosswordConfig, CrosswordEntry } from '../../types/game';
+import { buildClueMeaning, extractClueAlphaWords, hashClueTag } from './clueIntegration';
 import { deriveSeed, mulberry32 } from './prng';
 
 // Motor limpio de colocación verificada: coloca palabras cruzándose en letras coincidentes
@@ -195,12 +196,32 @@ function buildCrosswordLayout(words: ClueWord[], rng: () => number): { grid: (st
   return { grid: trimmedGrid, placed: shiftedPlaced };
 }
 
-export function generateCrossword(seed: number, day = 1): CrosswordConfig {
-  const derived = deriveSeed(seed, day, 'crossword');
+export function generateCrossword(seed: number, day = 1, clue?: Clue): CrosswordConfig {
+  const derived = deriveSeed(seed, day, `crossword:${hashClueTag(clue)}`);
   const rng = mulberry32(derived);
   const pack = NOIR_CROSSWORD_SETS[(day + Math.floor(rng() * NOIR_CROSSWORD_SETS.length)) % NOIR_CROSSWORD_SETS.length];
 
-  const { grid, placed } = buildCrosswordLayout(pack.words, rng);
+  const clueWords = extractClueAlphaWords(clue, 4, 11);
+  const mergedWords: ClueWord[] = [];
+  const seen = new Set<string>();
+
+  for (const cw of clueWords.slice(0, 3)) {
+    if (!seen.has(cw)) {
+      seen.add(cw);
+      mergedWords.push({
+        word: cw,
+        clue: clue ? `Término clave de la evidencia del día: ${clue.impact}` : 'Indicio pericial del sumario',
+      });
+    }
+  }
+  for (const pw of pack.words) {
+    if (!seen.has(pw.word)) {
+      seen.add(pw.word);
+      mergedWords.push(pw);
+    }
+  }
+
+  const { grid, placed } = buildCrosswordLayout(mergedWords, rng);
 
   // Number cells in standard top-to-bottom, left-to-right reading order
   const startPositions = Array.from(
@@ -234,10 +255,12 @@ export function generateCrossword(seed: number, day = 1): CrosswordConfig {
 
   // Seleccionar casillas clave distribuidas por la cuadrícula que formen una palabra secreta
   const letterCells = new Map<string, { r: number; c: number }[]>();
+  const allOccupiedCells: { r: number; c: number }[] = [];
   for (let r = 0; r < grid.length; r++) {
     for (let c = 0; c < (grid[0]?.length ?? 0); c++) {
       const ch = grid[r][c];
       if (ch) {
+        allOccupiedCells.push({ r, c });
         const list = letterCells.get(ch) ?? [];
         list.push({ r, c });
         letterCells.set(ch, list);
@@ -248,7 +271,12 @@ export function generateCrossword(seed: number, day = 1): CrosswordConfig {
   let secretWord = '';
   let secretHighlightCells: { r: number; c: number }[] = [];
 
-  for (const cand of pack.candidateSecrets) {
+  const candidateSecrets = [
+    ...clueWords.filter(w => w.length >= 4 && w.length <= 8),
+    ...pack.candidateSecrets,
+  ];
+
+  for (const cand of candidateSecrets) {
     const used = new Set<string>();
     const coords: { r: number; c: number }[] = [];
     let ok = true;
@@ -269,7 +297,7 @@ export function generateCrossword(seed: number, day = 1): CrosswordConfig {
   }
 
   if (!secretWord) {
-    secretHighlightCells = entries.slice(0, 5).map(e => ({ r: e.row, c: e.col }));
+    secretHighlightCells = allOccupiedCells.slice(0, Math.min(5, allOccupiedCells.length));
     secretWord = secretHighlightCells.map(pos => grid[pos.r][pos.c] ?? '').join('');
   }
 
@@ -280,7 +308,7 @@ export function generateCrossword(seed: number, day = 1): CrosswordConfig {
     entries,
     secretHighlightCells,
     secretWord,
-    secretMeaning: pack.meaning,
+    secretMeaning: buildClueMeaning(pack.meaning, clue),
   };
 }
 

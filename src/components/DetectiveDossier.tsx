@@ -3,6 +3,15 @@ import { computeSuspectStatus, useGameStore } from '../store/useGameStore';
 import { WEAPONS, LOCATIONS, VICTIM } from '../data/narrativeBible';
 import { SUSPECTS_DIRECTORY, type DirectorySuspect } from '../data/suspectsDirectory';
 import { evaluateCaseClues } from '../engine/caseGenerator';
+import {
+  AMBIENT_TRACE_LABEL,
+  LOCK_TYPE_SHORT,
+  SURFACE_LABEL,
+  WEAPON_CATEGORY_SHORT,
+  WEAPON_MATERIAL_LABEL,
+  WEAPON_TRACE_LABEL,
+  WOUND_PATTERN_SHORT,
+} from '../engine/clueLabels';
 import { sound } from '../utils/soundEffects';
 import {
   Users,
@@ -631,12 +640,32 @@ export const DetectiveDossier: React.FC<DetectiveDossierProps> = ({ onClose, onO
                                 {w.name}
                               </strong>
                               <span className="font-mono text-[9.5px] font-bold uppercase px-1.5 py-0.5 rounded border bg-parchment-200 text-ink-700 border-amber-900/20">
-                                {w.category} • {w.material}
+                                {WEAPON_CATEGORY_SHORT[w.category] ?? w.category} •{' '}
+                                {WEAPON_MATERIAL_LABEL[w.material] ?? w.material}
                               </span>
                             </div>
                             <p className="text-ink-700 font-sans leading-snug text-[11px]">
                               {w.description}
                             </p>
+                            <div className="pt-1.5 mt-1 border-t border-amber-900/15 flex flex-wrap items-center gap-x-2.5 gap-y-1 text-[10px] font-mono text-ink-800">
+                              <span
+                                className={`px-1.5 py-0.5 rounded-[2px] border font-bold uppercase text-[9px] ${
+                                  w.concealable
+                                    ? 'bg-amber-100/80 text-amber-950 border-amber-900/25'
+                                    : 'bg-parchment-200 text-ink-700 border-amber-900/20'
+                                }`}
+                              >
+                                {w.concealable ? 'Ocultable' : 'No ocultable'}
+                              </span>
+                              <span>
+                                <strong>Rastro:</strong>{' '}
+                                {WEAPON_TRACE_LABEL[w.forensicTrace] ?? w.forensicTrace}
+                              </span>
+                              <span className="w-full leading-snug">
+                                <strong>Lesión:</strong>{' '}
+                                {WOUND_PATTERN_SHORT[w.woundPattern] ?? w.woundPattern}
+                              </span>
+                            </div>
                           </div>
                         </div>
                       );
@@ -686,6 +715,20 @@ export const DetectiveDossier: React.FC<DetectiveDossierProps> = ({ onClose, onO
                             </span>
                           </div>
                           <p className="text-ink-700 font-sans leading-relaxed">{l.description}</p>
+                          <div className="pt-1.5 border-t border-amber-900/15 flex flex-wrap items-center gap-x-3 gap-y-1 text-[10px] font-mono text-ink-800">
+                            <span>
+                              <strong>Cierre:</strong>{' '}
+                              {LOCK_TYPE_SHORT[l.lockType] ?? l.lockType}
+                            </span>
+                            <span>
+                              <strong>Suelo:</strong>{' '}
+                              {SURFACE_LABEL[l.surfaceMaterial] ?? l.surfaceMaterial}
+                            </span>
+                            <span>
+                              <strong>Ambiente:</strong>{' '}
+                              {AMBIENT_TRACE_LABEL[l.ambientTrace] ?? l.ambientTrace}
+                            </span>
+                          </div>
                         </div>
                       );
                     })}

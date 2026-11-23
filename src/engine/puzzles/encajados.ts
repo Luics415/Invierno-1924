@@ -1,4 +1,5 @@
-import type { EncajadosConfig, EncajadosSlot } from '../../types/game';
+import type { Clue, EncajadosConfig, EncajadosSlot } from '../../types/game';
+import { buildClueMeaning, extractClueAlphaWords, hashClueTag } from './clueIntegration';
 import { deriveSeed, mulberry32, shuffle } from './prng';
 
 interface EncajadosPack {
@@ -7,26 +8,35 @@ interface EncajadosPack {
   words: string[];
 }
 
+const OFF_THEME_BLACKLIST = new Set<string>([
+  'ABUELO',
+  'JUGUETE',
+  'CAZUELA',
+  'PAJARO',
+  'MIEL',
+  'LENA',
+  'CORO',
+]);
+
 const ENCAJADOS_PACKS: readonly EncajadosPack[] = [
   {
-    // Inspirado directamente en la página "ENCAJADOS" de la imagen de referencia
     meaning: 'Términos encajados del registro de inspección de Villa Acebo',
     candidateSecrets: ['JARDIN', 'COLINA', 'ADORNO', 'RASTRO'],
     words: [
       'SOSPECHA',
       'TELEFONO',
-      'CAZUELA',
-      'JUGUETE',
+      'COARTADA',
+      'TESTIGO',
       'DIARIO',
       'ADORNO',
       'COLINA',
-      'ABUELO',
+      'VENENO',
       'JARDIN',
-      'PAJARO',
+      'FISCAL',
       'RASTRO',
-      'CORO',
-      'MIEL',
-      'LENA',
+      'PUERTA',
+      'CELDA',
+      'ACTA',
     ],
   },
   {
@@ -117,11 +127,21 @@ function canPlaceEncajado(
   return intersections;
 }
 
-export function generateEncajados(seed: number, day = 1): EncajadosConfig {
-  const derived = deriveSeed(seed, day, 'encajados');
+export function generateEncajados(seed: number, day = 1, clue?: Clue): EncajadosConfig {
+  const derived = deriveSeed(seed, day, `encajados:${hashClueTag(clue)}`);
   const rng = mulberry32(derived);
   const pack =
     ENCAJADOS_PACKS[(day + Math.floor(rng() * ENCAJADOS_PACKS.length)) % ENCAJADOS_PACKS.length];
+
+  const clueWords = extractClueAlphaWords(clue, 4, 10).filter(w => !OFF_THEME_BLACKLIST.has(w));
+  const mergedWords: string[] = [];
+  const seenWords = new Set<string>();
+  for (const w of [...clueWords.slice(0, 2), ...pack.words]) {
+    if (!seenWords.has(w) && !OFF_THEME_BLACKLIST.has(w)) {
+      seenWords.add(w);
+      mergedWords.push(w);
+    }
+  }
 
   const SIZE = 15;
   const rawGrid: (string | null)[][] = Array.from({ length: SIZE }, () =>
@@ -129,7 +149,7 @@ export function generateEncajados(seed: number, day = 1): EncajadosConfig {
   );
   const placed: { word: string; row: number; col: number; direction: 'across' | 'down' }[] = [];
 
-  const ordered = [...pack.words].sort((a, b) => b.length - a.length);
+  const ordered = [...mergedWords].sort((a, b) => b.length - a.length);
   const first = ordered[0];
   const startR = Math.floor(SIZE / 2);
   const startC = Math.max(0, Math.floor((SIZE - first.length) / 2));
@@ -194,29 +214,62 @@ export function generateEncajados(seed: number, day = 1): EncajadosConfig {
     answer: p.word,
   }));
 
-  // 2 letras iniciales ancla reveladas en el tablero (como las dos 'O' de la imagen de referencia)
+  // Anchor givenCells: reveal 1 distinguishing cell per slot of duplicate length (plus at least 2 total)
+  // so that same-length words can never be ambiguously swapped by an opaque solver.
   const givenCells: { r: number; c: number; letter: string }[] = [];
-  if (slots.length > 0) {
+  const givenSet = new Set<string>();
+  const addGiven = (r: number, c: number) => {
+    const k = `${r}:${c}`;
+    if (!givenSet.has(k) && grid[r]?.[c]) {
+      givenSet.add(k);
+      givenCells.push({ r, c, letter: grid[r][c]! });
+    }
+  };
+
+  const byLen = new Map<number, EncajadosSlot[]>();
+  for (const s of slots) {
+    const list = byLen.get(s.answer.length) ?? [];
+    list.push(s);
+    byLen.set(s.answer.length, list);
+  }
+
+  for (const group of byLen.values()) {
+    if (group.length > 1) {
+      for (const s of group) {
+        // Pick an index i where s.answer[i] differs from at least one other slot of same length
+        let chosenIdx = 0;
+        for (let i = 0; i < s.answer.length; i++) {
+          if (group.some(other => other.id !== s.id && other.answer[i] !== s.answer[i])) {
+            chosenIdx = i;
+            break;
+          }
+        }
+        const dr = s.direction === 'down' ? 1 : 0;
+        const dc = s.direction === 'across' ? 1 : 0;
+        addGiven(s.row + dr * chosenIdx, s.col + dc * chosenIdx);
+      }
+    }
+  }
+
+  if (givenCells.length < 2 && slots.length > 0) {
     const s0 = slots[0];
     const r0 = s0.row + (s0.direction === 'down' ? s0.answer.length - 1 : 0);
     const c0 = s0.col + (s0.direction === 'across' ? s0.answer.length - 1 : 0);
-    givenCells.push({ r: r0, c: c0, letter: grid[r0][c0] ?? s0.answer[0] });
+    addGiven(r0, c0);
   }
-  if (slots.length > 1) {
+  if (givenCells.length < 2 && slots.length > 1) {
     const s1 = slots[slots.length - 1];
-    const r1 = s1.row;
-    const c1 = s1.col;
-    if (!givenCells.some(g => g.r === r1 && g.c === c1)) {
-      givenCells.push({ r: r1, c: c1, letter: grid[r1][c1] ?? s1.answer[0] });
-    }
+    addGiven(s1.row, s1.col);
   }
 
   // Seleccionar casillas clave sombreadas que formen la palabra secreta inferior
   const letterCells = new Map<string, { r: number; c: number }[]>();
+  const allOccupiedCells: { r: number; c: number }[] = [];
   for (let r = 0; r < rows; r++) {
     for (let c = 0; c < cols; c++) {
       const ch = grid[r][c];
       if (ch) {
+        allOccupiedCells.push({ r, c });
         const list = letterCells.get(ch) ?? [];
         list.push({ r, c });
         letterCells.set(ch, list);
@@ -226,7 +279,11 @@ export function generateEncajados(seed: number, day = 1): EncajadosConfig {
 
   let secretWord = '';
   let keyCells: { r: number; c: number }[] = [];
-  for (const cand of pack.candidateSecrets) {
+  const candidateSecrets = [
+    ...clueWords.filter(w => w.length >= 4 && w.length <= 8),
+    ...pack.candidateSecrets,
+  ];
+  for (const cand of candidateSecrets) {
     const used = new Set<string>();
     const coords: { r: number; c: number }[] = [];
     let ok = true;
@@ -247,7 +304,7 @@ export function generateEncajados(seed: number, day = 1): EncajadosConfig {
   }
 
   if (!secretWord) {
-    keyCells = slots.slice(0, 6).map(s => ({ r: s.row, c: s.col }));
+    keyCells = allOccupiedCells.slice(0, Math.min(6, allOccupiedCells.length));
     secretWord = keyCells.map(pos => grid[pos.r][pos.c] ?? '').join('');
   }
 
@@ -265,7 +322,7 @@ export function generateEncajados(seed: number, day = 1): EncajadosConfig {
     givenCells,
     keyCells,
     secretWord,
-    secretMeaning: pack.meaning,
+    secretMeaning: buildClueMeaning(pack.meaning, clue),
   };
 }
 

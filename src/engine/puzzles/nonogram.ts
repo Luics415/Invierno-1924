@@ -1,7 +1,9 @@
-import type { NonogramConfig } from '../../types/game';
+import type { Clue, NonogramConfig } from '../../types/game';
+import { buildClueMeaning, hashClueTag } from './clueIntegration';
 import { deriveSeed, mulberry32 } from './prng';
 
 interface NonogramTemplate {
+  category: 'weapon' | 'room' | 'suspect';
   revealTitle: string;
   secretMeaning: string;
   pattern: string[]; // '#' = filled, '.' = empty
@@ -9,6 +11,7 @@ interface NonogramTemplate {
 
 const NONOGRAM_TEMPLATES: readonly NonogramTemplate[] = [
   {
+    category: 'room',
     revealTitle: 'Llave Maestra',
     secretMeaning: 'Silueta de la llave maestra perdida en el vestíbulo',
     pattern: [
@@ -22,6 +25,7 @@ const NONOGRAM_TEMPLATES: readonly NonogramTemplate[] = [
     ],
   },
   {
+    category: 'weapon',
     revealTitle: 'Frasco de Veneno',
     secretMeaning: 'Perfil de la ampolla química hallada en la botica',
     pattern: [
@@ -35,6 +39,7 @@ const NONOGRAM_TEMPLATES: readonly NonogramTemplate[] = [
     ],
   },
   {
+    category: 'weapon',
     revealTitle: 'Daga de Plata',
     secretMeaning: 'Forma del arma punzante descrita en el protocolo',
     pattern: [
@@ -48,6 +53,7 @@ const NONOGRAM_TEMPLATES: readonly NonogramTemplate[] = [
     ],
   },
   {
+    category: 'suspect',
     revealTitle: 'Reloj de Arena',
     secretMeaning: 'Símbolo grabado en el reloj detenido a las 23:15 h',
     pattern: [
@@ -61,6 +67,7 @@ const NONOGRAM_TEMPLATES: readonly NonogramTemplate[] = [
     ],
   },
   {
+    category: 'room',
     revealTitle: 'Cáliz de Oporto',
     secretMeaning: 'Silueta de la copa analizada en el comedor de gala',
     pattern: [
@@ -74,6 +81,7 @@ const NONOGRAM_TEMPLATES: readonly NonogramTemplate[] = [
     ],
   },
   {
+    category: 'suspect',
     revealTitle: 'Sobre Lacrado',
     secretMeaning: 'Emblema del testamento sellado con cera carmesí',
     pattern: [
@@ -103,10 +111,15 @@ export function computeLineClues(line: boolean[]): number[] {
   return clues.length > 0 ? clues : [0];
 }
 
-export function generateNonogram(seed: number, day = 1): NonogramConfig {
-  const derived = deriveSeed(seed, day, 'nonogram');
+export function generateNonogram(seed: number, day = 1, clue?: Clue): NonogramConfig {
+  const derived = deriveSeed(seed, day, `nonogram:${hashClueTag(clue)}`);
   const rng = mulberry32(derived);
-  const template = NONOGRAM_TEMPLATES[(day + Math.floor(rng() * NONOGRAM_TEMPLATES.length)) % NONOGRAM_TEMPLATES.length];
+
+  const pool = clue
+    ? NONOGRAM_TEMPLATES.filter(t => t.category === clue.category)
+    : NONOGRAM_TEMPLATES;
+  const activePool = pool.length > 0 ? pool : NONOGRAM_TEMPLATES;
+  const template = activePool[(day + Math.floor(rng() * activePool.length)) % activePool.length];
 
   const rows = template.pattern.length;
   const cols = template.pattern[0].length;
@@ -126,7 +139,7 @@ export function generateNonogram(seed: number, day = 1): NonogramConfig {
     rowClues,
     colClues,
     revealTitle: template.revealTitle,
-    secretMeaning: template.secretMeaning,
+    secretMeaning: buildClueMeaning(template.secretMeaning, clue),
   };
 }
 

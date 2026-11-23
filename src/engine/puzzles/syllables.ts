@@ -1,4 +1,5 @@
-import type { SyllablesConfig, SyllablesWord } from '../../types/game';
+import type { Clue, SyllablesConfig, SyllablesWord } from '../../types/game';
+import { hashClueTag, toAlphaOnlyPhrase } from './clueIntegration';
 import { deriveSeed, mulberry32, pickOne, sampleN, shuffle } from './prng';
 
 interface SyllableBankItem {
@@ -58,8 +59,8 @@ const SECRET_MOTIFS: readonly string[] = [
   'FIRMA FALSA',
 ];
 
-export function generateSyllables(seed: number, day = 1): SyllablesConfig {
-  const derived = deriveSeed(seed, day, 'syllables');
+export function generateSyllables(seed: number, day = 1, clue?: Clue): SyllablesConfig {
+  const derived = deriveSeed(seed, day, `syllables:${hashClueTag(clue)}`);
   const rng = mulberry32(derived);
 
   const wordCount = day > 15 ? 5 : 4;
@@ -67,9 +68,13 @@ export function generateSyllables(seed: number, day = 1): SyllablesConfig {
 
   const words: SyllablesWord[] = chosen.map((item, idx) => {
     const highlightIndex = Math.floor(rng() * item.syllables.length);
+    const definition =
+      idx === 0 && clue
+        ? `${item.definition} (${clue.impact})`
+        : item.definition;
     return {
       id: `w${idx + 1}`,
-      definition: item.definition,
+      definition,
       targetSyllables: [...item.syllables],
       highlightIndex,
     };
@@ -96,9 +101,15 @@ export function generateSyllables(seed: number, day = 1): SyllablesConfig {
     allSyllables.push({ id, text: dist });
   }
 
+  const clueSecret = clue
+    ? toAlphaOnlyPhrase(clue.keyphrase || clue.impact)
+    : '';
+  const secretWord =
+    clueSecret.length >= 4 ? clueSecret : pickOne(rng, SECRET_MOTIFS);
+
   return {
     words,
-    secretWord: pickOne(rng, SECRET_MOTIFS),
+    secretWord,
     allSyllables: shuffle(rng, allSyllables),
     distractorSyllableIds,
   };

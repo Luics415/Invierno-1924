@@ -30,20 +30,21 @@ export const TOTAL_DAYS = 30;
 export const DAYS_PER_ACT = 6;
 
 /**
- * Calendario de pasatiempos: 14 tipos de juegos repartidos en las 30 jornadas.
- * Ningún tipo se repite en días consecutivos.
+ * Calendario de pasatiempos: 14 tipos de juegos repartidos en las 30 jornadas
+ * (12 tipos × 2 apariciones + 2 tipos × 3 apariciones = 30), sin repeticiones
+ * consecutivas ni intra-acto, y coherentes con la dimensión investigada cada día.
  */
 export const PUZZLE_SCHEDULE: readonly PuzzleType[] = [
   // Acto I (Días 1–6)
-  'wordsearch', 'codificados', 'septagrama', 'ecuaciones', 'encajados', 'crossword',
+  'wordsearch', 'codificados', 'septagrama', 'sudoku', 'encajados', 'crossword',
   // Acto II (Días 7–12)
-  'sudoku', 'cryptogram', 'murdoku', 'syllables', 'connections', 'futoshiki',
+  'syllables', 'cryptogram', 'nonogram', 'murdoku', 'connections', 'futoshiki',
   // Acto III (Días 13–18)
-  'nonogram', 'minesweeper', 'septagrama', 'codificados', 'ecuaciones', 'encajados',
+  'ecuaciones', 'minesweeper', 'septagrama', 'encajados', 'codificados', 'cryptogram',
   // Acto IV (Días 19–24)
-  'crossword', 'wordsearch', 'sudoku', 'cryptogram', 'murdoku', 'syllables',
+  'ecuaciones', 'syllables', 'sudoku', 'crossword', 'futoshiki', 'wordsearch',
   // Acto V (Días 25–30)
-  'connections', 'futoshiki', 'nonogram', 'minesweeper', 'codificados', 'encajados',
+  'connections', 'nonogram', 'murdoku', 'minesweeper', 'codificados', 'encajados',
 ];
 
 /**
@@ -58,6 +59,95 @@ export const CLUE_SCHEDULE: readonly ('S' | 'W' | 'R')[] = [
   'W', 'S', 'S', 'R', 'S', 'W',
   'S', 'W', 'S', 'R', 'S', 'S',
 ];
+
+/**
+ * Genera de forma determinista por semilla un orden aleatorio de los 14 juegos
+ * para los 30 días del caso, permutando los 5 bloques de acto y barajando los
+ * 6 juegos dentro de cada acto sin romper la progresión deductiva (CLUE_SCHEDULE),
+ * garantizando:
+ * - 6 juegos distintos en cada acto de 6 días
+ * - 2 a 3 apariciones de cada uno de los 14 juegos en los 30 días
+ * - 0 repeticiones consecutivas entre días (incluidas fronteras de acto y 30->1)
+ * - nonogram siempre en días de arma (W) o estancia (R)
+ * - minesweeper incluyendo días de estancia (R)
+ */
+export function buildPuzzleScheduleForSeed(seed: number): PuzzleType[] {
+  const rng = mulberry32(deriveSeed(seed, 0, 'puzzle-schedule'));
+  const baseActRosters: PuzzleType[][] = [0, 1, 2, 3, 4].map(a =>
+    PUZZLE_SCHEDULE.slice(a * DAYS_PER_ACT, (a + 1) * DAYS_PER_ACT)
+  );
+
+  for (let attempt = 0; attempt < 50; attempt++) {
+    const actOrder = shuffle(rng, [0, 1, 2, 3, 4]);
+    const schedule: PuzzleType[] = [];
+    let ok = true;
+
+    for (let actIdx = 0; actIdx < 5; actIdx++) {
+      const actDims = CLUE_SCHEDULE.slice(actIdx * DAYS_PER_ACT, (actIdx + 1) * DAYS_PER_ACT);
+      const games = shuffle(rng, [...baseActRosters[actOrder[actIdx]]]);
+
+      // Asegurar que 'nonogram' caiga siempre en un día 'W' o 'R' de este acto
+      const nonoPos = games.indexOf('nonogram');
+      if (nonoPos !== -1 && actDims[nonoPos] === 'S') {
+        const wrIndices = [0, 1, 2, 3, 4, 5].filter(i => actDims[i] === 'W' || actDims[i] === 'R');
+        const targetPos = wrIndices[Math.floor(rng() * wrIndices.length)];
+        [games[nonoPos], games[targetPos]] = [games[targetPos], games[nonoPos]];
+      }
+
+      // Asegurar que si este acto tiene 'minesweeper' y el slot 'R' no está ocupado por 'nonogram',
+      // 'minesweeper' pueda ocupar 'R' para mantener coherencia espacial
+      const minePos = games.indexOf('minesweeper');
+      const rPos = actDims.indexOf('R');
+      if (minePos !== -1 && rPos !== -1 && games[rPos] !== 'nonogram' && minePos !== rPos) {
+        [games[minePos], games[rPos]] = [games[rPos], games[minePos]];
+      }
+
+      // Evitar repetición consecutiva en la frontera con el acto anterior
+      if (schedule.length > 0 && games[0] === schedule[schedule.length - 1]) {
+        const swapCandidates = [1, 2, 3, 4, 5].filter(i => {
+          if (games[0] === 'nonogram' && actDims[i] === 'S') return false;
+          if (games[i] === 'nonogram' && actDims[0] === 'S') return false;
+          return games[i] !== schedule[schedule.length - 1];
+        });
+        if (swapCandidates.length === 0) {
+          ok = false;
+          break;
+        }
+        const pick = swapCandidates[0];
+        [games[0], games[pick]] = [games[pick], games[0]];
+      }
+
+      schedule.push(...games);
+    }
+
+    if (!ok) continue;
+
+    // Evitar que el Día 30 repita el mismo juego del Día 1
+    if (schedule[29] === schedule[0]) {
+      const act5Dims = CLUE_SCHEDULE.slice(24, 30);
+      const swapCandidates = [24, 25, 26, 27, 28].filter(idx => {
+        const localIdx = idx - 24;
+        if (idx === 24 && schedule[29] === schedule[23]) return false;
+        if (schedule[29] === 'nonogram' && act5Dims[localIdx] === 'S') return false;
+        if (schedule[idx] === 'nonogram' && act5Dims[5] === 'S') return false;
+        return schedule[idx] !== schedule[0];
+      });
+      if (swapCandidates.length === 0) continue;
+      const pick = swapCandidates[0];
+      [schedule[29], schedule[pick]] = [schedule[pick], schedule[29]];
+    }
+
+    // Verificar que al menos un 'minesweeper' caiga en día 'R'
+    const hasMinesweeperOnRoom = schedule.some(
+      (t, i) => t === 'minesweeper' && CLUE_SCHEDULE[i] === 'R'
+    );
+    if (!hasMinesweeperOnRoom) continue;
+
+    return schedule;
+  }
+
+  return [...PUZZLE_SCHEDULE];
+}
 
 const SUSPECT_FIELDS: readonly SuspectAttributeKey[] = [
   'ageGroup',
@@ -135,26 +225,42 @@ interface CandidateClue<T> {
   predicate: CluePredicate;
   /** Clave de familia para evitar repetir el mismo tipo de indicio seguido. */
   family: string;
+  /** Campo estructural de la dimensión actual para evitar redundancias tras confirmar con `eq`. */
+  field?: string;
+  /** Indica si confirma directamente el valor (`eq` / `weaponConcealable`). */
+  isEq?: boolean;
   /** Solo se permite cuando quedan pocos candidatos (pistas casi definitivas). */
   minRemaining?: number;
   maxRemaining?: number;
   test: (item: T) => boolean;
 }
 
+type CandidateBuilder<T> = (
+  remaining: T[],
+  rng: Rng,
+  confirmedFields: ReadonlySet<string>
+) => CandidateClue<T>[];
+
 function selectClues<T>(
   universe: readonly T[],
   slots: number,
-  buildCandidates: (remaining: T[], rng: Rng) => CandidateClue<T>[],
+  buildCandidates: CandidateBuilder<T>,
   rng: Rng
 ): CandidateClue<T>[] | null {
   let remaining = [...universe];
   const chosen: CandidateClue<T>[] = [];
+  const confirmedFields = new Set<string>();
   const start = universe.length;
 
   for (let step = 0; step < slots; step++) {
-    if (remaining.length <= 1) break;
-    const target = Math.max(1, Math.round(Math.pow(start, 1 - (step + 1) / slots)));
-    const candidates = buildCandidates(remaining, rng).filter(c => {
+    const isLast = step === slots - 1;
+    const minNext = slots - step;
+    const progress = (step + 1) / slots;
+    const target = isLast
+      ? 1
+      : Math.max(minNext, Math.round(minNext + (start - minNext) * Math.pow(1 - progress, 2.2)));
+
+    const candidates = buildCandidates(remaining, rng, confirmedFields).filter(c => {
       if (c.minRemaining !== undefined && remaining.length < c.minRemaining) return false;
       if (c.maxRemaining !== undefined && remaining.length > c.maxRemaining) return false;
       return true;
@@ -164,139 +270,256 @@ function selectClues<T>(
     for (const cand of candidates) {
       const next = remaining.filter(cand.test);
       if (next.length === 0 || next.length >= remaining.length) continue;
+      if (isLast ? next.length !== 1 : next.length < minNext) continue;
+
       const recentFamilies = chosen.slice(-2).map(c => c.family);
       const usedFamilyCount = chosen.filter(c => c.family === cand.family).length;
       let score = Math.abs(Math.log(next.length) - Math.log(target));
-      if (recentFamilies.includes(cand.family)) score += 0.45;
-      score += usedFamilyCount * 0.12;
+      if (recentFamilies.includes(cand.family)) score += 0.55;
+      score += usedFamilyCount * 0.16;
+      if (cand.isEq) score -= 0.7;
+      if (cand.family === 'alibi' || cand.family === 'intact' || cand.family === 'sealed') {
+        score += 0.4;
+      }
       score += rng() * 0.25;
       if (!best || score < best.score) best = { cand, next, score };
     }
-    if (!best) break;
+    if (!best) return null;
     chosen.push(best.cand);
     remaining = best.next;
+    if (best.cand.isEq && best.cand.field) {
+      confirmedFields.add(best.cand.field);
+    }
   }
 
-  return remaining.length === 1 ? chosen : null;
+  return remaining.length === 1 && chosen.length === slots ? chosen : null;
 }
 
-function greedyClues<T>(
+function dfsFallback<T>(
   universe: readonly T[],
-  buildCandidates: (remaining: T[], rng: Rng) => CandidateClue<T>[],
-  rng: Rng
+  slots: number,
+  buildCandidates: CandidateBuilder<T>,
+  seed: number,
+  maxNodes = 4000
 ): CandidateClue<T>[] {
-  let remaining = [...universe];
-  const chosen: CandidateClue<T>[] = [];
-  while (remaining.length > 1) {
-    let best: { cand: CandidateClue<T>; next: T[] } | null = null;
-    for (const cand of buildCandidates(remaining, rng)) {
+  const rng = mulberry32(seed ^ 0x5bd1e995);
+  let budget = maxNodes;
+
+  function search(
+    remaining: T[],
+    step: number,
+    chosen: CandidateClue<T>[],
+    confirmedFields: ReadonlySet<string>
+  ): CandidateClue<T>[] | null {
+    if (step === slots) {
+      return remaining.length === 1 ? chosen : null;
+    }
+    if (budget-- <= 0) return null;
+
+    const isLast = step === slots - 1;
+    const minNext = slots - step;
+
+    const viable: { cand: CandidateClue<T>; next: T[] }[] = [];
+    for (const cand of buildCandidates(remaining, rng, confirmedFields)) {
+      if (cand.minRemaining !== undefined && remaining.length < cand.minRemaining) continue;
+      if (cand.maxRemaining !== undefined && remaining.length > cand.maxRemaining) continue;
       const next = remaining.filter(cand.test);
       if (next.length === 0 || next.length >= remaining.length) continue;
-      if (!best || next.length < best.next.length) best = { cand, next };
+      if (isLast ? next.length !== 1 : next.length < minNext) continue;
+      viable.push({ cand, next });
     }
-    if (!best) throw new Error('No es posible aislar la solución con los indicios disponibles');
-    chosen.push(best.cand);
-    remaining = best.next;
+
+    viable.sort((a, b) => {
+      if (b.next.length !== a.next.length) return b.next.length - a.next.length;
+      return Number(Boolean(b.cand.isEq)) - Number(Boolean(a.cand.isEq));
+    });
+
+    for (const item of viable) {
+      const nextConfirmed = new Set(confirmedFields);
+      if (item.cand.isEq && item.cand.field) {
+        nextConfirmed.add(item.cand.field);
+      }
+      const res = search(item.next, step + 1, [...chosen, item.cand], nextConfirmed);
+      if (res) return res;
+    }
+
+    return null;
   }
-  return chosen;
+
+  const found = search([...universe], 0, [], new Set<string>());
+  if (!found) {
+    throw new Error('No es posible aislar la solución en las jornadas asignadas');
+  }
+  return found;
 }
 
 function chooseClueSet<T>(
   universe: readonly T[],
   slots: number,
-  build: (remaining: T[], rng: Rng) => CandidateClue<T>[],
+  build: CandidateBuilder<T>,
   seed: number
 ): CandidateClue<T>[] {
-  for (let attempt = 0; attempt < 40; attempt++) {
+  for (let attempt = 0; attempt < 80; attempt++) {
     const rng = mulberry32(seed + attempt * 104729);
     const picked = selectClues(universe, slots, build, rng);
     if (picked && picked.length === slots) return picked;
   }
-  for (let attempt = 0; attempt < 40; attempt++) {
-    const rng = mulberry32(seed + attempt * 7919 + 13);
-    const picked = selectClues(universe, slots, build, rng);
-    if (picked) return picked;
-  }
-  return greedyClues(universe, build, mulberry32(seed ^ 0x5bd1e995));
+  return dfsFallback(universe, slots, build, seed);
 }
 
 // ---------------------------------------------------------------------
 // Candidatos por dimensión
 // ---------------------------------------------------------------------
 
-function suspectCandidates(culprit: DirectorySuspect) {
-  return (remaining: DirectorySuspect[], rng: Rng): CandidateClue<DirectorySuspect>[] => {
+function suspectCandidates(culprit: DirectorySuspect): CandidateBuilder<DirectorySuspect> {
+  return (remaining, _rng, confirmedFields): CandidateClue<DirectorySuspect>[] => {
     const out: CandidateClue<DirectorySuspect>[] = [];
     for (const field of SUSPECT_FIELDS) {
+      if (confirmedFields.has(field)) continue;
       const own = String(culprit.attributes[field]);
-      const present = Array.from(new Set(remaining.map(s => String(s.attributes[field])))).filter(v => v !== own);
+      const present = Array.from(new Set(remaining.map(s => String(s.attributes[field])))).filter(
+        v => v !== own
+      );
       const eq: CluePredicate = { kind: 'suspectAttr', field, op: 'eq', value: own };
-      out.push({ predicate: eq, family: field, test: s => suspectMatches(eq, s) });
+      out.push({
+        predicate: eq,
+        family: field,
+        field,
+        isEq: true,
+        test: s => suspectMatches(eq, s),
+      });
       for (const v of present) {
         const neq: CluePredicate = { kind: 'suspectAttr', field, op: 'neq', value: v };
-        out.push({ predicate: neq, family: field, test: s => suspectMatches(neq, s) });
-        const pair = rng() < 0.5 ? [own, v] : [v, own];
-        const inn: CluePredicate = { kind: 'suspectAttr', field, op: 'in', value: pair };
-        out.push({ predicate: inn, family: field, test: s => suspectMatches(inn, s) });
+        out.push({
+          predicate: neq,
+          family: field,
+          field,
+          isEq: false,
+          test: s => suspectMatches(neq, s),
+        });
       }
     }
 
-    const ownCat = culprit.category;
-    const catEq: CluePredicate = { kind: 'suspectIdentity', field: 'category', op: 'eq', value: ownCat };
-    out.push({ predicate: catEq, family: 'category', test: s => suspectMatches(catEq, s) });
-    for (const cat of new Set(remaining.map(s => s.category))) {
-      if (cat === ownCat) continue;
-      const catNeq: CluePredicate = { kind: 'suspectIdentity', field: 'category', op: 'neq', value: cat };
-      out.push({ predicate: catNeq, family: 'category', test: s => suspectMatches(catNeq, s) });
+    if (!confirmedFields.has('category')) {
+      const ownCat = culprit.category;
+      const catEq: CluePredicate = { kind: 'suspectIdentity', field: 'category', op: 'eq', value: ownCat };
+      out.push({
+        predicate: catEq,
+        family: 'category',
+        field: 'category',
+        isEq: true,
+        test: s => suspectMatches(catEq, s),
+      });
+      for (const cat of new Set(remaining.map(s => s.category))) {
+        if (cat === ownCat) continue;
+        const catNeq: CluePredicate = { kind: 'suspectIdentity', field: 'category', op: 'neq', value: cat };
+        out.push({
+          predicate: catNeq,
+          family: 'category',
+          field: 'category',
+          isEq: false,
+          test: s => suspectMatches(catNeq, s),
+        });
+      }
     }
 
-    for (const width of [8, 12, 18, 26]) {
-      const offset = Math.floor(rng() * (width + 1));
-      const min = Math.max(16, culprit.age - offset);
-      const max = min + width;
-      const range: CluePredicate = { kind: 'suspectAgeRange', min, max };
-      out.push({ predicate: range, family: 'age', test: s => suspectMatches(range, s) });
+    if (!confirmedFields.has('gender')) {
+      const genderEq: CluePredicate = {
+        kind: 'suspectIdentity',
+        field: 'gender',
+        op: 'eq',
+        value: culprit.gender,
+      };
+      out.push({
+        predicate: genderEq,
+        family: 'gender',
+        field: 'gender',
+        isEq: true,
+        test: s => suspectMatches(genderEq, s),
+      });
     }
 
     // Coartadas individuales verificadas (solo en la recta final del caso)
     for (const other of remaining) {
       if (other.id === culprit.id) continue;
       const idNeq: CluePredicate = { kind: 'suspectIdentity', field: 'id', op: 'neq', value: other.id };
-      out.push({ predicate: idNeq, family: `alibi`, maxRemaining: 4, test: s => suspectMatches(idNeq, s) });
+      out.push({
+        predicate: idNeq,
+        family: 'alibi',
+        maxRemaining: 5,
+        isEq: false,
+        test: s => suspectMatches(idNeq, s),
+      });
     }
     return out;
   };
 }
 
-function weaponCandidates(weapon: Weapon) {
-  return (remaining: Weapon[]): CandidateClue<Weapon>[] => {
+function weaponCandidates(weapon: Weapon): CandidateBuilder<Weapon> {
+  return (remaining, _rng, confirmedFields): CandidateClue<Weapon>[] => {
     const out: CandidateClue<Weapon>[] = [];
     const fields: ('category' | 'material' | 'forensicTrace')[] = ['category', 'material', 'forensicTrace'];
     for (const field of fields) {
+      if (confirmedFields.has(field)) continue;
       const own = String(weapon[field]);
       const eq: CluePredicate = { kind: 'weaponAttr', field, op: 'eq', value: own };
-      out.push({ predicate: eq, family: field, test: w => weaponMatches(eq, w) });
+      out.push({
+        predicate: eq,
+        family: field,
+        field,
+        isEq: true,
+        test: w => weaponMatches(eq, w),
+      });
       for (const v of new Set(remaining.map(w => String(w[field])))) {
         if (v === own) continue;
         const neq: CluePredicate = { kind: 'weaponAttr', field, op: 'neq', value: v };
-        out.push({ predicate: neq, family: field, test: w => weaponMatches(neq, w) });
+        out.push({
+          predicate: neq,
+          family: field,
+          field,
+          isEq: false,
+          test: w => weaponMatches(neq, w),
+        });
       }
     }
-    const conceal: CluePredicate = { kind: 'weaponConcealable', value: weapon.concealable };
-    out.push({ predicate: conceal, family: 'concealable', test: w => weaponMatches(conceal, w) });
+    if (!confirmedFields.has('concealable')) {
+      const conceal: CluePredicate = { kind: 'weaponConcealable', value: weapon.concealable };
+      out.push({
+        predicate: conceal,
+        family: 'concealable',
+        field: 'concealable',
+        isEq: true,
+        test: w => weaponMatches(conceal, w),
+      });
+    }
     for (const other of remaining) {
       if (other.id === weapon.id) continue;
       const idNeq: CluePredicate = { kind: 'weaponAttr', field: 'id', op: 'neq', value: other.id };
-      out.push({ predicate: idNeq, family: 'intact', test: w => weaponMatches(idNeq, w) });
+      out.push({
+        predicate: idNeq,
+        family: 'intact',
+        maxRemaining: 4,
+        isEq: false,
+        test: w => weaponMatches(idNeq, w),
+      });
     }
-    const wound: CluePredicate = { kind: 'weaponAttr', field: 'woundPattern', op: 'eq', value: weapon.woundPattern };
-    out.push({ predicate: wound, family: 'wound', maxRemaining: 3, test: w => weaponMatches(wound, w) });
+    if (!confirmedFields.has('woundPattern')) {
+      const wound: CluePredicate = { kind: 'weaponAttr', field: 'woundPattern', op: 'eq', value: weapon.woundPattern };
+      out.push({
+        predicate: wound,
+        family: 'wound',
+        field: 'woundPattern',
+        isEq: true,
+        maxRemaining: 4,
+        test: w => weaponMatches(wound, w),
+      });
+    }
     return out;
   };
 }
 
-function roomCandidates(room: GameLocation) {
-  return (remaining: GameLocation[]): CandidateClue<GameLocation>[] => {
+function roomCandidates(room: GameLocation): CandidateBuilder<GameLocation> {
+  return (remaining, _rng, confirmedFields): CandidateClue<GameLocation>[] => {
     const out: CandidateClue<GameLocation>[] = [];
     const fields: ('floor' | 'lockType' | 'surfaceMaterial' | 'ambientTrace')[] = [
       'floor',
@@ -305,19 +528,38 @@ function roomCandidates(room: GameLocation) {
       'ambientTrace',
     ];
     for (const field of fields) {
+      if (confirmedFields.has(field)) continue;
       const own = String(room[field]);
       const eq: CluePredicate = { kind: 'roomAttr', field, op: 'eq', value: own };
-      out.push({ predicate: eq, family: field, test: r => roomMatches(eq, r) });
+      out.push({
+        predicate: eq,
+        family: field,
+        field,
+        isEq: true,
+        test: r => roomMatches(eq, r),
+      });
       for (const v of new Set(remaining.map(r => String(r[field])))) {
         if (v === own) continue;
         const neq: CluePredicate = { kind: 'roomAttr', field, op: 'neq', value: v };
-        out.push({ predicate: neq, family: field, test: r => roomMatches(neq, r) });
+        out.push({
+          predicate: neq,
+          family: field,
+          field,
+          isEq: false,
+          test: r => roomMatches(neq, r),
+        });
       }
     }
     for (const other of remaining) {
       if (other.id === room.id) continue;
       const idNeq: CluePredicate = { kind: 'roomAttr', field: 'id', op: 'neq', value: other.id };
-      out.push({ predicate: idNeq, family: 'sealed', test: r => roomMatches(idNeq, r) });
+      out.push({
+        predicate: idNeq,
+        family: 'sealed',
+        maxRemaining: 3,
+        isEq: false,
+        test: r => roomMatches(idNeq, r),
+      });
     }
     return out;
   };
@@ -390,12 +632,10 @@ export function generateCase(
   const weaponPicks = chooseClueSet(WEAPONS, weaponSlots, weaponCandidates(weapon), deriveSeed(config.seed, 0, `W:${weapon.id}`));
   const roomPicks = chooseClueSet(LOCATIONS, roomSlots, roomCandidates(room), deriveSeed(config.seed, 0, `R:${room.id}`));
 
-  // Si alguna dimensión cerró antes de agotar sus días, se completan con
-  // indicios de corroboración (verdaderos, coherentes, sin efecto deductivo nuevo).
   const queues = {
-    S: padWithCorroboration(suspectPicks.map(c => c.predicate), suspectSlots, () => corroborateSuspect(culprit)),
-    W: padWithCorroboration(weaponPicks.map(c => c.predicate), weaponSlots, () => corroborateWeapon(weapon)),
-    R: padWithCorroboration(roomPicks.map(c => c.predicate), roomSlots, () => corroborateRoom(room)),
+    S: suspectPicks.map(c => c.predicate),
+    W: weaponPicks.map(c => c.predicate),
+    R: roomPicks.map(c => c.predicate),
   };
 
   const textRng = mulberry32(deriveSeed(config.seed, 0, 'clue-text'));
@@ -403,6 +643,7 @@ export function generateCase(
   const murderNarrative = buildMurderNarrative(config.seed, culprit, weapon, room);
 
   const days: DayData[] = [];
+  const puzzleSchedule = buildPuzzleScheduleForSeed(config.seed);
   for (let i = 0; i < TOTAL_DAYS; i++) {
     const day = i + 1;
     const dim = CLUE_SCHEDULE[i];
@@ -436,7 +677,7 @@ export function generateCase(
         : [],
     };
 
-    const puzzleType = PUZZLE_SCHEDULE[i];
+    const puzzleType = puzzleSchedule[i];
     const narrative = buildDayNarrative({
       seed: config.seed,
       day,
@@ -455,7 +696,7 @@ export function generateCase(
       dateStr: DAY_CALENDAR[i].dateStr,
       hourStr: DAY_CALENDAR[i].hourStr,
       narrative,
-      puzzle: buildDayPuzzle(puzzleType, config.seed, day, clue),
+      puzzle: buildDayPuzzle(puzzleType, config.seed, day, clue, config),
       unlockedClue: { ...clue, autoEliminations },
     });
   }
@@ -463,50 +704,6 @@ export function generateCase(
   const acts = generateActCrimeFiles(config);
 
   return { config, murderNarrative, acts, days };
-}
-
-function padWithCorroboration(
-  preds: CluePredicate[],
-  slots: number,
-  corroborate: () => CluePredicate[]
-): CluePredicate[] {
-  const out = [...preds];
-  const extra = corroborate().filter(p => !out.some(q => JSON.stringify(q) === JSON.stringify(p)));
-  let k = 0;
-  while (out.length < slots) {
-    // Los indicios de corroboración se intercalan al principio para que la
-    // pista que cierra cada dimensión siga llegando en los últimos días.
-    out.unshift(extra[k % Math.max(1, extra.length)] ?? preds[0]);
-    k++;
-  }
-  return out;
-}
-
-function corroborateSuspect(s: DirectorySuspect): CluePredicate[] {
-  return SUSPECT_FIELDS.map(field => ({
-    kind: 'suspectAttr' as const,
-    field,
-    op: 'eq' as const,
-    value: String(s.attributes[field]),
-  }));
-}
-
-function corroborateWeapon(w: Weapon): CluePredicate[] {
-  return [
-    { kind: 'weaponAttr', field: 'category', op: 'eq', value: w.category },
-    { kind: 'weaponAttr', field: 'material', op: 'eq', value: w.material },
-    { kind: 'weaponConcealable', value: w.concealable },
-    { kind: 'weaponAttr', field: 'forensicTrace', op: 'eq', value: w.forensicTrace },
-  ];
-}
-
-function corroborateRoom(r: GameLocation): CluePredicate[] {
-  return [
-    { kind: 'roomAttr', field: 'floor', op: 'eq', value: r.floor },
-    { kind: 'roomAttr', field: 'lockType', op: 'eq', value: r.lockType },
-    { kind: 'roomAttr', field: 'surfaceMaterial', op: 'eq', value: r.surfaceMaterial },
-    { kind: 'roomAttr', field: 'ambientTrace', op: 'eq', value: r.ambientTrace },
-  ];
 }
 
 // =====================================================================

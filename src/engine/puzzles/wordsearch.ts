@@ -1,4 +1,9 @@
-import type { WordSearchConfig } from '../../types/game';
+import type { Clue, WordSearchConfig } from '../../types/game';
+import {
+  buildSolidLeftoverPhrase,
+  extractClueAlphaWords,
+  hashClueTag,
+} from './clueIntegration';
 import { deriveSeed, mulberry32, pickOne, shuffle } from './prng';
 
 interface WordPack {
@@ -131,15 +136,37 @@ export function findWordCoordinates(
   return null;
 }
 
-export function generateWordSearch(seed: number, day = 1): WordSearchConfig {
-  const baseSeed = deriveSeed(seed, day, 'wordsearch');
+export function generateWordSearch(seed: number, day = 1, clue?: Clue): WordSearchConfig {
+  const baseSeed = deriveSeed(seed, day, `wordsearch:${hashClueTag(clue)}`);
   const size = day > 12 ? 12 : 11;
+  const clueAlphaWords = extractClueAlphaWords(clue, 4, size);
 
   for (let attempt = 0; attempt < 25; attempt++) {
     const rng = mulberry32(baseSeed + attempt * 7919);
     const pack = WORD_PACKS[(Math.floor(rng() * WORD_PACKS.length) + attempt) % WORD_PACKS.length];
     const wordCount = size === 12 ? 9 : 8;
-    const chosenWords = shuffle(rng, pack.words)
+
+    const combinedPool: { word: string; clue: string }[] = [];
+    const seenWords = new Set<string>();
+
+    for (const cw of clueAlphaWords.slice(0, 3)) {
+      if (!seenWords.has(cw) && cw.length <= size) {
+        seenWords.add(cw);
+        combinedPool.push({
+          word: cw,
+          clue: clue ? `Evidencia verificada del día ${day}: ${clue.impact}` : 'Indicio pericial del día',
+        });
+      }
+    }
+
+    for (const pw of shuffle(rng, pack.words)) {
+      if (!seenWords.has(pw.word) && pw.word.length <= size) {
+        seenWords.add(pw.word);
+        combinedPool.push(pw);
+      }
+    }
+
+    const chosenWords = combinedPool
       .slice(0, wordCount)
       .sort((a, b) => b.word.length - a.word.length);
 
@@ -196,7 +223,8 @@ export function generateWordSearch(seed: number, day = 1): WordSearchConfig {
 
     if (!allPlaced) continue;
 
-    const leftoverMessage = pickOne(rng, pack.leftoverMessages);
+    const baseLeftover = pickOne(rng, pack.leftoverMessages);
+    const leftoverMessage = buildSolidLeftoverPhrase(clue, baseLeftover);
     const messageChars = leftoverMessage.replace(/[^A-ZÑ]/gi, '').toUpperCase().split('');
     let msgIdx = 0;
 

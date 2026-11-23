@@ -1,4 +1,5 @@
-import type { SudokuConfig } from '../../types/game';
+import type { Clue, SudokuConfig } from '../../types/game';
+import { buildClueMeaning, hashClueTag } from './clueIntegration';
 import { deriveSeed, mulberry32, pickOne, shuffle } from './prng';
 
 const SECRET_MEANINGS: readonly string[] = [
@@ -163,8 +164,8 @@ export function countSudokuSolutions(grid: (number | null)[][], limit = 2): numb
   return count;
 }
 
-export function generateSudoku(seed: number, day = 1): SudokuConfig {
-  const derived = deriveSeed(seed, day, 'sudoku');
+export function generateSudoku(seed: number, day = 1, clue?: Clue): SudokuConfig {
+  const derived = deriveSeed(seed, day, `sudoku:${hashClueTag(clue)}`);
   const rng = mulberry32(derived);
   const solution = generateSolvedSudoku(derived ^ 0x9e3779b9);
 
@@ -221,7 +222,7 @@ export function generateSudoku(seed: number, day = 1): SudokuConfig {
     initialGrid,
     solution,
     keyCells: chosen,
-    secretCodeMeaning: pickOne(rng, SECRET_MEANINGS),
+    secretCodeMeaning: buildClueMeaning(pickOne(rng, SECRET_MEANINGS), clue),
   };
 }
 
@@ -299,9 +300,9 @@ export function validateSudoku(config: SudokuConfig, userGrid: (number | null)[]
   for (let r = 0; r < 9; r++) {
     if (userGrid[r].length !== 9) return false;
     for (let c = 0; c < 9; c++) {
-      const val = userGrid[r][c];
-      if (val === null || val !== config.solution[r][c]) return false;
-      if (config.initialGrid[r][c] !== null && config.initialGrid[r][c] !== val) return false;
+      const v = userGrid[r][c];
+      if (v === null || v < 1 || v > 9) return false;
+      if (config.initialGrid[r][c] !== null && config.initialGrid[r][c] !== v) return false;
     }
   }
   return getSudokuConflicts(userGrid).size === 0;

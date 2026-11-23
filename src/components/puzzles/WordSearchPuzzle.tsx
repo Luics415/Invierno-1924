@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useRef } from 'react';
 import { sound } from '../../utils/soundEffects';
-import { RotateCcw, Lightbulb, CheckCircle2 } from 'lucide-react';
+import { RotateCcw, Lightbulb, CheckCircle2, KeyRound } from 'lucide-react';
 import type { WordSearchConfig } from '../../types/game';
 import { findWordCoordinates } from '../../engine/puzzles/wordsearch';
 
@@ -25,8 +25,8 @@ export const WordSearchPuzzle: React.FC<WordSearchProps> = ({ config, onSolve, i
   const selectedCoordsRef = useRef<{ r: number; c: number }[]>([]);
   const foundWordsRef = useRef<string[]>([]);
 
-  const solvedHighlightSet = useMemo(() => {
-    if (!isSolved) return null;
+  // Todas las celdas ocupadas por las palabras del tablero
+  const allWordCellsSet = useMemo(() => {
     const set = new Set<string>();
     for (const item of words) {
       const coords = findWordCoordinates(grid, item.word);
@@ -37,7 +37,25 @@ export const WordSearchPuzzle: React.FC<WordSearchProps> = ({ config, onSolve, i
       }
     }
     return set;
-  }, [isSolved, words, grid]);
+  }, [words, grid]);
+
+  // Las N primeras celdas libres (en orden de lectura fila por fila) que contienen exactamente
+  // las letras de leftoverMessage, separadas de las letras de relleno sobrantes.
+  const leftoverKeyCellMap = useMemo(() => {
+    const map = new Map<string, number>();
+    const cleanChars = leftoverMessage.replace(/[^A-ZÑ]/gi, '').toUpperCase();
+    let count = 0;
+    for (let r = 0; r < grid.length && count < cleanChars.length; r++) {
+      for (let c = 0; c < (grid[r]?.length ?? 0) && count < cleanChars.length; c++) {
+        const key = `${r}-${c}`;
+        if (!allWordCellsSet.has(key)) {
+          count++;
+          map.set(key, count);
+        }
+      }
+    }
+    return map;
+  }, [grid, allWordCellsSet, leftoverMessage]);
 
   const effectiveFoundWords = useMemo(
     () => (isSolved ? words.map(w => w.word) : foundWords),
@@ -183,7 +201,7 @@ export const WordSearchPuzzle: React.FC<WordSearchProps> = ({ config, onSolve, i
     selectedCoords.some(cell => cell.r === r && cell.c === c);
 
   const isCellPermanent = (r: number, c: number) => {
-    if (solvedHighlightSet) return solvedHighlightSet.has(`${r}-${c}`);
+    if (isSolved) return allWordCellsSet.has(`${r}-${c}`);
     return permanentFoundCells.some(cell => cell.r === r && cell.c === c);
   };
 
@@ -265,7 +283,9 @@ export const WordSearchPuzzle: React.FC<WordSearchProps> = ({ config, onSolve, i
             row.map((letter, c) => {
               const selected = isCellSelected(r, c);
               const permanent = isCellPermanent(r, c);
-              const leftover = isSolved && !permanent;
+              const keyOrder = leftoverKeyCellMap.get(`${r}-${c}`);
+              const isKeyLeftover = isSolved && !permanent && keyOrder !== undefined;
+              const isMutedFiller = isSolved && !permanent && keyOrder === undefined;
 
               return (
                 <div
@@ -275,7 +295,7 @@ export const WordSearchPuzzle: React.FC<WordSearchProps> = ({ config, onSolve, i
                   data-col={c}
                   onPointerDown={() => handlePointerDown(r, c)}
                   onPointerEnter={() => handlePointerEnter(r, c)}
-                  className={`${
+                  className={`relative ${
                     cols >= 12
                       ? 'w-5 h-5 sm:w-6 sm:h-6 text-[11px] sm:text-xs'
                       : 'w-6 h-6 sm:w-7 sm:h-7 text-xs sm:text-sm'
@@ -284,11 +304,18 @@ export const WordSearchPuzzle: React.FC<WordSearchProps> = ({ config, onSolve, i
                       ? 'bg-crimson-700 text-white shadow'
                       : permanent
                       ? 'bg-crimson-200/90 text-crimson-950 font-black border border-crimson-400/60'
-                      : leftover
-                      ? 'bg-gold-200 text-gold-900 border border-gold-500 font-extrabold'
+                      : isKeyLeftover
+                      ? 'bg-gold-200 text-gold-950 border-2 border-gold-600 font-black shadow-sm ring-1 ring-gold-400'
+                      : isMutedFiller
+                      ? 'bg-parchment-200/40 text-ink-400/50 border border-parchment-300/40'
                       : 'hover:bg-parchment-300/80 text-ink-800'
                   }`}
                 >
+                  {isKeyLeftover && (
+                    <span className="absolute top-0 left-0.5 text-[7px] font-mono leading-none text-gold-900 font-black pointer-events-none">
+                      {keyOrder}
+                    </span>
+                  )}
                   {letter}
                 </div>
               );
@@ -324,13 +351,29 @@ export const WordSearchPuzzle: React.FC<WordSearchProps> = ({ config, onSolve, i
       </div>
 
       {isSolved && (
-        <div className="mt-2 p-2 bg-gold-100 border-2 border-gold-500 rounded text-center animate-wax-pop">
-          <div className="flex items-center justify-center gap-1.5 text-xs font-bold text-gold-800 uppercase tracking-widest mb-0.5">
-            <CheckCircle2 className="w-4 h-4 text-gold-700" /> Letras Sobrantes Descifradas:
+        <div className="mt-2 p-2 bg-gold-100 border-2 border-gold-500 rounded text-center animate-wax-pop space-y-1">
+          <div className="flex items-center justify-center gap-1.5 text-[11px] font-bold text-gold-900 uppercase tracking-wider">
+            <KeyRound className="w-3.5 h-3.5 text-gold-700" />
+            <span>Casillas Doradas Sobrantes (1 a {leftoverKeyCellMap.size}):</span>
           </div>
-          <p className="font-serif text-xs font-semibold italic text-crimson-950">
-            «{leftoverMessage}»
-          </p>
+          <div className="flex flex-wrap items-center justify-center gap-1">
+            {leftoverMessage.split(' ').map((wordPart, wIdx) => (
+              <span key={wIdx} className="inline-flex items-center gap-0.5 mx-1">
+                {wordPart.split('').map((ch, cIdx) => (
+                  <span
+                    key={cIdx}
+                    className="w-5 h-5 rounded-[2px] bg-gold-200 border border-gold-600 text-ink-950 font-mono text-xs font-black flex items-center justify-center shadow-sm"
+                  >
+                    {ch}
+                  </span>
+                ))}
+              </span>
+            ))}
+          </div>
+          <div className="flex items-center justify-center gap-1 text-[11px] font-serif font-semibold italic text-crimson-950">
+            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-700 shrink-0" />
+            <span>Clave revelada por las letras no tachadas: «{leftoverMessage}»</span>
+          </div>
         </div>
       )}
     </div>

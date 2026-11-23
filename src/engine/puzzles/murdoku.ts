@@ -1,73 +1,14 @@
-import type { MatrixCellState, MurdokuConfig, MurdokuEntity } from '../../types/game';
-import { deriveSeed, mulberry32, sampleN, shuffle } from './prng';
-
-interface DomainPair {
-  titleA: string;
-  itemsA: MurdokuEntity[];
-  titleB: string;
-  itemsB: MurdokuEntity[];
-  orderedB: boolean;
-}
-
-const MURDOKU_DOMAINS: readonly DomainPair[] = [
-  {
-    titleA: 'Sospechosos',
-    itemsA: [
-      { id: 's-bea', name: 'Beatriz' },
-      { id: 's-gas', name: 'Gastón' },
-      { id: 's-ire', name: 'Irene' },
-      { id: 's-dar', name: 'Darío' },
-      { id: 's-noa', name: 'Noa' },
-    ],
-    titleB: 'Estancias',
-    itemsB: [
-      { id: 'r-bib', name: 'Biblioteca' },
-      { id: 'r-inv', name: 'Invernadero' },
-      { id: 'r-bod', name: 'Bodega' },
-      { id: 'r-sal', name: 'Salón' },
-      { id: 'r-des', name: 'Despacho' },
-    ],
-    orderedB: false,
-  },
-  {
-    titleA: 'Testigos',
-    itemsA: [
-      { id: 't-clara', name: 'Clara' },
-      { id: 't-mateo', name: 'Mateo' },
-      { id: 't-sofia', name: 'Sofía' },
-      { id: 't-bruno', name: 'Bruno' },
-      { id: 't-elena', name: 'Elena' },
-    ],
-    titleB: 'Horas',
-    itemsB: [
-      { id: 'h-2000', name: '20:00 h' },
-      { id: 'h-2045', name: '20:45 h' },
-      { id: 'h-2130', name: '21:30 h' },
-      { id: 'h-2215', name: '22:15 h' },
-      { id: 'h-2300', name: '23:00 h' },
-    ],
-    orderedB: true,
-  },
-  {
-    titleA: 'Sospechosos',
-    itemsA: [
-      { id: 'p-leo', name: 'Leopoldo' },
-      { id: 'p-vera', name: 'Vera' },
-      { id: 'p-omar', name: 'Omar' },
-      { id: 'p-alba', name: 'Alba' },
-      { id: 'p-hugo', name: 'Hugo' },
-    ],
-    titleB: 'Objetos',
-    itemsB: [
-      { id: 'o-lla', name: 'Llave' },
-      { id: 'o-car', name: 'Carta' },
-      { id: 'o-fri', name: 'Frasco' },
-      { id: 'o-rel', name: 'Reloj' },
-      { id: 'o-dag', name: 'Daga' },
-    ],
-    orderedB: false,
-  },
-];
+import { LOCATIONS, WEAPONS } from '../../data/narrativeBible';
+import { SUSPECTS_DIRECTORY } from '../../data/suspectsDirectory';
+import type {
+  CaseConfig,
+  Clue,
+  MatrixCellState,
+  MurdokuConfig,
+  MurdokuEntity,
+} from '../../types/game';
+import { hashClueTag } from './clueIntegration';
+import { deriveSeed, mulberry32, shuffle } from './prng';
 
 interface Constraint {
   text: string;
@@ -93,24 +34,86 @@ function generatePermutations(n: number): number[][] {
   return result;
 }
 
+function resolveCanonicalTruth(seed: number, caseConfig?: CaseConfig): {
+  culpritId: string;
+  weaponId: string;
+  locationId: string;
+} {
+  if (caseConfig) {
+    return {
+      culpritId: caseConfig.culpritId,
+      weaponId: caseConfig.weaponId,
+      locationId: caseConfig.locationId,
+    };
+  }
+  const cfgRng = mulberry32(deriveSeed(seed, 0, 'case-config'));
+  const sIdx = Math.floor(cfgRng() * SUSPECTS_DIRECTORY.length);
+  const wIdx = Math.floor(cfgRng() * WEAPONS.length);
+  const rIdx = Math.floor(cfgRng() * LOCATIONS.length);
+  return {
+    culpritId: SUSPECTS_DIRECTORY[sIdx].id,
+    weaponId: WEAPONS[wIdx].id,
+    locationId: LOCATIONS[rIdx].id,
+  };
+}
+
 export function generateMurdokuWithProof(
   seed: number,
-  day = 1
+  day = 1,
+  clue?: Clue,
+  caseConfig?: CaseConfig
 ): { config: MurdokuConfig; solutionCount: number } {
-  const derived = deriveSeed(seed, day, 'murdoku');
+  const derived = deriveSeed(seed, day, `murdoku:${hashClueTag(clue)}`);
   const rng = mulberry32(derived);
   const size = day > 14 ? 5 : 4;
-  const domain = MURDOKU_DOMAINS[(day + Math.floor(rng() * MURDOKU_DOMAINS.length)) % MURDOKU_DOMAINS.length];
 
-  const itemsA = sampleN(rng, domain.itemsA, size);
-  const itemsB = domain.orderedB
-    ? domain.itemsB.slice(0, size)
-    : sampleN(rng, domain.itemsB, size);
+  const truth = resolveCanonicalTruth(seed, caseConfig);
+  const useWeaponsB = clue?.category === 'weapon';
 
-  const truePerm = shuffle(
+  const allSuspects: MurdokuEntity[] = SUSPECTS_DIRECTORY.map(s => ({
+    id: s.id,
+    name: s.name,
+  }));
+  const allPoolB: MurdokuEntity[] = useWeaponsB
+    ? WEAPONS.map(w => ({ id: w.id, name: w.name }))
+    : LOCATIONS.map(l => ({ id: l.id, name: l.name }));
+
+  const culpritEntity =
+    allSuspects.find(s => s.id === truth.culpritId) ?? allSuspects[0];
+  const truthEntityB =
+    allPoolB.find(b => b.id === (useWeaponsB ? truth.weaponId : truth.locationId)) ??
+    allPoolB[0];
+
+  const decoyA = shuffle(
     rng,
-    Array.from({ length: size }, (_, i) => i)
+    allSuspects.filter(s => s.id !== culpritEntity.id)
+  ).slice(0, size - 1);
+  const decoyB = shuffle(
+    rng,
+    allPoolB.filter(b => b.id !== truthEntityB.id)
+  ).slice(0, size - 1);
+
+  const itemsA = shuffle(rng, [culpritEntity, ...decoyA]);
+  const itemsB = shuffle(rng, [truthEntityB, ...decoyB]);
+
+  const culpritIdxA = itemsA.findIndex(a => a.id === culpritEntity.id);
+  const truthIdxB = itemsB.findIndex(b => b.id === truthEntityB.id);
+
+  // Build truePerm so that itemsA[culpritIdxA] always maps to itemsB[truthIdxB]
+  const remainingBIndices = shuffle(
+    rng,
+    Array.from({ length: size }, (_, i) => i).filter(i => i !== truthIdxB)
   );
+  const truePerm: number[] = new Array<number>(size).fill(0);
+  let remPtr = 0;
+  for (let i = 0; i < size; i++) {
+    if (i === culpritIdxA) {
+      truePerm[i] = truthIdxB;
+    } else {
+      truePerm[i] = remainingBIndices[remPtr++];
+    }
+  }
+
   const targetMatches = itemsA.map((a, idx) => ({
     aId: a.id,
     bId: itemsB[truePerm[idx]].id,
@@ -118,7 +121,7 @@ export function generateMurdokuWithProof(
 
   const candidates: Constraint[] = [];
 
-  // 1. Cross-pair exclusions: neither A_i nor A_j matched B_k (harder than direct single exclusion)
+  // 1. Cross-pair exclusions: neither A_i nor A_j matched B_k
   for (let i = 0; i < size; i++) {
     for (let j = i + 1; j < size; j++) {
       for (let k = 0; k < size; k++) {
@@ -149,22 +152,7 @@ export function generateMurdokuWithProof(
     });
   }
 
-  // 3. Ordering clues if domain is ordered (e.g. Hours)
-  if (domain.orderedB) {
-    for (let i = 0; i < size; i++) {
-      for (let j = 0; j < size; j++) {
-        if (i !== j && truePerm[i] < truePerm[j]) {
-          candidates.push({
-            text: `${itemsA[i].name} fue registrado antes que ${itemsA[j].name}.`,
-            priority: 1,
-            matches: perm => perm[i] < perm[j],
-          });
-        }
-      }
-    }
-  }
-
-  // 4. Single negative exclusions
+  // 3. Single negative exclusions
   for (let i = 0; i < size; i++) {
     for (let k = 0; k < size; k++) {
       if (truePerm[i] !== k) {
@@ -177,7 +165,7 @@ export function generateMurdokuWithProof(
     }
   }
 
-  // 5. Fallback direct anchor (lowest priority, used only if needed)
+  // 4. Fallback direct anchor (lowest priority, used only if needed)
   for (let i = 0; i < size; i++) {
     const k = truePerm[i];
     candidates.push({
@@ -211,11 +199,13 @@ export function generateMurdokuWithProof(
   }
 
   const finalSurvivors = allPerms.filter(p => chosen.every(c => c.matches(p)));
+  const titleBBase = useWeaponsB ? 'Armas' : 'Estancias';
+  const titleB = clue ? `${titleBBase} (${clue.impact})` : titleBBase;
 
   return {
     config: {
-      groupA: { title: domain.titleA, items: itemsA },
-      groupB: { title: domain.titleB, items: itemsB },
+      groupA: { title: 'Sospechosos', items: itemsA },
+      groupB: { title: titleB, items: itemsB },
       clues: chosen.map(c => c.text),
       targetMatches,
       resetOnMistake: true,
@@ -224,8 +214,13 @@ export function generateMurdokuWithProof(
   };
 }
 
-export function generateMurdoku(seed: number, day = 1): MurdokuConfig {
-  return generateMurdokuWithProof(seed, day).config;
+export function generateMurdoku(
+  seed: number,
+  day = 1,
+  clue?: Clue,
+  caseConfig?: CaseConfig
+): MurdokuConfig {
+  return generateMurdokuWithProof(seed, day, clue, caseConfig).config;
 }
 
 export function isMurdokuMoveMistake(

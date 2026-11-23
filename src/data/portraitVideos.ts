@@ -17,6 +17,10 @@ export const SUSPECT_PORTRAIT_VIDEOS: Record<number, string> = {
   11: './portraits/11 Ramiro.mp4',
   12: './portraits/12 Diana.mp4',
   13: './portraits/13 Clara.mp4',
+  14: './portraits/14 Sofia.mp4',
+  15: './portraits/15 Tomas.mp4',
+  16: './portraits/16 Alvaro.mp4',
+  17: './portraits/17 Ernesto.mp4',
 };
 
 export function getSuspectPortraitVideo(suspectNumber: number): string | undefined {

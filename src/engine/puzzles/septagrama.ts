@@ -1,4 +1,5 @@
-import type { SeptagramaConfig, SeptagramaWordEntry } from '../../types/game';
+import type { Clue, SeptagramaConfig, SeptagramaWordEntry } from '../../types/game';
+import { buildClueMeaning, hashClueTag } from './clueIntegration';
 import { deriveSeed, mulberry32, shuffle } from './prng';
 
 interface SeptagramaTemplate {
@@ -141,8 +142,8 @@ const SEPTAGRAMA_TEMPLATES: readonly SeptagramaTemplate[] = [
   },
 ];
 
-export function generateSeptagrama(seed: number, day = 1): SeptagramaConfig {
-  const derived = deriveSeed(seed, day, 'septagrama');
+export function generateSeptagrama(seed: number, day = 1, clue?: Clue): SeptagramaConfig {
+  const derived = deriveSeed(seed, day, `septagrama:${hashClueTag(clue)}`);
   const rng = mulberry32(derived);
   const tpl =
     SEPTAGRAMA_TEMPLATES[
@@ -162,7 +163,10 @@ export function generateSeptagrama(seed: number, day = 1): SeptagramaConfig {
     id: `sep-${day}-${idx + 1}`,
     number: idx + 1,
     answer: w.answer,
-    clue: w.clue,
+    clue:
+      idx === tpl.words.length - 1 && clue
+        ? `${w.clue} (${clue.impact})`
+        : w.clue,
     highlightIndex: w.highlightIndex,
   }));
 
@@ -171,7 +175,7 @@ export function generateSeptagrama(seed: number, day = 1): SeptagramaConfig {
     outerLetters: shuffledOuter,
     words,
     secretWord: tpl.secretWord,
-    secretMeaning: tpl.secretMeaning,
+    secretMeaning: buildClueMeaning(tpl.secretMeaning, clue),
   };
 }
 

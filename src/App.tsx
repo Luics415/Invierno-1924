@@ -5,6 +5,7 @@ import { DetectiveDossier } from './components/DetectiveDossier';
 import { FinalVerdictModal } from './components/FinalVerdictModal';
 import { PrologueModal } from './components/PrologueModal';
 import { ActDoorModal } from './components/ActDoorModal';
+import { GameModeModal } from './components/GameModeModal';
 import { ParanormalEngine } from './components/ParanormalEngine';
 import { useGameStore } from './store/useGameStore';
 
@@ -13,14 +14,17 @@ const ROOM_BACKGROUNDS = [
   './portraits/background-2.png',
   './portraits/background-3.png',
   './portraits/background-4.png',
+  './portraits/background-5.webp',
 ];
 
 export const App: React.FC = () => {
   const setCurrentDay = useGameStore(s => s.setCurrentDay);
+  const hasSelectedGameMode = useGameStore(s => s.hasSelectedGameMode);
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
   const [isDossierOpen, setIsDossierOpen] = useState(false);
   const [isVerdictOpen, setIsVerdictOpen] = useState(false);
   const [isPrologueOpen, setIsPrologueOpen] = useState(false);
+  const [isModeModalOpen, setIsModeModalOpen] = useState(false);
   const [actDoorState, setActDoorState] = useState<{
     act: 1 | 2 | 3 | 4 | 5;
     startOpened?: boolean;
@@ -85,6 +89,7 @@ export const App: React.FC = () => {
           onOpenDossier={() => setIsDossierOpen(true)}
           onOpenVerdict={() => setIsVerdictOpen(true)}
           onOpenPrologue={() => setIsPrologueOpen(true)}
+          onOpenGameMode={() => setIsModeModalOpen(true)}
           onOpenActDoor={(act, startOpened) => setActDoorState({ act, startOpened })}
           onBookOpenChange={setIsBookOpen}
         />
@@ -132,6 +137,10 @@ export const App: React.FC = () => {
           onClose={() => setActDoorState(null)}
           onEnterActDay={day => setCurrentDay(day)}
         />
+      )}
+
+      {(!hasSelectedGameMode || isModeModalOpen) && (
+        <GameModeModal onClose={() => setIsModeModalOpen(false)} />
       )}
     </div>
   );
