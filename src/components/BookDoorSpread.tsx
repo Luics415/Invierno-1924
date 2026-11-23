@@ -22,6 +22,7 @@ interface BookDoorSpreadProps {
   mobilePage: 'left' | 'right';
   onCrossDoor: () => void;
   onGoBack: () => void;
+  onTestUnlockDoor?: () => void;
 }
 
 export const BookDoorSpread: React.FC<BookDoorSpreadProps> = ({
@@ -31,6 +32,7 @@ export const BookDoorSpread: React.FC<BookDoorSpreadProps> = ({
   mobilePage,
   onCrossDoor,
   onGoBack,
+  onTestUnlockDoor,
 }) => {
   const [imgFailed, setImgFailed] = useState(false);
   const doorImageSrc = `./portraits/door-${actFile.doorNumber}.png`;
@@ -260,6 +262,16 @@ export const BookDoorSpread: React.FC<BookDoorSpreadProps> = ({
                     Acertijos cumplidos del Acto {actFile.act - 1}: {prevActCompletedCount} / 6
                   </span>
                 </div>
+
+                {onTestUnlockDoor && (
+                  <button
+                    type="button"
+                    onClick={onTestUnlockDoor}
+                    className="px-3.5 py-1.5 rounded bg-amber-400 hover:bg-amber-300 text-ink-950 font-mono text-xs font-black uppercase tracking-wider border-2 border-ink-900 shadow transition"
+                  >
+                    [TEST] Completar Acto {actFile.act - 1} y Desclasificar Puerta {actFile.doorNumber}
+                  </button>
+                )}
 
                 <button
                   type="button"

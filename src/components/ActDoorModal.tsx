@@ -29,7 +29,7 @@ export const ActDoorModal: React.FC<ActDoorModalProps> = ({
   onClose,
   onEnterActDay,
 }) => {
-  const { activeCase, completedDays, openDoor } = useGameStore();
+  const { activeCase, completedDays, openDoor, markDayCompleted } = useGameStore();
   const acts = activeCase.acts;
 
   const [selectedAct, setSelectedAct] = useState<1 | 2 | 3 | 4 | 5>(initialAct);
@@ -37,6 +37,26 @@ export const ActDoorModal: React.FC<ActDoorModalProps> = ({
 
   const actFile: ActCrimeFile = acts.find(a => a.act === selectedAct) ?? acts[0];
   const isActOpenable = isActUnlocked(selectedAct, completedDays);
+
+  const handleTestUnlockPreviousAct = () => {
+    if (selectedAct <= 1) return;
+    const prevActDays = activeCase.days.filter(d => d.act === selectedAct - 1);
+    for (const d of prevActDays) {
+      markDayCompleted(
+        d.day,
+        {
+          id: d.unlockedClue.id,
+          day: d.day,
+          text: d.unlockedClue.text,
+          category: d.unlockedClue.category,
+          impact: d.unlockedClue.impact,
+          predicates: d.unlockedClue.predicates,
+          keyphrase: d.unlockedClue.keyphrase,
+        },
+        d.unlockedClue.autoEliminations
+      );
+    }
+  };
 
   const prevActDone =
     selectedAct <= 1
@@ -286,6 +306,16 @@ export const ActDoorModal: React.FC<ActDoorModalProps> = ({
                     <span>
                       Acertijos cumplidos del Acto {selectedAct - 1}: {prevActDone} / 6
                     </span>
+                  </div>
+
+                  <div>
+                    <button
+                      type="button"
+                      onClick={handleTestUnlockPreviousAct}
+                      className="px-3.5 py-1.5 rounded bg-amber-400 hover:bg-amber-300 text-ink-950 font-mono text-xs font-black uppercase tracking-wider border-2 border-ink-900 shadow transition"
+                    >
+                      [TEST] Completar Acto {selectedAct - 1} y Desclasificar Puerta {actFile.doorNumber}
+                    </button>
                   </div>
                 </div>
               ) : (

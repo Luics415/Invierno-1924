@@ -250,6 +250,26 @@ export const BookLayout: React.FC<BookLayoutProps> = ({
     );
   };
 
+  // [TEMPORAL - TEST] Completar automáticamente todos los días de un acto (1..5)
+  const handleTestCompleteAct = (actNum: number) => {
+    const actDays = days.filter(d => d.act === actNum);
+    for (const d of actDays) {
+      markDayCompleted(
+        d.day,
+        {
+          id: d.unlockedClue.id,
+          day: d.day,
+          text: d.unlockedClue.text,
+          category: d.unlockedClue.category,
+          impact: d.unlockedClue.impact,
+          predicates: d.unlockedClue.predicates,
+          keyphrase: d.unlockedClue.keyphrase,
+        },
+        d.unlockedClue.autoEliminations
+      );
+    }
+  };
+
   const getEvidenceStyle = (type: DayData['narrative']['evidenceType']) => {
     switch (type) {
       case 'telegram':
@@ -1021,6 +1041,11 @@ export const BookLayout: React.FC<BookLayoutProps> = ({
                     isUnlocked={unlocked}
                     prevActCompletedCount={prevDone}
                     mobilePage={mobilePage}
+                    onTestUnlockDoor={() => {
+                      if (targetAct > 1) {
+                        handleTestCompleteAct(targetAct - 1);
+                      }
+                    }}
                     onCrossDoor={() => {
                       openDoor(targetAct);
                       setDoorPreviewAct(null);
@@ -1259,10 +1284,29 @@ export const BookLayout: React.FC<BookLayoutProps> = ({
                         </h2>
                       </div>
 
-                      {isDayCompleted && (
+                      {isDayCompleted ? (
                         <div className="flex items-center gap-1 text-[11px] font-bold text-gold-100 wax-seal-badge px-2.5 py-0.5 rounded-full shadow-sm shrink-0 animate-wax-pop">
                           <CheckCircle className="w-3 h-3 text-gold-200" />
                           <span>Lacrado</span>
+                        </div>
+                      ) : (
+                        <div className="flex flex-wrap items-center gap-1 shrink-0">
+                          <button
+                            type="button"
+                            onClick={handleSolveCurrentPuzzle}
+                            className="px-2 py-1 rounded bg-amber-400 hover:bg-amber-300 text-ink-950 font-mono text-[10px] font-black uppercase tracking-wider border border-ink-900 shadow-sm transition"
+                            title="[TEST TEMPORAL] Completar acertijo de este día automáticamente"
+                          >
+                            [TEST] Omitir Día
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleTestCompleteAct(dayData.act)}
+                            className="px-2 py-1 rounded bg-emerald-400 hover:bg-emerald-300 text-ink-950 font-mono text-[10px] font-black uppercase tracking-wider border border-ink-900 shadow-sm transition"
+                            title="[TEST TEMPORAL] Completar los 6 acertijos de este acto automáticamente"
+                          >
+                            [TEST] Completar Acto {dayData.act}
+                          </button>
                         </div>
                       )}
                     </div>
