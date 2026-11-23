@@ -164,7 +164,7 @@ export const FinalVerdictModal: React.FC<FinalVerdictModalProps> = ({ onClose })
     >
       <div
         onClick={e => e.stopPropagation()}
-        className="relative book-cover-leather border-2 border-[#08090c] ring-1 ring-[#b79b65]/45 rounded-lg max-w-4xl w-full max-h-[92vh] flex flex-col shadow-[0_34px_90px_rgba(0,0,0,0.96)] overflow-hidden font-reading animate-page-turn"
+        className="relative book-cover-leather border-2 border-[#08090c] ring-1 ring-[#b79b65]/45 rounded-lg max-w-4xl w-full max-h-[94dvh] flex flex-col shadow-[0_34px_90px_rgba(0,0,0,0.96)] overflow-hidden font-reading animate-page-turn"
       >
         <div className="pointer-events-none absolute inset-0 book-arcane-wear z-0" />
 
@@ -325,7 +325,8 @@ export const FinalVerdictModal: React.FC<FinalVerdictModalProps> = ({ onClose })
                           <img
                             src={s.portraitGif}
                             alt={s.name}
-                            loading="eager"
+                            loading="lazy"
+                            decoding="async"
                             draggable={false}
                             className={`pointer-events-none w-full h-full object-cover object-top ${
                               !isCompatible ? 'grayscale' : ''

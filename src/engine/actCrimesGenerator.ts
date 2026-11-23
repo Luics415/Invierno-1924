@@ -229,7 +229,7 @@ export function generateActCrimeFiles(config: CaseConfig): ActCrimeFile[] {
     victimName: VICTIM.name,
     victimAge: VICTIM.age,
     victimRole: VICTIM.title,
-    victimPortrait: './app-icon.jpg',
+    victimPortrait: VICTIM.portrait,
     sceneLocationId: 'villa-acebo',
     sceneLocationName: 'Villa Acebo (Escena bajo secreto sumarial)',
     sceneFloor: 'Planta Baja',

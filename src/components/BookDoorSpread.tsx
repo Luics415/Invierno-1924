@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import type { ActCrimeFile } from '../types/game';
+import { VictimAnimatedPortrait } from './VictimAnimatedPortrait';
 import { sound } from '../utils/soundEffects';
 import {
   DoorOpen,
@@ -43,8 +44,8 @@ export const BookDoorSpread: React.FC<BookDoorSpreadProps> = ({
           PÁGINA IZQUIERDA (VERSO): IMAGEN DE LA PUERTA CENTRADA CON BORDE DE HOJA
           ==================================================================== */}
       <section
-        className={`page-verso lg:w-1/2 p-3 sm:p-4 lg:p-5 lg:pr-7 flex flex-col items-center justify-between font-reading min-w-0 min-h-0 relative overflow-hidden ${
-          mobilePage === 'left' ? 'flex' : 'hidden lg:flex'
+        className={`page-verso flex-1 h-full lg:w-1/2 p-3 sm:p-4 lg:p-5 lg:pr-7 flex flex-col items-center justify-between font-reading min-w-0 min-h-0 relative overflow-hidden ${
+          mobilePage === 'left' ? 'flex animate-mobile-flip-3d lg:animate-none' : 'hidden lg:flex'
         }`}
       >
         <div className="flex-1 w-full min-h-0 flex items-center justify-center">
@@ -181,11 +182,11 @@ export const BookDoorSpread: React.FC<BookDoorSpreadProps> = ({
           PÁGINA DERECHA (RECTO): EXPEDIENTE TIPO MAPA CON FOTOGRAFÍAS INSTANTÁNEAS
           ==================================================================== */}
       <section
-        className={`page-recto lg:w-1/2 p-4 sm:p-5 lg:p-6 lg:pl-8 flex flex-col justify-between font-reading border-t lg:border-t-0 border-parchment-400/70 relative min-w-0 min-h-0 ${
-          mobilePage === 'right' ? 'flex' : 'hidden lg:flex'
+        className={`page-recto flex-1 h-full lg:w-1/2 p-3.5 sm:p-5 lg:p-6 lg:pl-8 flex flex-col justify-between font-reading border-t lg:border-t-0 border-parchment-400/70 relative min-w-0 min-h-0 ${
+          mobilePage === 'right' ? 'flex animate-mobile-flip-3d lg:animate-none' : 'hidden lg:flex'
         }`}
       >
-        <div className="flex-1 min-h-0 overflow-y-auto pr-1 space-y-2.5 flex flex-col">
+        <div className="flex-1 min-h-0 overflow-y-auto mobile-scroll-page pr-1 pb-3 space-y-2.5 flex flex-col">
           {/* Cabecera estilo hoja de diario con clip */}
           <div className="flex flex-wrap items-center justify-between gap-2 text-[10px] font-mono uppercase tracking-[0.16em] text-ink-600 border-b border-parchment-400/70 pb-1 shrink-0">
             <span className="inline-flex items-center gap-1">
@@ -299,8 +300,8 @@ export const BookDoorSpread: React.FC<BookDoorSpreadProps> = ({
               </div>
 
               {/* NODO 1 DEL MAPA: Párrafo 1 + Flecha curva + Fotografía Instantánea del Retrato */}
-              <div className="grid grid-cols-12 gap-2.5 items-center">
-                <div className="col-span-7 sm:col-span-8 space-y-1">
+              <div className="flex flex-col sm:grid sm:grid-cols-12 gap-2.5 items-center">
+                <div className="w-full sm:col-span-8 space-y-1">
                   <p className="text-xs sm:text-[12.5px] leading-[1.42] text-ink-900 text-justify font-reading">
                     <span className="drop-cap-victorian">{actFile.situationBrief[0]?.charAt(0)}</span>
                     {actFile.situationBrief[0]?.slice(1)}
@@ -326,12 +327,19 @@ export const BookDoorSpread: React.FC<BookDoorSpreadProps> = ({
                     {/* Cinta adhesiva superior */}
                     <div className="pointer-events-none absolute -top-1.5 left-1/2 -translate-x-1/2 w-9 h-2.5 bg-[#e6dcc4]/90 border border-[#bfb399] -rotate-2 shadow-sm" />
                     <div className="w-full aspect-[4/4.5] overflow-hidden bg-ink-950 border border-ink-800/60">
-                      <img
-                        src={actFile.victimPortrait}
-                        alt={`Instantánea de ${actFile.victimName}`}
-                        draggable={false}
-                        className="w-full h-full object-cover object-top grayscale contrast-115"
-                      />
+                      {actFile.victimId === 'arturo-valdemar' ? (
+                        <VictimAnimatedPortrait
+                          src={actFile.victimPortrait}
+                          alt={`Instantánea de ${actFile.victimName}`}
+                        />
+                      ) : (
+                        <img
+                          src={actFile.victimPortrait}
+                          alt={`Instantánea de ${actFile.victimName}`}
+                          draggable={false}
+                          className="w-full h-full object-cover object-top grayscale contrast-115"
+                        />
+                      )}
                     </div>
                     <div className="mt-1 space-y-0.5 text-[8.5px] sm:text-[9px] font-mono leading-tight text-ink-900">
                       <div className="border-b border-ink-800/25 pb-0.5 font-bold uppercase truncate">
@@ -353,9 +361,9 @@ export const BookDoorSpread: React.FC<BookDoorSpreadProps> = ({
               </div>
 
               {/* NODO 2 DEL MAPA: Instantánea de la Escena (Izquierda) + Flecha curva + Párrafo 2 (Derecha) */}
-              <div className="grid grid-cols-12 gap-2.5 items-center pt-0.5">
+              <div className="flex flex-col-reverse sm:grid sm:grid-cols-12 gap-2.5 items-center pt-0.5">
                 {/* Instantánea #2: Escena del crimen achicada estilo Polaroid con cinta */}
-                <div className="col-span-5 sm:col-span-5 flex flex-col items-center">
+                <div className="w-full sm:col-span-5 flex flex-col items-center">
                   <div className="relative w-32 sm:w-36 bg-[#faf7f0] p-1.5 pb-2 border border-ink-900/45 shadow-[0_6px_14px_rgba(0,0,0,0.22)] -rotate-[1.6deg]">
                     <div className="pointer-events-none absolute -top-1.5 left-1/2 -translate-x-1/2 w-10 h-2.5 bg-[#e6dcc4]/90 border border-[#bfb399] rotate-1 shadow-sm" />
                     <div className="w-full aspect-[4/3] overflow-hidden bg-ink-950 border border-ink-800/60">
@@ -405,8 +413,8 @@ export const BookDoorSpread: React.FC<BookDoorSpreadProps> = ({
               </div>
 
               {/* NODO 3 DEL MAPA: Párrafo 3 (Izquierda) + Flecha + Instantánea de Arma/Objeto (Derecha) */}
-              <div className="grid grid-cols-12 gap-2.5 items-center pt-0.5">
-                <div className="col-span-7 sm:col-span-8 space-y-1">
+              <div className="flex flex-col sm:grid sm:grid-cols-12 gap-2.5 items-center pt-0.5">
+                <div className="w-full sm:col-span-8 space-y-1">
                   <p className="text-xs sm:text-[12.5px] leading-[1.42] text-ink-900 text-justify font-reading">
                     {actFile.situationBrief[2]}
                   </p>

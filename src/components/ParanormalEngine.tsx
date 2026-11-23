@@ -3,19 +3,41 @@ import { sound } from '../utils/soundEffects';
 
 type ParanormalEventType = 'flicker' | 'glass' | 'creak' | 'whisper' | 'hands' | 'breathing' | null;
 
+const AMBIENT_EVENTS: Exclude<ParanormalEventType, null | 'hands'>[] = [
+  'flicker',
+  'glass',
+  'creak',
+  'whisper',
+  'breathing',
+];
+
+// Probabilidad reducida para la animación de las manos (~6%) y enfriamiento mínimo entre apariciones
+const HANDS_TRIGGER_PROBABILITY = 0.06;
+const MIN_NON_HANDS_BETWEEN = 3;
+
 export const ParanormalEngine: React.FC = () => {
   const [activeEvent, setActiveEvent] = useState<ParanormalEventType>(null);
 
   useEffect(() => {
     let timeoutId: number;
     let clearId: number;
+    let eventsSinceLastHands = 1; // Evita que las manos salgan en los primeros minutos de partida
 
     const scheduleNext = () => {
-      // Intervalo extendido para que los sucesos sean raros, impredecibles y no saturen (entre 75 y 180 segundos)
-      const delay = 75000 + Math.floor(Math.random() * 105000);
+      // Intervalo extendido para que los sucesos sean raros, impredecibles y no saturen (entre 85 y 195 segundos)
+      const delay = 85000 + Math.floor(Math.random() * 110000);
       timeoutId = window.setTimeout(() => {
-        const events: ParanormalEventType[] = ['flicker', 'glass', 'creak', 'whisper', 'hands', 'breathing'];
-        const chosen = events[Math.floor(Math.random() * events.length)];
+        const canTriggerHands = eventsSinceLastHands >= MIN_NON_HANDS_BETWEEN;
+        const chosen: Exclude<ParanormalEventType, null> =
+          canTriggerHands && Math.random() < HANDS_TRIGGER_PROBABILITY
+            ? 'hands'
+            : AMBIENT_EVENTS[Math.floor(Math.random() * AMBIENT_EVENTS.length)];
+
+        if (chosen === 'hands') {
+          eventsSinceLastHands = 0;
+        } else {
+          eventsSinceLastHands += 1;
+        }
 
         setActiveEvent(chosen);
 

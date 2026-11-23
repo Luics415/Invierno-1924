@@ -254,6 +254,12 @@ export interface VictimProfile {
   name: string;
   age: number;
   title: string;
+  epithet: string;
+  portrait: string;
+  wealthAndPower: string;
+  personality: string;
+  lastKnownMovements: string;
+  finalQuote: string;
   description: string;
   timeOfDeath: string;
   estate: string;

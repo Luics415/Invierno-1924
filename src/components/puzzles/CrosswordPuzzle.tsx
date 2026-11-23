@@ -1,8 +1,10 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { sound } from '../../utils/soundEffects';
-import { RotateCcw, Lightbulb, CheckCircle2, ArrowRight, ArrowDown, KeyRound } from 'lucide-react';
+import { RotateCcw, Lightbulb, CheckCircle2, ArrowRight, ArrowDown, KeyRound, Delete } from 'lucide-react';
 import type { CrosswordConfig, CrosswordEntry } from '../../types/game';
 import { validateCrossword } from '../../engine/puzzles/crossword';
+
+const CROSSWORD_ALPHABET = 'ABCDEFGHIJKLMNÑOPQRSTUVWXYZ'.split('');
 
 interface CrosswordProps {
   config: CrosswordConfig;
@@ -353,6 +355,36 @@ export const CrosswordPuzzle: React.FC<CrosswordProps> = ({
           </div>
         </div>
       </div>
+
+      {/* Teclado táctil compacto para móviles y tabletas */}
+      {!isSolved && (
+        <div className="mt-1.5 p-1.5 bg-parchment-200/80 rounded-lg border border-parchment-300 shrink-0">
+          <div className="flex flex-wrap justify-center gap-0.5 sm:gap-1">
+            {CROSSWORD_ALPHABET.map(letter => (
+              <button
+                type="button"
+                key={letter}
+                data-crossword-key={letter}
+                onClick={() => handleLetterInput(letter)}
+                disabled={!selectedCell}
+                className="w-6 h-7 sm:w-7 sm:h-7 text-[11px] font-bold font-mono rounded bg-parchment-50 hover:bg-white text-ink-900 border border-parchment-400 hover:border-crimson-600 shadow-sm active:scale-95 disabled:opacity-40 transition"
+              >
+                {letter}
+              </button>
+            ))}
+            <button
+              type="button"
+              onClick={handleBackspace}
+              disabled={!selectedCell}
+              aria-label="Borrar letra"
+              title="Borrar letra"
+              className="px-2 h-7 flex items-center justify-center rounded bg-parchment-50 hover:bg-white text-crimson-800 border border-parchment-400 shadow-sm active:scale-95 disabled:opacity-40 transition"
+            >
+              <Delete className="w-3.5 h-3.5" />
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Casillas Clave para descubrir la palabra oculta */}
       {!isManualMode && secretHighlightCells.length > 0 && (

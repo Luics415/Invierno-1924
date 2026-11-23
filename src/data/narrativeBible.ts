@@ -5,9 +5,19 @@ export type { VictimProfile, Weapon, GameLocation };
 export const VICTIM: VictimProfile = {
   name: 'Arturo Valdemar',
   age: 68,
-  title: 'Magnate editorial y terrateniente de Villa Acebo',
+  title: 'Patriarca, magnate y señor absoluto de Villa Acebo',
+  epithet: 'Dueño de todo el lugar, con poder y riquezas inimaginables, demasiado como para una sola persona',
+  portrait: './portraits/victim-arturo.png',
+  wealthAndPower:
+    'Propietario absoluto de Villa Acebo, de las tierras del Paso de Sierra Blanca, de la editorial Valdemar, bancos regionales, minas y ferrocarriles de montaña. Acumuló una fortuna y una influencia descomunales —demasiado poder concentrado en las manos de un solo hombre— que mantenía en deuda o bajo amenaza a casi todos los presentes.',
+  personality:
+    'Frío, calculador, implacable y coleccionista de secretos ajenos. Jamás perdonaba una debilidad ni concedía favores sin exigir lealtad vitalicia a cambio.',
+  lastKnownMovements:
+    'A las 22:45 h anunció ante el Gran Salón que a medianoche leería un testamento definitivo capaz de arruinar o encumbrar a cualquiera de los 74 presentes. A las 23:15 h, tras un apagón súbito de cinco minutos, fue hallado sin vida.',
+  finalQuote:
+    '«Todo cuanto pisan, comen y respiran en este valle me pertenece; esta noche decidiré quién merece heredar una migaja y quién caerá en el olvido.»',
   description:
-    'Despótico, frío y coleccionista implacable. Había retenido en Villa Acebo a familiares, invitados de gala, servidumbre y vecinos esenciales del valle para revelar un nuevo testamento que sacudía herencias, deudas y viejos secretos.',
+    'Dueño absoluto de Villa Acebo y de un imperio con poder y riquezas inimaginables —demasiado como para una sola persona—. Despótico, frío y coleccionista implacable, había retenido en la mansión a familiares, invitados de gala, servidumbre y vecinos del valle para revelar un nuevo testamento que sacudía herencias, deudas y viejos secretos.',
   timeOfDeath: '23:15 h (23 de diciembre de 1924)',
   estate: 'Villa Acebo',
 };

@@ -14,9 +14,10 @@ import {
 
 interface GameModeModalProps {
   onClose?: () => void;
+  onModeConfirmed?: () => void;
 }
 
-export const GameModeModal: React.FC<GameModeModalProps> = ({ onClose }) => {
+export const GameModeModal: React.FC<GameModeModalProps> = ({ onClose, onModeConfirmed }) => {
   const { gameMode, hasSelectedGameMode, setGameMode } = useGameStore();
   const [selected, setSelected] = useState<'auto' | 'manual'>(gameMode);
   const activeSelection = hasSelectedGameMode ? gameMode : selected;
@@ -29,6 +30,7 @@ export const GameModeModal: React.FC<GameModeModalProps> = ({ onClose }) => {
     }
     sound.playWaxSeal();
     setGameMode(selected);
+    onModeConfirmed?.();
     onClose?.();
   };
 
@@ -44,7 +46,7 @@ export const GameModeModal: React.FC<GameModeModalProps> = ({ onClose }) => {
     >
       <div
         onClick={e => e.stopPropagation()}
-        className="relative book-cover-leather border-2 border-[#08090c] ring-1 ring-[#b79b65]/45 rounded-lg max-w-4xl w-full max-h-[94vh] flex flex-col shadow-[0_32px_85px_rgba(0,0,0,0.96)] overflow-hidden text-ink-900 font-reading animate-page-turn"
+        className="relative book-cover-leather border-2 border-[#08090c] ring-1 ring-[#b79b65]/45 rounded-lg max-w-4xl w-full max-h-[94dvh] flex flex-col shadow-[0_32px_85px_rgba(0,0,0,0.96)] overflow-hidden text-ink-900 font-reading animate-page-turn"
       >
         <div className="pointer-events-none absolute inset-0 book-arcane-wear z-0" />
 

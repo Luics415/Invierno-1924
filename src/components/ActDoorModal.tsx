@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { isActUnlocked, useGameStore } from '../store/useGameStore';
+import { VictimAnimatedPortrait } from './VictimAnimatedPortrait';
 import { sound } from '../utils/soundEffects';
 import type { ActCrimeFile } from '../types/game';
 import {
@@ -89,7 +90,7 @@ export const ActDoorModal: React.FC<ActDoorModalProps> = ({
     >
       <div
         onClick={e => e.stopPropagation()}
-        className="relative book-cover-leather border-2 border-[#08090c] ring-1 ring-[#b79b65]/45 rounded-lg max-w-5xl w-full max-h-[93vh] flex flex-col shadow-[0_32px_85px_rgba(0,0,0,0.96)] overflow-hidden text-ink-900 font-reading"
+        className="relative book-cover-leather border-2 border-[#08090c] ring-1 ring-[#b79b65]/45 rounded-lg max-w-5xl w-full max-h-[94dvh] flex flex-col shadow-[0_32px_85px_rgba(0,0,0,0.96)] overflow-hidden text-ink-900 font-reading"
       >
         <div className="pointer-events-none absolute inset-0 book-arcane-wear z-0" />
 
@@ -336,8 +337,8 @@ export const ActDoorModal: React.FC<ActDoorModalProps> = ({
                   </h3>
 
                   {/* NODO 1: Párrafo 1 + Flecha + Instantánea del Retrato */}
-                  <div className="grid grid-cols-12 gap-2.5 items-center">
-                    <div className="col-span-7 sm:col-span-8 space-y-1">
+                  <div className="flex flex-col sm:grid sm:grid-cols-12 gap-2.5 items-center">
+                    <div className="w-full sm:col-span-8 space-y-1">
                       <p className="text-xs sm:text-[12.5px] leading-relaxed text-ink-900 text-justify font-reading">
                         {actFile.situationBrief[0]}
                       </p>
@@ -359,12 +360,19 @@ export const ActDoorModal: React.FC<ActDoorModalProps> = ({
                       <div className="relative w-24 sm:w-28 bg-[#faf7f0] p-1.5 pb-2 border border-ink-900/45 shadow-md rotate-[1.8deg]">
                         <div className="pointer-events-none absolute -top-1.5 left-1/2 -translate-x-1/2 w-9 h-2.5 bg-[#e6dcc4]/90 border border-[#bfb399] -rotate-2 shadow-sm" />
                         <div className="w-full aspect-[4/4.5] overflow-hidden bg-ink-950 border border-ink-800/60">
-                          <img
-                            src={actFile.victimPortrait}
-                            alt={`Instantánea de ${actFile.victimName}`}
-                            draggable={false}
-                            className="w-full h-full object-cover object-top grayscale contrast-115"
-                          />
+                          {actFile.victimId === 'arturo-valdemar' ? (
+                            <VictimAnimatedPortrait
+                              src={actFile.victimPortrait}
+                              alt={`Instantánea de ${actFile.victimName}`}
+                            />
+                          ) : (
+                            <img
+                              src={actFile.victimPortrait}
+                              alt={`Instantánea de ${actFile.victimName}`}
+                              draggable={false}
+                              className="w-full h-full object-cover object-top grayscale contrast-115"
+                            />
+                          )}
                         </div>
                         <div className="mt-1 space-y-0.5 text-[8.5px] font-mono leading-tight text-ink-900">
                           <div className="border-b border-ink-800/25 pb-0.5 font-bold uppercase truncate">
@@ -386,8 +394,8 @@ export const ActDoorModal: React.FC<ActDoorModalProps> = ({
                   </div>
 
                   {/* NODO 2: Instantánea de la Escena (Izquierda) + Flecha + Párrafo 2 (Derecha) */}
-                  <div className="grid grid-cols-12 gap-2.5 items-center">
-                    <div className="col-span-5 flex flex-col items-center">
+                  <div className="flex flex-col-reverse sm:grid sm:grid-cols-12 gap-2.5 items-center">
+                    <div className="w-full sm:col-span-5 flex flex-col items-center">
                       <div className="relative w-32 sm:w-36 bg-[#faf7f0] p-1.5 pb-2 border border-ink-900/45 shadow-md -rotate-[1.6deg]">
                         <div className="pointer-events-none absolute -top-1.5 left-1/2 -translate-x-1/2 w-10 h-2.5 bg-[#e6dcc4]/90 border border-[#bfb399] rotate-1 shadow-sm" />
                         <div className="w-full aspect-[4/3] overflow-hidden bg-ink-950 border border-ink-800/60">
@@ -436,8 +444,8 @@ export const ActDoorModal: React.FC<ActDoorModalProps> = ({
                   </div>
 
                   {/* NODO 3: Párrafo 3 + Flecha + Instantánea de Arma/Objeto */}
-                  <div className="grid grid-cols-12 gap-2.5 items-center">
-                    <div className="col-span-7 sm:col-span-8 space-y-1">
+                  <div className="flex flex-col sm:grid sm:grid-cols-12 gap-2.5 items-center">
+                    <div className="w-full sm:col-span-8 space-y-1">
                       <p className="text-xs sm:text-[12.5px] leading-relaxed text-ink-900 text-justify font-reading">
                         {actFile.situationBrief[2]}
                       </p>

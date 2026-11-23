@@ -2,6 +2,7 @@ import React, { useState, useMemo, useRef } from 'react';
 import { SUSPECTS_DIRECTORY, type DirectorySuspect } from '../data/suspectsDirectory';
 import { getSuspectPortraitVideo } from '../data/portraitVideos';
 import { VICTIM } from '../data/narrativeBible';
+import { VictimAnimatedPortrait } from './VictimAnimatedPortrait';
 import { GENDER_LABELS } from '../types/game';
 import {
   ACCESS_LEVEL_SHORT,
@@ -30,7 +31,9 @@ import {
   ZoomIn,
   ZoomOut,
   Paperclip,
-  RotateCw
+  RotateCw,
+  Crown,
+  Clock,
 } from 'lucide-react';
 
 interface SuspectsAlbumProps {
@@ -60,6 +63,7 @@ export const SuspectsAlbum: React.FC<SuspectsAlbumProps> = ({ onStartAdventure }
   const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'eliminated'>('all');
   const [categoryFilter, setCategoryFilter] = useState<string>('all');
   const [selectedSuspect, setSelectedSuspect] = useState<DirectorySuspect | null>(null);
+  const [isVictimModalOpen, setIsVictimModalOpen] = useState(false);
   const [failedPortraits, setFailedPortraits] = useState<Record<string, boolean>>({});
   const [failedVideos, setFailedVideos] = useState<Record<string, boolean>>({});
   const [hoveredSuspectId, setHoveredSuspectId] = useState<string | null>(null);
@@ -271,6 +275,8 @@ export const SuspectsAlbum: React.FC<SuspectsAlbumProps> = ({ onStartAdventure }
                 <img
                   src={s.portraitGif}
                   alt={`Retrato de ${s.name}`}
+                  loading="lazy"
+                  decoding="async"
                   onError={() => setFailedPortraits(prev => ({ ...prev, [s.id]: true }))}
                   className={`w-full h-full object-cover object-top transition-transform duration-500 portrait-idle group-hover:scale-[1.03] ${
                     isEliminated ? 'grayscale contrast-125 brightness-90' : ''
@@ -375,12 +381,12 @@ export const SuspectsAlbum: React.FC<SuspectsAlbumProps> = ({ onStartAdventure }
   };
 
   return (
-    <div className="w-full h-full grid grid-cols-1 lg:grid-cols-2 flex-1 min-h-0 relative">
+    <div className="w-full h-full flex flex-col lg:grid lg:grid-cols-2 flex-1 min-h-0 relative overflow-y-auto mobile-scroll-page lg:overflow-hidden">
       {/* ================================================================
           PÁGINA IZQUIERDA DEL ÁLBUM: CABECERA, VÍCTIMA Y RETRATOS
          ================================================================ */}
-      <section className="page-verso p-3 sm:p-4 lg:p-5 lg:pr-7 flex flex-col justify-between min-w-0 min-h-0 overflow-hidden">
-        <div className="flex-1 min-h-0 overflow-y-auto pr-0.5 space-y-2">
+      <section className="page-verso p-3 sm:p-4 lg:p-5 lg:pr-7 flex flex-col justify-between min-w-0 shrink-0 lg:shrink lg:min-h-0 lg:overflow-hidden">
+        <div className="lg:flex-1 lg:min-h-0 lg:overflow-y-auto pr-0.5 space-y-2">
           {/* Foliación superior */}
           <div className="flex flex-wrap items-center justify-between gap-2 border-b border-parchment-400/70 pb-1.5 text-[10px] font-mono uppercase tracking-[0.16em] text-ink-600">
             <span className="flex items-center gap-1.5">
@@ -392,10 +398,10 @@ export const SuspectsAlbum: React.FC<SuspectsAlbumProps> = ({ onStartAdventure }
             </span>
           </div>
 
-          {/* Título del Álbum y Placa de la Víctima */}
+          {/* Título del Álbum y Placa interactiva de la Víctima Principal */}
           <div className="flex flex-wrap items-center justify-between gap-2">
             <div>
-              <h2 className="font-title text-3xl sm:text-4xl text-ink-950 leading-none">
+              <h2 className="font-title text-2xl sm:text-4xl text-ink-950 leading-none">
                 Álbum de Sospechosos
               </h2>
               <p className="text-xs font-desc italic text-ink-700 mt-0.5">
@@ -403,18 +409,36 @@ export const SuspectsAlbum: React.FC<SuspectsAlbumProps> = ({ onStartAdventure }
               </p>
             </div>
 
-            {/* Placa compacta de la víctima */}
-            <div className="flex items-center gap-2 px-2.5 py-1.5 bg-ink-900 text-parchment-100 rounded-sm border border-crimson-800/70 shadow-sm">
-              <Skull className="w-4 h-4 text-crimson-400 shrink-0" />
-              <div className="leading-tight">
-                <span className="text-[8px] font-mono uppercase tracking-widest text-crimson-300 block">
-                  Víctima · {VICTIM.timeOfDeath}
+            {/* Placa interactiva de la víctima con retrato oficial */}
+            <button
+              type="button"
+              onClick={() => {
+                sound.playPageTurn();
+                setIsVictimModalOpen(true);
+              }}
+              title="Ver perfil completo de la primera víctima: Don Arturo Valdemar"
+              className="group flex items-center gap-2 px-2 py-1.5 bg-ink-900 hover:bg-crimson-950 text-parchment-100 rounded-sm border border-gold-500/55 hover:border-gold-300 shadow-sm transition text-left"
+            >
+              <div className="w-10 h-12 rounded-[2px] overflow-hidden border border-gold-400/70 bg-ink-950 shrink-0 shadow-inner">
+                <VictimAnimatedPortrait
+                  src={VICTIM.portrait}
+                  alt={`Retrato de ${VICTIM.name}`}
+                  interactive={false}
+                />
+              </div>
+              <div className="leading-tight min-w-0">
+                <span className="text-[8px] font-mono uppercase tracking-widest text-crimson-300 flex items-center gap-1">
+                  <Skull className="w-2.5 h-2.5 text-crimson-400 shrink-0" />
+                  <span>Víctima · {VICTIM.timeOfDeath}</span>
                 </span>
-                <span className="font-desc font-semibold text-xs text-parchment-50">
+                <span className="font-desc font-semibold text-xs text-parchment-50 block truncate">
                   {VICTIM.name} ({VICTIM.age} años)
                 </span>
+                <span className="text-[8px] font-mono uppercase tracking-wider text-gold-300 group-hover:underline block">
+                  Ver perfil oficial
+                </span>
               </div>
-            </div>
+            </button>
           </div>
 
           {/* Buscador y Filtros de Estado */}
@@ -526,8 +550,8 @@ export const SuspectsAlbum: React.FC<SuspectsAlbumProps> = ({ onStartAdventure }
       {/* ================================================================
           PÁGINA DERECHA DEL ÁLBUM: FILTRO POR GRUPO, RETRATOS Y DÍA 01
          ================================================================ */}
-      <section className="page-recto p-3 sm:p-4 lg:p-5 lg:pl-7 flex flex-col justify-between border-t lg:border-t-0 border-parchment-400/70 min-w-0 min-h-0 overflow-hidden">
-        <div className="flex-1 min-h-0 overflow-y-auto pr-0.5 space-y-2">
+      <section className="page-recto p-3 sm:p-4 lg:p-5 lg:pl-7 flex flex-col justify-between border-t lg:border-t-0 border-parchment-400/70 min-w-0 shrink-0 lg:shrink lg:min-h-0 lg:overflow-hidden">
+        <div className="lg:flex-1 lg:min-h-0 lg:overflow-y-auto pr-0.5 space-y-2">
           {/* Foliación superior derecha */}
           <div className="flex flex-wrap items-center justify-between gap-2 border-b border-parchment-400/70 pb-1.5 text-[10px] font-mono uppercase tracking-[0.16em] text-ink-600">
             <span>Registro Nominal y Coartadas</span>
@@ -627,14 +651,14 @@ export const SuspectsAlbum: React.FC<SuspectsAlbumProps> = ({ onStartAdventure }
                 transform: `translate3d(${photoDrag.x}px, ${photoDrag.y}px, 0) scale(${photoZoom})`,
               }}
               title="Haz clic sobre la fotografía para voltearla y leer las notas confidenciales al reverso · Arrastra para mover"
-              className={`z-[60] w-40 sm:w-48 bg-[#f5f2ea] p-2 pb-2.5 border border-[#8e8474] shadow-[0_20px_42px_rgba(0,0,0,0.75)] select-none touch-none ${
+              className={`z-[60] w-28 sm:w-44 md:w-48 bg-[#f5f2ea] p-1.5 sm:p-2 pb-2 sm:pb-2.5 border border-[#8e8474] shadow-[0_20px_42px_rgba(0,0,0,0.75)] select-none touch-none ${
                 isDraggingPhoto
                   ? 'cursor-grabbing transition-none'
                   : 'cursor-grab transition-all duration-300 ease-out'
               } ${
                 isPhotoAside
-                  ? 'fixed sm:absolute right-3 top-6 sm:-right-40 sm:top-8 rotate-[3deg]'
-                  : 'absolute right-3 sm:right-5 top-3 sm:top-5 rotate-[-2.5deg]'
+                  ? 'fixed sm:absolute right-2.5 top-4 sm:-right-40 sm:top-8 rotate-[3deg]'
+                  : 'absolute right-2.5 sm:right-5 top-2.5 sm:top-5 rotate-[-2.5deg]'
               }`}
             >
               {/* Clip metálico sujetando la foto */}
@@ -787,9 +811,9 @@ export const SuspectsAlbum: React.FC<SuspectsAlbumProps> = ({ onStartAdventure }
             </div>
 
             {/* DOCUMENTO OFICIAL DE LA JEFATURA (1924) */}
-            <div className="bg-[#efeade] border-2 border-[#2a2722] rounded-sm p-4 sm:p-6 w-full shadow-[0_24px_60px_rgba(0,0,0,0.85)] space-y-3.5 font-reading max-h-[75vh] sm:max-h-[77vh] overflow-y-auto relative">
+            <div className="bg-[#efeade] border-2 border-[#2a2722] rounded-sm p-3.5 sm:p-6 w-full shadow-[0_24px_60px_rgba(0,0,0,0.85)] space-y-3.5 font-reading max-h-[80dvh] sm:max-h-[78dvh] overflow-y-auto relative">
               {/* Membrete oficial superior */}
-              <div className="border-b-2 border-[#2a2722] pb-2.5 pr-28 sm:pr-36">
+              <div className="border-b-2 border-[#2a2722] pb-2.5 pr-32 sm:pr-44">
                 <div className="flex items-center justify-between gap-2 text-[9px] font-mono uppercase tracking-[0.22em] text-[#5c5346]">
                   <span>Jefatura de Investigación Criminal · Villa Acebo</span>
                 </div>
@@ -930,6 +954,109 @@ export const SuspectsAlbum: React.FC<SuspectsAlbumProps> = ({ onStartAdventure }
                   Cerrar Ficha
                 </button>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ================================================================
+          MODAL DE EXPEDIENTE OFICIAL: PRIMERA VÍCTIMA (DON ARTURO VALDEMAR)
+         ================================================================ */}
+      {isVictimModalOpen && (
+        <div
+          className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-3 sm:p-6 overflow-y-auto"
+          onClick={() => {
+            sound.playClick();
+            setIsVictimModalOpen(false);
+          }}
+        >
+          <div
+            onClick={e => e.stopPropagation()}
+            className="bg-[#efeade] border-2 border-[#2a2722] rounded-sm p-4 sm:p-6 max-w-xl w-full shadow-[0_24px_60px_rgba(0,0,0,0.88)] space-y-4 font-reading max-h-[88dvh] overflow-y-auto relative animate-page-turn"
+          >
+            <div className="flex items-start justify-between gap-3 border-b-2 border-[#2a2722] pb-3">
+              <div>
+                <span className="inline-flex items-center gap-1.5 px-2 py-0.5 bg-crimson-900 text-gold-200 font-mono text-[9px] font-bold uppercase tracking-widest">
+                  <Skull className="w-3 h-3" /> Primera Víctima • Exp. N.º 00-VA
+                </span>
+                <h3 className="font-title text-3xl sm:text-4xl text-ink-950 leading-none mt-1.5">
+                  Don {VICTIM.name}
+                </h3>
+                <p className="text-xs sm:text-sm text-crimson-900 font-desc italic mt-0.5">
+                  {VICTIM.age} años • {VICTIM.title}
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  sound.playClick();
+                  setIsVictimModalOpen(false);
+                }}
+                className="text-ink-600 hover:text-ink-950 p-1 rounded hover:bg-parchment-200 transition"
+                aria-label="Cerrar ficha de la víctima"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="flex flex-col sm:flex-row gap-4 items-center sm:items-start">
+              <div className="w-40 sm:w-48 shrink-0 bg-[#faf7f0] p-1.5 pb-2 border border-ink-900/50 shadow-[0_14px_30px_rgba(0,0,0,0.35)] -rotate-[1.5deg]">
+                <div className="w-full aspect-[3/4] overflow-hidden bg-ink-950 border border-ink-800/70">
+                  <VictimAnimatedPortrait
+                    src={VICTIM.portrait}
+                    alt={`Retrato oficial de ${VICTIM.name}`}
+                  />
+                </div>
+                <span className="mt-1.5 block text-center font-mono text-[9px] uppercase tracking-wider text-crimson-900 font-bold">
+                  Fallecido ({VICTIM.age} años) · {VICTIM.timeOfDeath}
+                </span>
+              </div>
+
+              <div className="flex-1 min-w-0 space-y-2.5 text-xs sm:text-[13px] text-ink-900">
+                <div className="p-2.5 bg-[#f4ecd8] border border-[#c8b282] border-l-4 border-l-[#8b6a28] space-y-1">
+                  <strong className="text-[#6e5118] font-mono uppercase tracking-wider text-[10px] flex items-center gap-1.5">
+                    <Crown className="w-3.5 h-3.5" /> Imperio, Poder y Riqueza
+                  </strong>
+                  <p className="font-serif font-bold text-ink-950 leading-snug">
+                    {VICTIM.epithet}.
+                  </p>
+                  <p className="leading-snug text-ink-800">{VICTIM.wealthAndPower}</p>
+                </div>
+
+                <div className="p-2.5 bg-[#e6ebf0] border border-[#96a6b8] border-l-4 border-l-[#2c4259] space-y-1">
+                  <strong className="text-[#1f344a] font-mono uppercase tracking-wider text-[10px] flex items-center gap-1.5">
+                    <Fingerprint className="w-3.5 h-3.5" /> Perfil Psicológico
+                  </strong>
+                  <p className="leading-snug">{VICTIM.personality}</p>
+                </div>
+
+                <div className="p-2.5 bg-[#f3e3e3] border border-[#cca0a0] border-l-4 border-l-[#7b1e24] space-y-1">
+                  <strong className="text-crimson-900 font-mono uppercase tracking-wider text-[10px] flex items-center gap-1.5">
+                    <Clock className="w-3.5 h-3.5" /> Últimos Movimientos
+                  </strong>
+                  <p className="leading-snug">{VICTIM.lastKnownMovements}</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="torn-note-paper p-3 border-l-4 border-crimson-800 flex items-start gap-2">
+              <Quote className="w-4 h-4 text-crimson-800 shrink-0 mt-0.5" />
+              <p className="font-declaration italic text-xs sm:text-[13px] text-ink-900 leading-relaxed">
+                {VICTIM.finalQuote}
+              </p>
+            </div>
+
+            <div className="pt-2 flex justify-end border-t border-[#c8bfae]">
+              <button
+                type="button"
+                onClick={() => {
+                  sound.playClick();
+                  setIsVictimModalOpen(false);
+                }}
+                className="px-4 py-1.5 btn-ledger text-gold-200 rounded-sm font-desc text-xs font-semibold transition"
+              >
+                Cerrar Expediente
+              </button>
             </div>
           </div>
         </div>

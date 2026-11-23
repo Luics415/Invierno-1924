@@ -41,17 +41,22 @@ export const ParanormalHandsVideo: React.FC<ParanormalHandsVideoProps> = ({
     video.currentTime = 0;
     video.muted = sound.getMuted();
 
+    const MAX_CHROMA_WIDTH = 640;
+
     const renderFrame = () => {
       if (cancelled || video.paused || video.ended) return;
 
       if (video.videoWidth > 0 && video.videoHeight > 0) {
-        if (canvas.width !== video.videoWidth || canvas.height !== video.videoHeight) {
-          canvas.width = video.videoWidth;
-          canvas.height = video.videoHeight;
+        const scale = Math.min(1, MAX_CHROMA_WIDTH / video.videoWidth);
+        const targetW = Math.max(1, Math.round(video.videoWidth * scale));
+        const targetH = Math.max(1, Math.round(video.videoHeight * scale));
+        if (canvas.width !== targetW || canvas.height !== targetH) {
+          canvas.width = targetW;
+          canvas.height = targetH;
         }
 
-        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-        const frame = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        ctx.drawImage(video, 0, 0, targetW, targetH);
+        const frame = ctx.getImageData(0, 0, targetW, targetH);
         const d = frame.data;
 
         for (let i = 0; i < d.length; i += 4) {

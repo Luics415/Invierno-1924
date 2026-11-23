@@ -74,6 +74,8 @@ import {
 } from 'lucide-react';
 
 interface BookLayoutProps {
+  bookCoverMode?: 'open' | 'front' | 'back';
+  onBookCoverModeChange?: (mode: 'open' | 'front' | 'back') => void;
   onOpenCalendar: () => void;
   onOpenDossier: () => void;
   onOpenVerdict: () => void;
@@ -84,6 +86,8 @@ interface BookLayoutProps {
 }
 
 export const BookLayout: React.FC<BookLayoutProps> = ({
+  bookCoverMode: controlledBookCoverMode,
+  onBookCoverModeChange,
   onOpenCalendar,
   onOpenDossier,
   onOpenVerdict,
@@ -133,11 +137,9 @@ export const BookLayout: React.FC<BookLayoutProps> = ({
   const isHeaderExpanded = isHeaderPinned;
 
   // Estado físico de la libreta: abierta o cerrada (portada / contraportada) para ver el fondo
-  const [bookCoverMode, setBookCoverMode] = useState<'open' | 'front' | 'back'>('open');
+  const [internalBookCoverMode, setInternalBookCoverMode] = useState<'open' | 'front' | 'back'>('open');
+  const bookCoverMode = controlledBookCoverMode ?? internalBookCoverMode;
 
-  useEffect(() => {
-    sound.playPageTurn();
-  }, []);
   const [isFunnelModalOpen, setIsFunnelModalOpen] = useState(false);
   const bookCoverModeRef = useRef(bookCoverMode);
   useEffect(() => {
@@ -159,7 +161,10 @@ export const BookLayout: React.FC<BookLayoutProps> = ({
     setDragOffset({ x: 0, y: 0 });
     setIsDraggingBook(false);
     dragStartRef.current = null;
-    setBookCoverMode(nextMode);
+    if (controlledBookCoverMode === undefined) {
+      setInternalBookCoverMode(nextMode);
+    }
+    onBookCoverModeChange?.(nextMode);
     onBookOpenChange?.(nextMode === 'open');
   };
 
@@ -589,7 +594,7 @@ export const BookLayout: React.FC<BookLayoutProps> = ({
   };
 
   return (
-    <div className="h-screen w-full overflow-hidden flex flex-col justify-between items-center py-2 sm:py-3.5 lg:py-4 px-2.5 sm:px-5 lg:px-8 xl:px-12 relative select-none">
+    <div className="h-[100dvh] w-full overflow-hidden flex flex-col justify-between items-center py-1.5 sm:py-3 lg:py-4 px-2 sm:px-5 lg:px-8 xl:px-12 pb-[max(0.375rem,env(safe-area-inset-bottom))] relative select-none">
       {/* ================================================================
           BARRA SUPERIOR DE CUERO FRÍO (Fijar / Desfijar)
          ================================================================ */}
@@ -597,8 +602,8 @@ export const BookLayout: React.FC<BookLayoutProps> = ({
         <header
           className={`relative header-leather-bar border-2 border-[#08090c] ring-1 ring-[#b79b65]/45 flex flex-wrap items-center justify-between transition-all duration-300 ease-in-out ${
             !isHeaderExpanded
-              ? 'w-fit max-w-full rounded-full px-3.5 py-1 mb-1.5 mx-auto gap-1.5'
-              : 'max-w-[1720px] w-full rounded-[6px] px-4 py-2 mb-2.5 gap-2'
+              ? 'w-fit max-w-full rounded-full px-3 py-1 mb-1 mx-auto gap-1.5'
+              : 'max-w-[1720px] w-full rounded-[6px] px-2.5 sm:px-4 py-1.5 sm:py-2 mb-1.5 sm:mb-2.5 gap-1.5 sm:gap-2'
           }`}
         >
           {/* Doble filete dorado interior y estrellas/remaches de latón cuando está expandida */}
@@ -631,7 +636,7 @@ export const BookLayout: React.FC<BookLayoutProps> = ({
               type="button"
               onClick={handlePrevDay}
               disabled={currentDay <= 0}
-              className={`${!isHeaderExpanded ? 'p-1' : 'p-1.5'} rounded-sm btn-ledger text-gold-300 disabled:opacity-30 transition shrink-0`}
+              className={`${!isHeaderExpanded ? 'p-1' : 'p-1.5'} rounded-md sm:rounded-sm btn-3d-tile text-gold-300 disabled:opacity-30 transition shrink-0`}
               title="Página anterior"
               aria-label="Página o capítulo anterior"
             >
@@ -671,7 +676,7 @@ export const BookLayout: React.FC<BookLayoutProps> = ({
               type="button"
               onClick={handleNextDay}
               disabled={currentDay >= totalDays}
-              className={`${!isHeaderExpanded ? 'p-1' : 'p-1.5'} rounded-sm btn-ledger text-gold-300 disabled:opacity-30 transition shrink-0`}
+              className={`${!isHeaderExpanded ? 'p-1' : 'p-1.5'} rounded-md sm:rounded-sm btn-3d-tile text-gold-300 disabled:opacity-30 transition shrink-0`}
               title="Página siguiente"
               aria-label="Página o capítulo siguiente"
             >
@@ -679,14 +684,14 @@ export const BookLayout: React.FC<BookLayoutProps> = ({
             </button>
           </div>
 
-          {/* Controles centrales desplegables */}
+          {/* Controles centrales desplegables — Cuadrícula 3D limpia en celular, barra horizontal en escritorio */}
           <div
             id="book-header-controls"
             aria-hidden={!isHeaderExpanded}
-            className={`flex flex-wrap items-center justify-center sm:justify-between lg:justify-around xl:justify-between gap-2 transition-all duration-300 ease-in-out ${
+            className={`flex flex-col sm:flex-row sm:flex-wrap items-stretch sm:items-center justify-between lg:justify-around xl:justify-between gap-1.5 sm:gap-2 transition-all duration-300 ease-in-out ${
               !isHeaderExpanded
                 ? 'order-3 max-w-0 max-h-0 opacity-0 overflow-hidden pointer-events-none invisible'
-                : 'order-3 lg:order-2 basis-full lg:basis-auto lg:flex-1 min-w-0 max-h-[200px] opacity-100'
+                : 'order-3 lg:order-2 basis-full lg:basis-auto lg:flex-1 min-w-0 max-h-[260px] opacity-100'
             }`}
           >
             {/* Botón Distinto: Embudo de Deducción (Abre el panel piramidal del embudo) */}
@@ -697,33 +702,33 @@ export const BookLayout: React.FC<BookLayoutProps> = ({
                 sound.playClick();
                 setIsFunnelModalOpen(true);
               }}
-              className="group flex items-center gap-2 px-2.5 sm:px-3.5 py-1.5 rounded-sm border transition shadow-md min-w-0 max-w-full btn-ledger text-parchment-100 hover:border-gold-300"
+              className="group btn-3d-tile sm:btn-ledger flex items-center justify-between sm:justify-start gap-2 px-2.5 sm:px-3.5 py-1.5 rounded-md sm:rounded-sm transition shrink-0 text-parchment-100 hover:border-gold-300"
               title="Abrir Embudo Forense: deducción y descarte de sospechosos"
             >
-              <div className="p-1 rounded-sm flex items-center justify-center shrink-0 bg-crimson-900/80 text-gold-300 border border-crimson-700/40">
-                <Filter className="w-3.5 h-3.5" />
-              </div>
-              <div className="text-left min-w-0">
-                <span className="text-[9px] uppercase font-mono tracking-wider block leading-none text-gold-400 font-bold">
-                  Embudo de Sospechosos
-                </span>
-                <div className="flex items-center gap-2 mt-0.5">
-                  <span className="font-desc font-semibold text-xs sm:text-sm leading-none text-parchment-100">
-                    {suspectFunnel.remaining} / {suspectFunnel.total}{' '}
-                    <span className="font-normal text-[11px] opacity-85">Bajo Sospecha</span>
-                  </span>
-                  <div className="hidden sm:block w-14 h-1.5 rounded-full overflow-hidden bg-ink-950 border border-gold-700/30">
-                    <div
-                      className="h-full bg-gradient-to-r from-crimson-600 to-gold-300 transition-all duration-500"
-                      style={{ width: `${suspectFunnel.percentageRemaining}%` }}
-                    />
-                  </div>
+              <div className="flex items-center gap-2 min-w-0">
+                <div className="p-1 rounded-sm flex items-center justify-center shrink-0 bg-crimson-900/90 text-gold-300 border border-gold-500/35 shadow-inner">
+                  <Filter className="w-3.5 h-3.5" />
                 </div>
+                <div className="text-left min-w-0">
+                  <span className="text-[8.5px] sm:text-[9px] uppercase font-mono tracking-wider block leading-none text-gold-400 font-bold whitespace-nowrap">
+                    Embudo de Sospechosos
+                  </span>
+                  <span className="font-desc font-semibold text-xs sm:text-sm leading-none text-parchment-100 whitespace-nowrap block mt-0.5">
+                    {suspectFunnel.remaining} / {suspectFunnel.total}{' '}
+                    <span className="font-normal text-[10.5px] sm:text-[11px] opacity-85">Bajo Sospecha</span>
+                  </span>
+                </div>
+              </div>
+              <div className="w-16 sm:w-14 h-1.5 rounded-full overflow-hidden bg-ink-950 border border-gold-700/35 shrink-0">
+                <div
+                  className="h-full bg-gradient-to-r from-crimson-600 to-gold-300 transition-all duration-500"
+                  style={{ width: `${suspectFunnel.percentageRemaining}%` }}
+                />
               </div>
             </button>
 
-            {/* Botones de acción derecha */}
-            <div className="flex flex-wrap items-center justify-center gap-1.5 sm:gap-2">
+            {/* Botones de acción — Cuadrícula 3D 4×2 en celulares (0 recortes) y fila adaptable en escritorio */}
+            <div className="grid grid-cols-4 sm:flex sm:flex-wrap items-stretch sm:items-center justify-center gap-1.5 sm:gap-2 w-full sm:w-auto">
               <button
                 type="button"
                 tabIndex={!isHeaderExpanded ? -1 : undefined}
@@ -731,11 +736,11 @@ export const BookLayout: React.FC<BookLayoutProps> = ({
                   sound.playPageTurn();
                   onOpenPrologue();
                 }}
-                className="flex items-center gap-1.5 px-2 sm:px-2.5 py-1.5 rounded-sm btn-ledger text-gold-200 text-xs sm:text-sm font-desc font-medium transition"
+                className="btn-3d-tile flex flex-col sm:flex-row items-center justify-center gap-0.5 sm:gap-1.5 px-1.5 sm:px-2.5 py-1.5 rounded-md sm:rounded-sm text-gold-200 text-[9px] sm:text-sm font-mono sm:font-desc font-semibold sm:font-medium min-w-0"
                 title="Leer el Prólogo y ambientación de Villa Acebo (1924)"
               >
-                <Compass className="w-3.5 h-3.5 text-gold-400" />
-                <span className="hidden xl:inline">Prólogo</span>
+                <Compass className="w-3.5 h-3.5 text-gold-400 shrink-0" />
+                <span className="sm:hidden xl:inline truncate">Prólogo</span>
               </button>
 
               <button
@@ -745,11 +750,11 @@ export const BookLayout: React.FC<BookLayoutProps> = ({
                   sound.playClick();
                   onOpenActDoor(isAlbum ? 1 : dayData.act, false);
                 }}
-                className="flex items-center gap-1.5 px-2 sm:px-2.5 py-1.5 rounded-sm btn-ledger text-gold-200 text-xs sm:text-sm font-desc font-medium transition"
+                className="btn-3d-tile flex flex-col sm:flex-row items-center justify-center gap-0.5 sm:gap-1.5 px-1.5 sm:px-2.5 py-1.5 rounded-md sm:rounded-sm text-gold-200 text-[9px] sm:text-sm font-mono sm:font-desc font-semibold sm:font-medium min-w-0"
                 title="Consultar las 5 Puertas del Expediente"
               >
-                <DoorOpen className="w-3.5 h-3.5 text-gold-400" />
-                <span className="hidden xl:inline">Puertas</span>
+                <DoorOpen className="w-3.5 h-3.5 text-gold-400 shrink-0" />
+                <span className="sm:hidden xl:inline truncate">Puertas</span>
               </button>
 
               <button
@@ -759,14 +764,16 @@ export const BookLayout: React.FC<BookLayoutProps> = ({
                   sound.playClick();
                   onOpenCalendar();
                 }}
-                className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-sm btn-ledger text-gold-200 text-xs sm:text-sm font-desc font-medium transition"
+                className="btn-3d-tile flex flex-col sm:flex-row items-center justify-center gap-0.5 sm:gap-1.5 px-1.5 sm:px-3 py-1.5 rounded-md sm:rounded-sm text-gold-200 text-[9px] sm:text-sm font-mono sm:font-desc font-semibold sm:font-medium min-w-0"
                 title={`Abrir las ${totalDays} jornadas del Calendario de Investigación`}
               >
-                <Calendar className="w-3.5 h-3.5 text-gold-400" />
-                <span className="hidden md:inline">Calendario</span>
-                <span className="px-1.5 py-0.5 bg-crimson-800 text-parchment-100 text-[10px] font-mono rounded-sm border border-gold-500/25">
-                  {completedDays.length}/{totalDays}
-                </span>
+                <div className="flex items-center gap-1">
+                  <Calendar className="w-3.5 h-3.5 text-gold-400 shrink-0" />
+                  <span className="px-1 py-0.2 sm:px-1.5 sm:py-0.5 bg-crimson-800 text-parchment-100 text-[9px] sm:text-[10px] font-mono rounded-sm border border-gold-500/25">
+                    {completedDays.length}/{totalDays}
+                  </span>
+                </div>
+                <span className="sm:hidden md:inline truncate">Calendario</span>
               </button>
 
               <button
@@ -776,14 +783,16 @@ export const BookLayout: React.FC<BookLayoutProps> = ({
                   sound.playPageTurn();
                   onOpenDossier();
                 }}
-                className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-sm btn-ledger text-gold-200 text-xs sm:text-sm font-desc font-medium transition"
+                className="btn-3d-tile flex flex-col sm:flex-row items-center justify-center gap-0.5 sm:gap-1.5 px-1.5 sm:px-3 py-1.5 rounded-md sm:rounded-sm text-gold-200 text-[9px] sm:text-sm font-mono sm:font-desc font-semibold sm:font-medium min-w-0"
                 title="Abrir Cuaderno del Detective — Consulta en tiempo real"
               >
-                <BookMarked className="w-3.5 h-3.5 text-gold-400" />
-                <span className="hidden md:inline">Cuaderno</span>
-                <span className="px-1.5 py-0.5 bg-gold-300 text-ink-950 text-[10px] font-mono font-bold rounded-sm">
-                  {unlockedClues.length}
-                </span>
+                <div className="flex items-center gap-1">
+                  <BookMarked className="w-3.5 h-3.5 text-gold-400 shrink-0" />
+                  <span className="px-1 py-0.2 sm:px-1.5 sm:py-0.5 bg-gold-300 text-ink-950 text-[9px] sm:text-[10px] font-mono font-bold rounded-sm">
+                    {unlockedClues.length}
+                  </span>
+                </div>
+                <span className="sm:hidden md:inline truncate">Cuaderno</span>
               </button>
 
               <button
@@ -792,11 +801,11 @@ export const BookLayout: React.FC<BookLayoutProps> = ({
                 onClick={() => {
                   onOpenVerdict();
                 }}
-                className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-sm btn-crimson-wax text-parchment-50 text-xs sm:text-sm font-desc font-semibold transition"
+                className="btn-3d-crimson flex flex-col sm:flex-row items-center justify-center gap-0.5 sm:gap-1.5 px-1.5 sm:px-3 py-1.5 rounded-md sm:rounded-sm text-parchment-50 text-[9px] sm:text-sm font-mono sm:font-desc font-bold sm:font-semibold min-w-0"
                 title="Emitir Acusación Formal y Veredicto"
               >
-                <Gavel className="w-3.5 h-3.5 text-gold-300" />
-                <span className="hidden xl:inline">Veredicto</span>
+                <Gavel className="w-3.5 h-3.5 text-gold-300 shrink-0" />
+                <span className="sm:hidden xl:inline truncate">Veredicto</span>
               </button>
 
               <button
@@ -807,10 +816,10 @@ export const BookLayout: React.FC<BookLayoutProps> = ({
                   if (hasSelectedGameMode) return;
                   onOpenGameMode?.();
                 }}
-                className={`flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-sm text-xs sm:text-sm font-desc font-medium transition disabled:opacity-75 disabled:cursor-not-allowed ${
+                className={`flex flex-col sm:flex-row items-center justify-center gap-0.5 sm:gap-1.5 px-1 sm:px-3 py-1.5 rounded-md sm:rounded-sm text-[8px] sm:text-sm font-mono sm:font-desc font-semibold sm:font-medium transition disabled:opacity-75 disabled:cursor-not-allowed min-w-0 ${
                   gameMode === 'manual'
-                    ? 'bg-[#3f1419] border border-gold-500/70 text-gold-200 shadow-sm'
-                    : 'btn-ledger text-gold-200'
+                    ? 'btn-3d-crimson text-gold-200'
+                    : 'btn-3d-tile text-gold-200'
                 }`}
                 title={
                   hasSelectedGameMode
@@ -819,11 +828,11 @@ export const BookLayout: React.FC<BookLayoutProps> = ({
                 }
               >
                 {hasSelectedGameMode ? (
-                  <Lock className="w-3.5 h-3.5 text-gold-400/80" />
+                  <Lock className="w-3.5 h-3.5 text-gold-400/85 shrink-0" />
                 ) : (
-                  <PenTool className="w-3.5 h-3.5 text-gold-400" />
+                  <PenTool className="w-3.5 h-3.5 text-gold-400 shrink-0" />
                 )}
-                <span className="hidden xl:inline">
+                <span className="sm:hidden xl:inline truncate max-w-full">
                   Modo: {gameMode === 'manual' ? 'Manual' : 'Automático'}
                 </span>
               </button>
@@ -834,12 +843,12 @@ export const BookLayout: React.FC<BookLayoutProps> = ({
                 onClick={() => {
                   startNewCase();
                 }}
-                className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-sm btn-ledger text-gold-200 text-xs sm:text-sm font-desc font-medium transition"
+                className="btn-3d-tile flex flex-col sm:flex-row items-center justify-center gap-0.5 sm:gap-1.5 px-1.5 sm:px-3 py-1.5 rounded-md sm:rounded-sm text-gold-200 text-[9px] sm:text-sm font-mono sm:font-desc font-semibold sm:font-medium min-w-0"
                 title="Nuevo Caso: Generar una nueva partida con otro culpable aleatorio entre los 74"
                 aria-label="Nuevo Caso"
               >
-                <RefreshCw className="w-3.5 h-3.5 text-gold-400" />
-                <span className="hidden xl:inline">Nuevo Caso</span>
+                <RefreshCw className="w-3.5 h-3.5 text-gold-400 shrink-0" />
+                <span className="sm:hidden xl:inline truncate">Nuevo</span>
               </button>
 
               <button
@@ -849,10 +858,10 @@ export const BookLayout: React.FC<BookLayoutProps> = ({
                   sound.playPageTurn();
                   changeBookCoverMode(bookCoverMode === 'open' ? 'front' : 'open');
                 }}
-                className={`flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-sm text-xs sm:text-sm font-desc font-medium transition ${
+                className={`flex flex-col sm:flex-row items-center justify-center gap-0.5 sm:gap-1.5 px-1.5 sm:px-3 py-1.5 rounded-md sm:rounded-sm text-[9px] sm:text-sm font-mono sm:font-desc font-bold sm:font-medium min-w-0 ${
                   bookCoverMode !== 'open'
-                    ? 'bg-gold-300 text-ink-950 font-bold border border-gold-500 shadow'
-                    : 'btn-ledger text-gold-200'
+                    ? 'btn-3d-gold text-ink-950'
+                    : 'btn-3d-tile text-gold-200'
                 }`}
                 title={
                   bookCoverMode === 'open'
@@ -862,13 +871,13 @@ export const BookLayout: React.FC<BookLayoutProps> = ({
               >
                 {bookCoverMode === 'open' ? (
                   <>
-                    <Book className="w-3.5 h-3.5 text-gold-400" />
-                    <span className="hidden xl:inline">Cerrar</span>
+                    <Book className="w-3.5 h-3.5 text-gold-400 shrink-0" />
+                    <span className="sm:hidden xl:inline truncate">Cerrar</span>
                   </>
                 ) : (
                   <>
-                    <BookOpen className="w-3.5 h-3.5 text-ink-950" />
-                    <span className="hidden xl:inline">Abrir</span>
+                    <BookOpen className="w-3.5 h-3.5 text-ink-950 shrink-0" />
+                    <span className="sm:hidden xl:inline truncate">Abrir</span>
                   </>
                 )}
               </button>
@@ -905,13 +914,13 @@ export const BookLayout: React.FC<BookLayoutProps> = ({
               aria-label={isHeaderPinned ? 'Desfijar barra superior' : 'Fijar barra superior'}
               title={
                 isHeaderPinned
-                  ? 'Desfijar barra (se ocultará y abrirá al pasar el cursor)'
-                  : 'Fijar barra en pantalla'
+                  ? 'Contraer barra superior para leer con pantalla completa'
+                  : 'Desplegar barra superior de herramientas'
               }
-              className={`flex items-center gap-1.5 rounded-sm border text-xs font-desc font-medium transition ${
+              className={`flex items-center gap-1.5 rounded-md sm:rounded-sm text-xs font-desc font-medium transition ${
                 isHeaderPinned
-                  ? 'btn-ledger text-gold-200 border-gold-400/50'
-                  : 'btn-ledger text-parchment-300 hover:text-gold-200'
+                  ? 'btn-3d-tile text-gold-200 border-gold-400/50'
+                  : 'btn-3d-tile text-parchment-300 hover:text-gold-200'
               } ${!isHeaderExpanded ? 'px-2 py-1' : 'p-1.5 sm:px-2.5 sm:py-1.5'}`}
             >
               {isHeaderPinned ? (
@@ -930,10 +939,10 @@ export const BookLayout: React.FC<BookLayoutProps> = ({
         </header>
       </div>
 
-      {/* Selector móvil de pliego para capítulos diarios y puertas */}
+      {/* Selector móvil 3D de pliego para capítulos diarios y puertas */}
       {(!isAlbum || doorPreviewAct !== null) && bookCoverMode === 'open' && (
-        <div className="lg:hidden w-full flex justify-center mb-2 z-20 shrink-0">
-          <div className="w-full max-w-md bg-ink-950/95 p-1 rounded-md border border-gold-500/35 grid grid-cols-2 gap-1 text-xs shadow-lg">
+        <div className="lg:hidden w-full flex justify-center mb-1.5 z-20 shrink-0">
+          <div className="w-full max-w-md bg-[#0c0e13]/95 p-1 rounded-lg border border-[#b79b65]/45 grid grid-cols-2 gap-1.5 text-xs shadow-[0_8px_20px_rgba(0,0,0,0.65)]">
             <button
               type="button"
               aria-pressed={mobilePage === 'left'}
@@ -941,10 +950,10 @@ export const BookLayout: React.FC<BookLayoutProps> = ({
                 sound.playPageTurn();
                 setMobilePage('left');
               }}
-              className={`px-2.5 py-1.5 rounded-sm font-desc font-semibold transition flex items-center justify-center gap-1.5 whitespace-nowrap ${
+              className={`px-2.5 py-1.5 rounded-md font-desc font-bold transition flex items-center justify-center gap-1.5 whitespace-nowrap ${
                 mobilePage === 'left'
-                  ? 'bg-gold-300 text-ink-950 shadow'
-                  : 'text-parchment-300 hover:text-white'
+                  ? 'btn-3d-gold text-ink-950'
+                  : 'btn-3d-tile text-parchment-300 hover:text-white'
               }`}
             >
               <BookOpen className="w-3.5 h-3.5 shrink-0" />
@@ -967,10 +976,10 @@ export const BookLayout: React.FC<BookLayoutProps> = ({
                 sound.playPageTurn();
                 setMobilePage('right');
               }}
-              className={`px-2.5 py-1.5 rounded-sm font-desc font-semibold transition flex items-center justify-center gap-1.5 whitespace-nowrap ${
+              className={`px-2.5 py-1.5 rounded-md font-desc font-bold transition flex items-center justify-center gap-1.5 whitespace-nowrap ${
                 mobilePage === 'right'
-                  ? 'bg-crimson-800 text-parchment-50 shadow'
-                  : 'text-parchment-300 hover:text-white'
+                  ? 'btn-3d-crimson text-parchment-50'
+                  : 'btn-3d-tile text-parchment-300 hover:text-white'
               }`}
             >
               <Puzzle className="w-3.5 h-3.5 shrink-0" />
@@ -998,17 +1007,17 @@ export const BookLayout: React.FC<BookLayoutProps> = ({
       {/* ================================================================
           TOMO ARTESANAL DE CUERO PESADO — ACOPLADO A PANTALLA SIN SCROLL
          ================================================================ */}
-      <main className="max-w-[1720px] w-full flex-1 min-h-0 flex items-center justify-center z-10 pb-1 px-3 sm:px-4 overflow-hidden">
+      <main className="max-w-[1720px] w-full flex-1 min-h-0 flex items-center justify-center z-10 pb-0.5 sm:pb-1 px-1 sm:px-4 overflow-hidden">
         {bookCoverMode !== 'open' ? (
           /* ============================================================
              LIBRETA CERRADA (PORTADA Y CONTRAPORTADA 1924 EN 3D REAL)
              ============================================================ */
-          <div className="relative flex flex-col items-center justify-center w-full h-full">
+          <div className="relative flex flex-col items-center justify-center gap-2.5 w-full h-full">
             <div
-              className={`h-[88%] max-h-[760px] transition-transform duration-500 ease-out ${
+              className={`max-w-[88vw] max-h-[68dvh] sm:max-h-[760px] transition-transform duration-500 ease-out ${
                 bookCoverMode === 'front'
-                  ? 'aspect-[674/993] translate-x-6 sm:translate-x-14 lg:translate-x-24'
-                  : 'aspect-[691/995] -translate-x-6 sm:-translate-x-14 lg:-translate-x-24'
+                  ? 'h-[min(68dvh,calc(88vw*993/674))] sm:h-[88%] aspect-[674/993] translate-x-0 sm:translate-x-10 lg:translate-x-24'
+                  : 'h-[min(68dvh,calc(88vw*995/691))] sm:h-[88%] aspect-[691/995] translate-x-0 sm:-translate-x-10 lg:-translate-x-24'
               }`}
             >
               {/* Tomo físico arrastrable con retorno elástico */}
@@ -1085,7 +1094,7 @@ export const BookLayout: React.FC<BookLayoutProps> = ({
                     {/* Botones de navegación en la contraportada posicionados limpiamente en la piel inferior */}
                     <div
                       style={{ bottom: '9%' }}
-                      className="absolute inset-x-8 flex items-center justify-between gap-3 z-20"
+                      className="absolute inset-x-4 sm:inset-x-8 flex items-center justify-between gap-2 sm:gap-3 z-20"
                     >
                       <button
                         type="button"
@@ -1113,21 +1122,46 @@ export const BookLayout: React.FC<BookLayoutProps> = ({
                 )}
               </div>
             </div>
+
+            {/* Controles 3D explícitos bajo la portada cerrada en celulares */}
+            <div className="sm:hidden flex items-center justify-center gap-2.5 w-full max-w-xs px-2 shrink-0">
+              <button
+                type="button"
+                onClick={() => {
+                  sound.playPageTurn();
+                  changeBookCoverMode(bookCoverMode === 'front' ? 'back' : 'front');
+                }}
+                className="btn-3d-tile flex-1 py-2 px-3 rounded-md text-[11px] font-mono font-bold uppercase tracking-wider text-gold-200"
+              >
+                {bookCoverMode === 'front' ? 'Ver Reverso' : 'Ver Portada'}
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  sound.playPageTurn();
+                  changeBookCoverMode('open');
+                }}
+                className="btn-3d-crimson flex-[1.35] py-2 px-3 rounded-md text-xs font-serif font-bold text-parchment-50 flex items-center justify-center gap-1.5"
+              >
+                <BookOpen className="w-4 h-4 text-gold-300 shrink-0" />
+                <span>Abrir Libreta</span>
+              </button>
+            </div>
           </div>
         ) : (
-        <div className="relative w-full h-full max-h-[880px] rounded-xl book-cover-leather p-2.5 sm:p-3.5 border-2 border-[#08090c] flex">
+        <div className="relative w-full h-full min-h-0 max-h-[880px] rounded-lg sm:rounded-xl book-cover-leather p-1.5 sm:p-3.5 border-2 border-[#08090c] flex">
           {/* Detalles de desgaste pictórico y marco de filete dorado interior */}
-          <div className="pointer-events-none absolute inset-0 rounded-xl book-arcane-wear z-0" />
-          <div className="pointer-events-none absolute inset-1.5 rounded-lg border border-[#b79b65]/40 z-20" />
+          <div className="pointer-events-none absolute inset-0 rounded-lg sm:rounded-xl book-arcane-wear z-0" />
+          <div className="pointer-events-none absolute inset-1 sm:inset-1.5 rounded-md sm:rounded-lg border border-[#b79b65]/40 z-20" />
 
           {/* Hojas laterales decorativas contenidas dentro del borde exterior */}
-          <div className="pointer-events-none absolute -left-2 sm:-left-2.5 top-16 w-4 sm:w-5 h-36 bg-[#ede6d6] border border-[#b8ab96] rounded-l-sm -rotate-[1.5deg] shadow-[0_4px_12px_rgba(0,0,0,0.5)] z-0" />
-          <div className="pointer-events-none absolute -left-1.5 sm:-left-2 top-56 w-3.5 sm:w-4 h-44 bg-[#e5decd] border border-[#a89c85] rounded-l-sm rotate-[1deg] shadow-[0_4px_10px_rgba(0,0,0,0.45)] z-0" />
-          <div className="pointer-events-none absolute -left-1 sm:-left-1.5 bottom-16 w-3 sm:w-4 h-28 bg-[#dfd6c3] border border-[#9e927c] rounded-l-sm -rotate-[1.5deg] shadow-[0_4px_8px_rgba(0,0,0,0.4)] z-0" />
+          <div className="hidden sm:block pointer-events-none absolute -left-2 sm:-left-2.5 top-16 w-4 sm:w-5 h-36 bg-[#ede6d6] border border-[#b8ab96] rounded-l-sm -rotate-[1.5deg] shadow-[0_4px_12px_rgba(0,0,0,0.5)] z-0" />
+          <div className="hidden sm:block pointer-events-none absolute -left-1.5 sm:-left-2 top-56 w-3.5 sm:w-4 h-44 bg-[#e5decd] border border-[#a89c85] rounded-l-sm rotate-[1deg] shadow-[0_4px_10px_rgba(0,0,0,0.45)] z-0" />
+          <div className="hidden sm:block pointer-events-none absolute -left-1 sm:-left-1.5 bottom-16 w-3 sm:w-4 h-28 bg-[#dfd6c3] border border-[#9e927c] rounded-l-sm -rotate-[1.5deg] shadow-[0_4px_8px_rgba(0,0,0,0.4)] z-0" />
 
-          <div className="pointer-events-none absolute -right-2 sm:-right-2.5 top-20 w-4 sm:w-5 h-40 bg-[#ede6d6] border border-[#b8ab96] rounded-r-sm rotate-[1.5deg] shadow-[0_4px_12px_rgba(0,0,0,0.5)] z-0" />
-          <div className="pointer-events-none absolute -right-1.5 sm:-right-2 top-64 w-3.5 sm:w-4 h-36 bg-[#e5decd] border border-[#a89c85] rounded-r-sm -rotate-[1deg] shadow-[0_4px_10px_rgba(0,0,0,0.45)] z-0" />
-          <div className="pointer-events-none absolute -right-1 sm:-right-1.5 bottom-20 w-3 sm:w-4 h-32 bg-[#dfd6c3] border border-[#9e927c] rounded-r-sm rotate-[1.5deg] shadow-[0_4px_8px_rgba(0,0,0,0.4)] z-0" />
+          <div className="hidden sm:block pointer-events-none absolute -right-2 sm:-right-2.5 top-20 w-4 sm:w-5 h-40 bg-[#ede6d6] border border-[#b8ab96] rounded-r-sm rotate-[1.5deg] shadow-[0_4px_12px_rgba(0,0,0,0.5)] z-0" />
+          <div className="hidden sm:block pointer-events-none absolute -right-1.5 sm:-right-2 top-64 w-3.5 sm:w-4 h-36 bg-[#e5decd] border border-[#a89c85] rounded-r-sm -rotate-[1deg] shadow-[0_4px_10px_rgba(0,0,0,0.45)] z-0" />
+          <div className="hidden sm:block pointer-events-none absolute -right-1 sm:-right-1.5 bottom-20 w-3 sm:w-4 h-32 bg-[#dfd6c3] border border-[#9e927c] rounded-r-sm rotate-[1.5deg] shadow-[0_4px_8px_rgba(0,0,0,0.4)] z-0" />
 
           {/* Video chroma-key de manos sujetando el libro desde atrás (solo con libreta abierta) */}
           <ParanormalHandsVideo
@@ -1137,7 +1171,7 @@ export const BookLayout: React.FC<BookLayoutProps> = ({
           {/* Hoja física apilada con pliegue natural central */}
           <div
             key={`spread-${currentDay}`}
-            className={`relative w-full h-full bg-parchment-100 rounded-md overflow-hidden book-pages-edge flex flex-col justify-between ${
+            className={`relative flex-1 w-full h-full min-h-0 bg-parchment-100 rounded-md overflow-hidden book-pages-edge flex flex-col justify-between ${
               pageDir === 'next' ? 'animate-page-turn' : 'animate-page-turn-prev'
             }`}
           >
@@ -1210,13 +1244,13 @@ export const BookLayout: React.FC<BookLayoutProps> = ({
               <div className="w-full h-full flex flex-col lg:flex-row flex-1 min-h-0">
                 {/* PÁGINA IZQUIERDA (VERSO): RELATO Y PRUEBA DOCUMENTAL */}
                 <section
-                  className={`page-verso lg:w-1/2 p-4 sm:p-5 lg:p-6 lg:pr-8 flex flex-col justify-between font-reading relative min-w-0 min-h-0 ${
-                    mobilePage === 'left' ? 'flex' : 'hidden lg:flex'
+                  className={`page-verso flex-1 h-full lg:w-1/2 p-3.5 sm:p-5 lg:p-6 lg:pr-8 flex flex-col justify-between font-reading relative min-w-0 min-h-0 overflow-hidden ${
+                    mobilePage === 'left' ? 'flex animate-mobile-flip-3d lg:animate-none' : 'hidden lg:flex'
                   }`}
                 >
                   {/* Cinta marcapáginas sobria */}
                   <div
-                    className="absolute top-0 right-6 w-5 h-10 bg-gradient-to-b from-crimson-800 via-crimson-700 to-crimson-950 shadow-md rounded-b-sm flex items-end justify-center pb-1 text-gold-200 border-x border-gold-400/20 z-10"
+                    className="absolute top-0 right-5 sm:right-6 w-5 h-9 sm:h-10 bg-gradient-to-b from-crimson-800 via-crimson-700 to-crimson-950 shadow-md rounded-b-sm flex items-end justify-center pb-1 text-gold-200 border-x border-gold-400/20 z-10"
                     title={`Capítulo ${dayData.day} de ${totalDays}`}
                   >
                     <span className="text-[9px] font-mono tracking-tighter text-gold-200/90">
@@ -1224,8 +1258,8 @@ export const BookLayout: React.FC<BookLayoutProps> = ({
                     </span>
                   </div>
 
-                  {/* Cuerpo central con ajuste fluido al alto disponible */}
-                  <div className="flex-1 min-h-0 overflow-y-auto pr-1 flex flex-col justify-between">
+                  {/* Cuerpo central con scroll fluido y sin recorte superior/inferior en celular */}
+                  <div className="flex-1 min-h-0 overflow-y-auto mobile-scroll-page pr-1 pb-3">
                     <div>
                       <div className="flex flex-wrap items-center justify-between gap-x-2 gap-y-0.5 text-[10px] font-mono uppercase tracking-[0.14em] text-ink-600 border-b border-parchment-400/70 pb-1 mb-2 pr-8">
                         <span>Crónica de Villa Acebo • Acto {getActRoman(dayData.act)}</span>
@@ -1343,39 +1377,42 @@ export const BookLayout: React.FC<BookLayoutProps> = ({
                           {dayData.narrative.evidenceContent}
                         </p>
                       </div>
+
+                      {/* Bloque de deducción dentro del flujo scrollable para evitar recortes en celular */}
+                      <div className="mt-3">
+                        {isDayCompleted ? (
+                          <div className="p-2.5 bg-gold-100/85 border border-gold-500 rounded-sm flex items-start gap-2 animate-wax-pop shadow-sm">
+                            <div className="w-6 h-6 rounded-full wax-seal-badge text-gold-200 flex items-center justify-center shrink-0">
+                              <ShieldCheck className="w-3.5 h-3.5" />
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <div className="flex flex-wrap items-center justify-between gap-1.5">
+                                <span className="font-bold text-[9px] font-mono uppercase tracking-wider text-crimson-900">
+                                  Deducción Confirmada
+                                </span>
+                                <span className="text-[9px] font-mono font-bold px-1.5 py-0.2 bg-crimson-800/10 text-crimson-800 rounded-sm">
+                                  {dayData.unlockedClue.impact}
+                                </span>
+                              </div>
+                              <p className="font-reading text-xs font-semibold text-ink-950 mt-0.5 leading-snug break-words">
+                                «{dayData.unlockedClue.text}»
+                              </p>
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="px-2.5 py-1.5 rounded-sm bg-parchment-200/70 border border-dashed border-parchment-400 text-[11px] font-desc italic text-ink-700 text-center flex items-center justify-center gap-1.5">
+                            <Sparkles className="w-3 h-3 text-gold-600 shrink-0" />
+                            <span>
+                              Resuelve el enigma del pliego derecho para lacrar la deducción del Día {dayData.day}.
+                            </span>
+                          </div>
+                        )}
+                      </div>
                     </div>
                   </div>
 
-                  {/* Pie de Página Izquierda */}
-                  <div className="mt-2 pt-2 border-t border-parchment-400/70 space-y-1.5 shrink-0">
-                    {isDayCompleted ? (
-                      <div className="p-2 bg-gold-100/80 border border-gold-500 rounded-sm flex items-start gap-2 animate-wax-pop shadow-sm">
-                        <div className="w-6 h-6 rounded-full wax-seal-badge text-gold-200 flex items-center justify-center shrink-0">
-                          <ShieldCheck className="w-3.5 h-3.5" />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <div className="flex flex-wrap items-center justify-between gap-1.5">
-                            <span className="font-bold text-[9px] font-mono uppercase tracking-wider text-crimson-900">
-                              Deducción Confirmada
-                            </span>
-                            <span className="text-[9px] font-mono font-bold px-1.5 py-0.2 bg-crimson-800/10 text-crimson-800 rounded-sm">
-                              {dayData.unlockedClue.impact}
-                            </span>
-                          </div>
-                          <p className="font-reading text-xs font-semibold text-ink-950 mt-0.5 leading-snug break-words">
-                            «{dayData.unlockedClue.text}»
-                          </p>
-                        </div>
-                      </div>
-                    ) : (
-                      <div className="px-2.5 py-1.5 rounded-sm bg-parchment-200/70 border border-dashed border-parchment-400 text-[11px] font-desc italic text-ink-700 text-center flex items-center justify-center gap-1.5">
-                        <Sparkles className="w-3 h-3 text-gold-600 shrink-0" />
-                        <span>
-                          Resuelve el enigma del pliego derecho para lacrar la deducción del Día {dayData.day}.
-                        </span>
-                      </div>
-                    )}
-
+                  {/* Pie de Página Izquierda compacto y siempre visible */}
+                  <div className="mt-1.5 pt-1.5 border-t border-parchment-400/70 shrink-0">
                     <div className="flex items-center justify-between text-xs font-desc text-ink-600">
                       <button
                         onClick={handlePrevDay}
@@ -1397,8 +1434,8 @@ export const BookLayout: React.FC<BookLayoutProps> = ({
 
                 {/* PÁGINA DERECHA (RECTO): MOTOR DE PASATIEMPO */}
                 <section
-                  className={`page-recto lg:w-1/2 p-4 sm:p-5 lg:p-6 lg:pl-8 flex flex-col justify-between font-reading border-t lg:border-t-0 border-parchment-400/70 min-w-0 min-h-0 ${
-                    mobilePage === 'right' ? 'flex' : 'hidden lg:flex'
+                  className={`page-recto flex-1 h-full lg:w-1/2 p-3.5 sm:p-5 lg:p-6 lg:pl-8 flex flex-col justify-between font-reading border-t lg:border-t-0 border-parchment-400/70 min-w-0 min-h-0 overflow-hidden ${
+                    mobilePage === 'right' ? 'flex animate-mobile-flip-3d lg:animate-none' : 'hidden lg:flex'
                   }`}
                 >
                   <div className="shrink-0">
@@ -1407,27 +1444,27 @@ export const BookLayout: React.FC<BookLayoutProps> = ({
                       <span>Expediente N.º {dayData.day < 10 ? `0${dayData.day}` : dayData.day}/{totalDays}</span>
                     </div>
 
-                    <div className="border-b border-parchment-300 pb-2 mb-2 flex items-start justify-between gap-2">
-                      <div className="min-w-0">
+                    <div className="border-b border-parchment-300 pb-1.5 mb-1.5 sm:pb-2 sm:mb-2 flex flex-col sm:flex-row sm:items-start sm:justify-between gap-1.5 sm:gap-2">
+                      <div className="min-w-0 flex-1">
                         <span className="text-[10px] uppercase font-mono tracking-widest text-gold-700 font-bold block">
                           Desafío Mental de Adviento
                         </span>
-                        <h2 className="font-desc text-sm sm:text-base font-medium italic text-ink-950 leading-snug mt-0.5 break-words">
+                        <h2 className="font-desc text-xs sm:text-base font-medium italic text-ink-950 leading-snug mt-0.5 break-words">
                           {dayData.puzzle.instructions}
                         </h2>
                       </div>
 
                       {isDayCompleted ? (
-                        <div className="flex items-center gap-1 text-[11px] font-bold text-gold-100 wax-seal-badge px-2.5 py-0.5 rounded-full shadow-sm shrink-0 animate-wax-pop">
+                        <div className="self-start flex items-center gap-1 text-[11px] font-bold text-gold-100 wax-seal-badge px-2.5 py-0.5 rounded-full shadow-sm shrink-0 animate-wax-pop">
                           <CheckCircle className="w-3 h-3 text-gold-200" />
                           <span>Lacrado</span>
                         </div>
                       ) : (
-                        <div className="flex flex-wrap items-center gap-1 shrink-0">
+                        <div className="flex flex-wrap items-center gap-1.5 shrink-0">
                           <button
                             type="button"
                             onClick={handleSolveCurrentPuzzle}
-                            className="px-2 py-1 rounded bg-amber-400 hover:bg-amber-300 text-ink-950 font-mono text-[10px] font-black uppercase tracking-wider border border-ink-900 shadow-sm transition"
+                            className="px-2 py-0.5 sm:py-1 rounded bg-amber-400 hover:bg-amber-300 text-ink-950 font-mono text-[9.5px] sm:text-[10px] font-black uppercase tracking-wider border border-ink-900 shadow-sm transition"
                             title="[TEST TEMPORAL] Completar acertijo de este día automáticamente"
                           >
                             [TEST] Omitir Día
@@ -1435,7 +1472,7 @@ export const BookLayout: React.FC<BookLayoutProps> = ({
                           <button
                             type="button"
                             onClick={() => handleTestCompleteAct(dayData.act)}
-                            className="px-2 py-1 rounded bg-emerald-400 hover:bg-emerald-300 text-ink-950 font-mono text-[10px] font-black uppercase tracking-wider border border-ink-900 shadow-sm transition"
+                            className="px-2 py-0.5 sm:py-1 rounded bg-emerald-400 hover:bg-emerald-300 text-ink-950 font-mono text-[9.5px] sm:text-[10px] font-black uppercase tracking-wider border border-ink-900 shadow-sm transition"
                             title="[TEST TEMPORAL] Completar los 6 acertijos de este acto automáticamente"
                           >
                             [TEST] Completar Acto {dayData.act}
@@ -1445,70 +1482,72 @@ export const BookLayout: React.FC<BookLayoutProps> = ({
                     </div>
                   </div>
 
-                  {/* Renderizado del Puzzle con contención sin romper el alto ni recortar arriba */}
-                  <div className="flex-1 min-h-0 overflow-y-auto pr-1 flex flex-col w-full">
-                    <div className="my-auto w-full">{renderPuzzleEngine()}</div>
-                  </div>
+                  {/* Renderizado del Puzzle + Panel Manual dentro del área scrollable en celular */}
+                  <div className="flex-1 min-h-0 overflow-y-auto mobile-scroll-page pr-1 pb-3 flex flex-col w-full">
+                    <div className="lg:my-auto w-full">
+                      {renderPuzzleEngine()}
 
-                  {/* Panel de Transcripción y Confirmación Manual (solo en Modo Manual cuando aún no está lacrado) */}
-                  {gameMode === 'manual' && !isDayCompleted && (
-                    <div className="mt-2 shrink-0">
-                      {!isBoardSolved ? (
-                        <div className="px-3 py-2 rounded-sm bg-parchment-200/85 border border-amber-900/35 text-[11px] font-desc text-ink-800 flex items-center gap-2">
-                          <PenTool className="w-3.5 h-3.5 text-crimson-800 shrink-0" />
-                          <span>
-                            <strong>Modo Manual (Paso 1/2):</strong> Resuelve el ejercicio superior para revelar la clave en el tablero y habilitar su escritura manual.
-                          </span>
-                        </div>
-                      ) : (
-                        <form
-                          onSubmit={handleConfirmManualResult}
-                          className="p-2.5 sm:p-3 rounded-sm bg-[#faf4e4] border-2 border-crimson-800 ring-1 ring-gold-500 shadow-md space-y-2 animate-wax-pop"
-                        >
-                          <div className="flex flex-wrap items-center justify-between gap-1.5">
-                            <span className="inline-flex items-center gap-1.5 text-[10px] font-mono font-black uppercase tracking-wider text-crimson-900">
-                              <KeyRound className="w-3.5 h-3.5 text-crimson-800 shrink-0" />
-                              Modo Manual (Paso 2/2) • Escribe el Resultado Descubierto
-                            </span>
-                          </div>
-
-                          <p className="text-xs font-reading text-ink-900 leading-snug">
-                            {manualSpec.promptLabel}
-                          </p>
-
-                          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
-                            <input
-                              type="text"
-                              value={manualInput}
-                              onChange={e => {
-                                setManualInputs(prev => ({
-                                  ...prev,
-                                  [currentDayKey]: e.target.value,
-                                }));
-                                if (hasManualError) setManualErrorDayKey(null);
-                              }}
-                              placeholder="Escribe aquí el resultado descubierto..."
-                              aria-label="Escribir resultado manual del ejercicio"
-                              className="flex-1 px-2.5 py-1.5 text-xs sm:text-sm font-mono font-bold uppercase rounded-sm bg-white border border-amber-900/50 text-ink-950 placeholder:text-ink-400 placeholder:font-normal focus:outline-none focus:border-crimson-800"
-                            />
-                            <button
-                              type="submit"
-                              className="px-4 py-1.5 rounded-sm btn-crimson-wax text-parchment-50 font-serif font-bold text-xs sm:text-sm flex items-center justify-center gap-1.5 shadow transition shrink-0"
+                      {/* Panel de Transcripción y Confirmación Manual (solo en Modo Manual cuando aún no está lacrado) */}
+                      {gameMode === 'manual' && !isDayCompleted && (
+                        <div className="mt-3">
+                          {!isBoardSolved ? (
+                            <div className="px-3 py-2 rounded-sm bg-parchment-200/85 border border-amber-900/35 text-[11px] font-desc text-ink-800 flex items-center gap-2">
+                              <PenTool className="w-3.5 h-3.5 text-crimson-800 shrink-0" />
+                              <span>
+                                <strong>Modo Manual (Paso 1/2):</strong> Resuelve el ejercicio superior para revelar la clave en el tablero y habilitar su escritura manual.
+                              </span>
+                            </div>
+                          ) : (
+                            <form
+                              onSubmit={handleConfirmManualResult}
+                              className="p-2.5 sm:p-3 rounded-sm bg-[#faf4e4] border-2 border-crimson-800 ring-1 ring-gold-500 shadow-md space-y-2 animate-wax-pop"
                             >
-                              <Check className="w-3.5 h-3.5 text-gold-300" />
-                              <span>Confirmar Resultado</span>
-                            </button>
-                          </div>
+                              <div className="flex flex-wrap items-center justify-between gap-1.5">
+                                <span className="inline-flex items-center gap-1.5 text-[10px] font-mono font-black uppercase tracking-wider text-crimson-900">
+                                  <KeyRound className="w-3.5 h-3.5 text-crimson-800 shrink-0" />
+                                  Modo Manual (Paso 2/2) • Escribe el Resultado Descubierto
+                                </span>
+                              </div>
 
-                          {hasManualError && (
-                            <p className="text-[11px] font-sans font-semibold text-crimson-800">
-                              El término o código escrito no coincide con el resultado revelado en el tablero. Revisa las casillas clave del ejercicio e inténtalo de nuevo.
-                            </p>
+                              <p className="text-xs font-reading text-ink-900 leading-snug">
+                                {manualSpec.promptLabel}
+                              </p>
+
+                              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+                                <input
+                                  type="text"
+                                  value={manualInput}
+                                  onChange={e => {
+                                    setManualInputs(prev => ({
+                                      ...prev,
+                                      [currentDayKey]: e.target.value,
+                                    }));
+                                    if (hasManualError) setManualErrorDayKey(null);
+                                  }}
+                                  placeholder="Escribe aquí el resultado descubierto..."
+                                  aria-label="Escribir resultado manual del ejercicio"
+                                  className="flex-1 px-2.5 py-1.5 text-xs sm:text-sm font-mono font-bold uppercase rounded-sm bg-white border border-amber-900/50 text-ink-950 placeholder:text-ink-400 placeholder:font-normal focus:outline-none focus:border-crimson-800"
+                                />
+                                <button
+                                  type="submit"
+                                  className="px-4 py-1.5 rounded-sm btn-crimson-wax text-parchment-50 font-serif font-bold text-xs sm:text-sm flex items-center justify-center gap-1.5 shadow transition shrink-0"
+                                >
+                                  <Check className="w-3.5 h-3.5 text-gold-300" />
+                                  <span>Confirmar Resultado</span>
+                                </button>
+                              </div>
+
+                              {hasManualError && (
+                                <p className="text-[11px] font-sans font-semibold text-crimson-800">
+                                  El término o código escrito no coincide con el resultado revelado en el tablero. Revisa las casillas clave del ejercicio e inténtalo de nuevo.
+                                </p>
+                              )}
+                            </form>
                           )}
-                        </form>
+                        </div>
                       )}
                     </div>
-                  )}
+                  </div>
 
                   <div data-toolbar="true" className="pt-2 mt-2 border-t border-parchment-400/70 flex items-center justify-between gap-2 shrink-0">
                     <span className="font-mono text-[10px] tracking-widest uppercase text-ink-600">
@@ -1632,7 +1671,7 @@ export const BookLayout: React.FC<BookLayoutProps> = ({
                   <span className="font-mono text-base font-bold text-[#e5ca8f]">74 / 74</span>
                 </div>
 
-                <div className="p-3 rounded-[3px] bg-[#e1d9c7] border border-[#8e8474] flex items-center justify-between gap-3 text-ink-950 shadow-sm ml-3 sm:ml-5">
+                <div className="p-3 rounded-[3px] bg-[#e1d9c7] border border-[#8e8474] flex items-center justify-between gap-3 text-ink-950 shadow-sm ml-0 sm:ml-5">
                   <div className="flex items-center gap-2.5">
                     <span className="w-6 h-6 rounded-full bg-crimson-800 text-parchment-50 font-mono text-xs font-bold flex items-center justify-center shrink-0">
                       2
@@ -1646,12 +1685,12 @@ export const BookLayout: React.FC<BookLayoutProps> = ({
                       </span>
                     </div>
                   </div>
-                  <span className="font-mono text-base font-bold text-crimson-800">
+                  <span className="font-mono text-base font-bold text-crimson-800 shrink-0">
                     {suspectFunnel.remaining} / {suspectFunnel.total}
                   </span>
                 </div>
 
-                <div className="p-3 rounded-[3px] bg-[#d5cbba] border-2 border-crimson-800/60 flex items-center justify-between gap-3 text-ink-950 shadow-sm ml-6 sm:ml-10">
+                <div className="p-3 rounded-[3px] bg-[#d5cbba] border-2 border-crimson-800/60 flex items-center justify-between gap-3 text-ink-950 shadow-sm ml-0 sm:ml-10">
                   <div className="flex items-center gap-2.5">
                     <span className="w-6 h-6 rounded-full bg-[#1b2432] text-[#e5ca8f] font-mono text-xs font-bold flex items-center justify-center shrink-0">
                       3
@@ -1665,12 +1704,12 @@ export const BookLayout: React.FC<BookLayoutProps> = ({
                       </span>
                     </div>
                   </div>
-                  <span className="font-mono text-base font-bold text-ink-950">
+                  <span className="font-mono text-base font-bold text-ink-950 shrink-0">
                     {weaponFunnel.remaining} / {weaponFunnel.total}
                   </span>
                 </div>
 
-                <div className="p-3 rounded-[3px] bg-[#c8bcab] border border-ink-800 flex items-center justify-between gap-3 text-ink-950 shadow-sm ml-9 sm:ml-16">
+                <div className="p-3 rounded-[3px] bg-[#c8bcab] border border-ink-800 flex items-center justify-between gap-3 text-ink-950 shadow-sm ml-0 sm:ml-16">
                   <div className="flex items-center gap-2.5">
                     <span className="w-6 h-6 rounded-full bg-[#8b6a28] text-parchment-50 font-mono text-xs font-bold flex items-center justify-center shrink-0">
                       4
@@ -1682,12 +1721,12 @@ export const BookLayout: React.FC<BookLayoutProps> = ({
                       </span>
                     </div>
                   </div>
-                  <span className="font-mono text-base font-bold text-ink-950">
+                  <span className="font-mono text-base font-bold text-ink-950 shrink-0">
                     {roomFunnel.remaining} / {roomFunnel.total}
                   </span>
                 </div>
 
-                <div className="p-3 rounded-[3px] bg-[#6b141e] text-parchment-50 border-2 border-gold-400 flex items-center justify-between gap-3 shadow-md ml-12 sm:ml-20">
+                <div className="p-3 rounded-[3px] bg-[#6b141e] text-parchment-50 border-2 border-gold-400 flex flex-wrap sm:flex-nowrap items-center justify-between gap-3 shadow-md ml-0 sm:ml-20">
                   <div className="flex items-center gap-2.5">
                     <span className="w-6 h-6 rounded-full bg-gold-300 text-ink-950 font-mono text-xs font-bold flex items-center justify-center shrink-0">
                       5

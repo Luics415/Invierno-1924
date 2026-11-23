@@ -6,6 +6,7 @@ import {
   useGameStore,
 } from '../store/useGameStore';
 import { WEAPONS, LOCATIONS, VICTIM } from '../data/narrativeBible';
+import { VictimAnimatedPortrait } from './VictimAnimatedPortrait';
 import { SUSPECTS_DIRECTORY, type DirectorySuspect } from '../data/suspectsDirectory';
 import {
   AMBIENT_TRACE_LABEL,
@@ -209,19 +210,18 @@ export const DetectiveDossier: React.FC<DetectiveDossierProps> = ({ onClose, onO
     >
       <div
         onClick={e => e.stopPropagation()}
-        className="relative book-cover-leather border-2 border-[#08090c] ring-1 ring-[#b79b65]/45 rounded-lg max-w-5xl w-full max-h-[94vh] flex flex-col shadow-[0_32px_85px_rgba(0,0,0,0.96)] overflow-hidden text-ink-900 font-reading animate-page-turn"
+        className="relative book-cover-leather border-2 border-[#08090c] ring-1 ring-[#b79b65]/45 rounded-lg max-w-5xl w-full max-h-[94dvh] flex flex-col shadow-[0_32px_85px_rgba(0,0,0,0.96)] overflow-hidden text-ink-900 font-reading animate-page-turn"
       >
         <div className="pointer-events-none absolute inset-0 book-arcane-wear z-0" />
 
         {/* Cabecera de cuero negro desgastado con filete dorado y emblema */}
-        <div className="relative z-10 header-leather-bar p-3.5 sm:p-5 border-b border-[#b79b65]/35 text-gold-300 flex flex-wrap items-center justify-between gap-2.5 sm:gap-3 shrink-0 min-w-0">
+        <div className="relative z-10 header-leather-bar p-3 sm:p-5 border-b border-[#b79b65]/35 text-gold-300 flex flex-wrap items-center justify-between gap-2.5 sm:gap-3 shrink-0 min-w-0">
           <div className="flex items-center gap-3 min-w-0 w-full sm:w-auto sm:flex-1">
-            <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-full overflow-hidden bg-[#08090c] border border-[#c5a059]/75 flex items-center justify-center shadow-md shrink-0">
-              <img
-                src="./app-icon.jpg"
-                alt="Emblema Cuaderno del Detective"
-                draggable={false}
-                className="pointer-events-none w-full h-full object-cover"
+            <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-full overflow-hidden bg-[#08090c] border-2 border-[#c5a059]/80 flex items-center justify-center shadow-md shrink-0">
+              <VictimAnimatedPortrait
+                src={VICTIM.portrait}
+                alt={`Retrato oficial de ${VICTIM.name}`}
+                interactive={false}
               />
             </div>
             <div className="min-w-0 flex-1">
@@ -485,7 +485,7 @@ export const DetectiveDossier: React.FC<DetectiveDossierProps> = ({ onClose, onO
                               <img
                                 src={s.portraitGif}
                                 alt={`Retrato de ${s.name}`}
-                                loading="eager"
+                                loading="lazy"
                                 decoding="async"
                                 onError={() =>
                                   setFailedPortraits(prev => ({ ...prev, [s.id]: true }))

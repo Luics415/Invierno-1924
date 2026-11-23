@@ -42,7 +42,7 @@ const PUZZLE_TYPE_LABELS: Record<PuzzleType, string> = {
   cryptogram: 'Criptografía',
   crossword: 'Crucigrama',
   futoshiki: 'Futoshiki',
-  connections: 'Connections',
+  connections: 'Conexiones',
   nonogram: 'Nonograma',
   minesweeper: 'Buscaminas',
   septagrama: 'Septagrama',
@@ -81,7 +81,7 @@ export const AdventCalendar: React.FC<AdventCalendarProps> = ({ onClose, onOpenA
     >
       <div
         onClick={e => e.stopPropagation()}
-        className="relative book-cover-leather border-2 border-[#08090c] ring-1 ring-[#b79b65]/35 rounded-xl max-w-5xl w-full max-h-[92vh] flex flex-col shadow-[0_30px_80px_rgba(0,0,0,0.95)] overflow-hidden animate-page-turn"
+        className="relative book-cover-leather border-2 border-[#08090c] ring-1 ring-[#b79b65]/35 rounded-xl max-w-5xl w-full max-h-[94dvh] flex flex-col shadow-[0_30px_80px_rgba(0,0,0,0.95)] overflow-hidden animate-page-turn"
       >
         <div className="pointer-events-none absolute inset-0 book-arcane-wear z-0" />
         <div className="pointer-events-none absolute inset-1.5 rounded-lg border border-[#b79b65]/35 z-20" />
