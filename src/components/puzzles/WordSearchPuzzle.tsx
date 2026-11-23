@@ -9,9 +9,17 @@ interface WordSearchProps {
   onSolve: () => void;
   isSolved: boolean;
   hints: string[];
+  gameMode?: 'auto' | 'manual';
 }
 
-export const WordSearchPuzzle: React.FC<WordSearchProps> = ({ config, onSolve, isSolved, hints }) => {
+export const WordSearchPuzzle: React.FC<WordSearchProps> = ({
+  config,
+  onSolve,
+  isSolved,
+  hints,
+  gameMode = 'auto',
+}) => {
+  const isManualMode = gameMode === 'manual';
   const { grid, words, leftoverMessage } = config;
   const cols = grid[0]?.length ?? 11;
 
@@ -233,7 +241,7 @@ export const WordSearchPuzzle: React.FC<WordSearchProps> = ({ config, onSolve, i
           </span>
         </span>
         <div className="flex items-center gap-1.5">
-          {hints.length > 0 && (
+          {!isManualMode && hints.length > 0 && (
             <button
               type="button"
               onClick={() => {
@@ -261,7 +269,7 @@ export const WordSearchPuzzle: React.FC<WordSearchProps> = ({ config, onSolve, i
         </div>
       </div>
 
-      {showHint && (
+      {!isManualMode && showHint && (
         <div className="p-2 mb-2 text-xs rounded border border-gold-400 bg-gold-100/70 text-ink-800">
           <strong>Pista de Azlynn:</strong> {hints[activeHintIdx]}
         </div>
@@ -350,7 +358,7 @@ export const WordSearchPuzzle: React.FC<WordSearchProps> = ({ config, onSolve, i
         </div>
       </div>
 
-      {isSolved && (
+      {isSolved && !isManualMode && (
         <div className="mt-2 p-2 bg-gold-100 border-2 border-gold-500 rounded text-center animate-wax-pop space-y-1">
           <div className="flex items-center justify-center gap-1.5 text-[11px] font-bold text-gold-900 uppercase tracking-wider">
             <KeyRound className="w-3.5 h-3.5 text-gold-700" />

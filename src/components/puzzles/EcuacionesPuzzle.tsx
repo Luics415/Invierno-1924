@@ -23,6 +23,7 @@ interface EcuacionesProps {
   onSolve: () => void;
   isSolved: boolean;
   hints: string[];
+  gameMode?: 'auto' | 'manual';
 }
 
 export const EcuacionesPuzzle: React.FC<EcuacionesProps> = ({
@@ -30,7 +31,9 @@ export const EcuacionesPuzzle: React.FC<EcuacionesProps> = ({
   onSolve,
   isSolved,
   hints,
+  gameMode = 'auto',
 }) => {
+  const isManualMode = gameMode === 'manual';
   const { symbols, equations, targetSymbols, targetCode, secretMeaning } = config;
 
   const [digits, setDigits] = useState<(number | null)[]>([null, null, null, null]);
@@ -131,7 +134,7 @@ export const EcuacionesPuzzle: React.FC<EcuacionesProps> = ({
           Ecuaciones de Símbolos Forenses
         </span>
         <div className="flex items-center gap-1.5">
-          {hints.length > 0 && (
+          {!isManualMode && hints.length > 0 && (
             <button
               type="button"
               onClick={() => {
@@ -159,7 +162,7 @@ export const EcuacionesPuzzle: React.FC<EcuacionesProps> = ({
         </div>
       </div>
 
-      {showHint && (
+      {!isManualMode && showHint && (
         <div className="p-2 mb-1.5 text-xs rounded border border-gold-400 bg-gold-100/70 text-ink-800">
           <strong>Pista de Azlynn:</strong> {hints[activeHintIdx]}
         </div>
@@ -281,7 +284,7 @@ export const EcuacionesPuzzle: React.FC<EcuacionesProps> = ({
         </div>
       </div>
 
-      {isSolved && (
+      {isSolved && !isManualMode && (
         <div className="mt-1.5 p-2 bg-gold-100 border-2 border-gold-500 rounded text-center animate-wax-pop">
           <div className="flex items-center justify-center gap-1 text-xs font-bold text-gold-800 uppercase tracking-widest mb-0.5">
             <CheckCircle2 className="w-4 h-4 text-gold-700" /> Ecuaciones Resueltas:{' '}

@@ -1,8 +1,12 @@
 import React, { useState, useMemo } from 'react';
-import { computeSuspectStatus, useGameStore } from '../store/useGameStore';
+import {
+  computeRoomStatus,
+  computeSuspectStatus,
+  computeWeaponStatus,
+  useGameStore,
+} from '../store/useGameStore';
 import { WEAPONS, LOCATIONS, VICTIM } from '../data/narrativeBible';
 import { SUSPECTS_DIRECTORY, type DirectorySuspect } from '../data/suspectsDirectory';
-import { evaluateCaseClues } from '../engine/caseGenerator';
 import {
   AMBIENT_TRACE_LABEL,
   LOCK_TYPE_SHORT,
@@ -43,13 +47,40 @@ export const DetectiveDossier: React.FC<DetectiveDossierProps> = ({ onClose, onO
     unlockedClues,
     completedDays,
     openedDoors,
+    gameMode,
     manualEliminations,
+    manualWeaponEliminations,
+    manualRoomEliminations,
     toggleManualElimination,
+    toggleManualWeaponElimination,
+    toggleManualRoomElimination,
   } = useGameStore();
 
-  const clueEval = useMemo(() => evaluateCaseClues(unlockedClues), [unlockedClues]);
-  const matchingWeaponSet = useMemo(() => new Set(clueEval.matchingWeaponIds), [clueEval]);
-  const matchingRoomSet = useMemo(() => new Set(clueEval.matchingRoomIds), [clueEval]);
+  const weaponStatusById = useMemo(() => {
+    const map = new Map<string, ReturnType<typeof computeWeaponStatus>>();
+    for (const w of WEAPONS) {
+      map.set(w.id, computeWeaponStatus(w.id, manualWeaponEliminations, unlockedClues, gameMode));
+    }
+    return map;
+  }, [manualWeaponEliminations, unlockedClues, gameMode]);
+
+  const roomStatusById = useMemo(() => {
+    const map = new Map<string, ReturnType<typeof computeRoomStatus>>();
+    for (const l of LOCATIONS) {
+      map.set(l.id, computeRoomStatus(l.id, manualRoomEliminations, unlockedClues, gameMode));
+    }
+    return map;
+  }, [manualRoomEliminations, unlockedClues, gameMode]);
+
+  const activeWeaponsCount = useMemo(
+    () => WEAPONS.filter(w => !weaponStatusById.get(w.id)?.isEliminated).length,
+    [weaponStatusById]
+  );
+
+  const activeRoomsCount = useMemo(
+    () => LOCATIONS.filter(l => !roomStatusById.get(l.id)?.isEliminated).length,
+    [roomStatusById]
+  );
 
   // Filtros para la pestaña de 74 sospechosos
   const [searchQuery, setSearchQuery] = useState('');
@@ -67,7 +98,14 @@ export const DetectiveDossier: React.FC<DetectiveDossierProps> = ({ onClose, onO
   const { suspectsWithStatus, activeCount, eliminatedCount, categoryCounts } = useMemo(() => {
     const list = SUSPECTS_DIRECTORY.map(s => ({
       ...s,
-      status: computeSuspectStatus(s, manualEliminations, unlockedClues, activeCase, openedDoors),
+      status: computeSuspectStatus(
+        s,
+        manualEliminations,
+        unlockedClues,
+        activeCase,
+        openedDoors,
+        gameMode
+      ),
     }));
 
     let active = 0;
@@ -97,7 +135,7 @@ export const DetectiveDossier: React.FC<DetectiveDossierProps> = ({ onClose, onO
       eliminatedCount: eliminated,
       categoryCounts: catMap,
     };
-  }, [manualEliminations, unlockedClues, activeCase, openedDoors]);
+  }, [manualEliminations, unlockedClues, activeCase, openedDoors, gameMode]);
 
   const filteredSuspects = useMemo(() => {
     const query = searchQuery.trim().toLowerCase();
@@ -280,8 +318,7 @@ export const DetectiveDossier: React.FC<DetectiveDossierProps> = ({ onClose, onO
             <MapPin className="w-3.5 h-3.5 text-gold-500 shrink-0" />
             <span>Armas y Estancias</span>
             <span className="ml-1 px-1.5 py-0.5 text-[10px] rounded-[2px] bg-ink-900/15 font-mono tabular-nums">
-              {clueEval.matchingWeaponIds.length}/{WEAPONS.length} • {clueEval.matchingRoomIds.length}/
-              {LOCATIONS.length}
+              {activeWeaponsCount}/{WEAPONS.length} • {activeRoomsCount}/{LOCATIONS.length}
             </span>
           </button>
 
@@ -507,22 +544,28 @@ export const DetectiveDossier: React.FC<DetectiveDossierProps> = ({ onClose, onO
                         </div>
 
                         <button
+                          type="button"
+                          disabled={Boolean(s.status.isVictim)}
                           onClick={e => {
                             e.stopPropagation();
                             toggleManualElimination(s.id);
                           }}
-                          className={`p-1.5 rounded border transition shrink-0 ${
+                          className={`p-1.5 rounded border transition shrink-0 disabled:opacity-40 disabled:cursor-not-allowed ${
                             s.status.isManual
                               ? 'bg-crimson-100 border-crimson-400 text-crimson-800'
                               : 'bg-parchment-200/70 border-transparent text-ink-500 hover:text-ink-900'
                           }`}
                           title={
-                            s.status.isManual
+                            s.status.isVictim
+                              ? 'Víctima fallecida (tachado automático)'
+                              : s.status.isManual
                               ? 'Quitar descarte manual'
                               : 'Tachar manualmente con lápiz'
                           }
                           aria-label={
-                            s.status.isManual
+                            s.status.isVictim
+                              ? `${s.name} falleció y está tachado automáticamente`
+                              : s.status.isManual
                               ? `Quitar descarte manual de ${s.name}`
                               : `Tachar manualmente a ${s.name}`
                           }
@@ -574,15 +617,17 @@ export const DetectiveDossier: React.FC<DetectiveDossierProps> = ({ onClose, onO
                     Catálogo en Tiempo Real de Armas y Estancias:
                   </strong>{' '}
                   <span className="text-ink-700">
-                    Las armas y estancias descartadas por las pistas obtenidas se tachan automáticamente.
+                    {gameMode === 'manual'
+                      ? 'En Modo Manual, tacha y destacha manualmente cada arma o estancia conforme analices las pistas.'
+                      : 'Las armas y estancias descartadas por las pistas obtenidas se tachan automáticamente; también puedes tacharlas manualmente.'}
                   </span>
                 </div>
                 <div className="flex flex-wrap items-center gap-1.5 text-[11px] font-mono">
                   <span className="px-2 py-0.5 rounded bg-crimson-100 text-crimson-900 border border-crimson-300 font-bold">
-                    Armas compatibles: {clueEval.matchingWeaponIds.length}/{WEAPONS.length}
+                    Armas compatibles: {activeWeaponsCount}/{WEAPONS.length}
                   </span>
                   <span className="px-2 py-0.5 rounded bg-amber-100 text-amber-950 border border-amber-400 font-bold">
-                    Estancias compatibles: {clueEval.matchingRoomIds.length}/{LOCATIONS.length}
+                    Estancias compatibles: {activeRoomsCount}/{LOCATIONS.length}
                   </span>
                 </div>
               </div>
@@ -602,11 +647,15 @@ export const DetectiveDossier: React.FC<DetectiveDossierProps> = ({ onClose, onO
 
                   <div className="space-y-2.5">
                     {WEAPONS.map(w => {
-                      const isCompatible = matchingWeaponSet.has(w.id);
+                      const weaponStatus =
+                        weaponStatusById.get(w.id) ??
+                        computeWeaponStatus(w.id, manualWeaponEliminations, unlockedClues, gameMode);
+                      const isCompatible = !weaponStatus.isEliminated;
 
                       return (
                         <div
                           key={w.id}
+                          data-weapon-card={w.id}
                           className={`p-2.5 rounded-lg border-2 transition text-xs flex items-start gap-3 shadow-sm min-w-0 ${
                             isCompatible
                               ? 'bg-parchment-100 border-amber-900/30 hover:border-crimson-700/60'
@@ -630,19 +679,54 @@ export const DetectiveDossier: React.FC<DetectiveDossierProps> = ({ onClose, onO
 
                           <div className="min-w-0 flex-1 space-y-1">
                             <div className="flex flex-wrap items-center justify-between gap-1.5 min-w-0">
-                              <strong
-                                className={`font-serif text-ink-950 text-sm ${
-                                  !isCompatible
-                                    ? 'line-through decoration-crimson-700 text-ink-600'
-                                    : ''
-                                }`}
-                              >
-                                {w.name}
-                              </strong>
-                              <span className="font-mono text-[9.5px] font-bold uppercase px-1.5 py-0.5 rounded border bg-parchment-200 text-ink-700 border-amber-900/20">
-                                {WEAPON_CATEGORY_SHORT[w.category] ?? w.category} •{' '}
-                                {WEAPON_MATERIAL_LABEL[w.material] ?? w.material}
-                              </span>
+                              <div className="flex flex-wrap items-center gap-1.5 min-w-0">
+                                <strong
+                                  className={`font-serif text-ink-950 text-sm ${
+                                    !isCompatible
+                                      ? 'line-through decoration-crimson-700 text-ink-600'
+                                      : ''
+                                  }`}
+                                >
+                                  {w.name}
+                                </strong>
+                                {!isCompatible && (
+                                  <span className="text-[8px] font-mono font-black uppercase px-1.5 py-0.5 rounded bg-crimson-800 text-white">
+                                    {weaponStatus.isManual ? 'TACHADO' : 'DESCARTADO'}
+                                  </span>
+                                )}
+                              </div>
+                              <div className="flex items-center gap-1.5 shrink-0">
+                                <span className="font-mono text-[9.5px] font-bold uppercase px-1.5 py-0.5 rounded border bg-parchment-200 text-ink-700 border-amber-900/20">
+                                  {WEAPON_CATEGORY_SHORT[w.category] ?? w.category} •{' '}
+                                  {WEAPON_MATERIAL_LABEL[w.material] ?? w.material}
+                                </span>
+                                <button
+                                  type="button"
+                                  data-toggle-weapon={w.id}
+                                  onClick={() => toggleManualWeaponElimination(w.id)}
+                                  className={`p-1.5 rounded border transition shrink-0 ${
+                                    weaponStatus.isManual
+                                      ? 'bg-crimson-100 border-crimson-400 text-crimson-800'
+                                      : 'bg-parchment-200/70 border-transparent text-ink-500 hover:text-ink-900'
+                                  }`}
+                                  title={
+                                    weaponStatus.isManual
+                                      ? 'Quitar descarte manual'
+                                      : 'Tachar arma manualmente'
+                                  }
+                                  aria-label={
+                                    weaponStatus.isManual
+                                      ? `Quitar descarte manual de ${w.name}`
+                                      : `Tachar manualmente ${w.name}`
+                                  }
+                                >
+                                  {weaponStatus.isEliminated ? (
+                                    <EyeOff className="w-3.5 h-3.5" />
+                                  ) : (
+                                    <Eye className="w-3.5 h-3.5" />
+                                  )}
+                                </button>
+                              </div>
                             </div>
                             <p className="text-ink-700 font-sans leading-snug text-[11px]">
                               {w.description}
@@ -687,11 +771,15 @@ export const DetectiveDossier: React.FC<DetectiveDossierProps> = ({ onClose, onO
 
                   <div className="space-y-2.5">
                     {LOCATIONS.map(l => {
-                      const isCompatible = matchingRoomSet.has(l.id);
+                      const roomStatus =
+                        roomStatusById.get(l.id) ??
+                        computeRoomStatus(l.id, manualRoomEliminations, unlockedClues, gameMode);
+                      const isCompatible = !roomStatus.isEliminated;
 
                       return (
                         <div
                           key={l.id}
+                          data-room-card={l.id}
                           className={`p-3 rounded-lg border-2 transition text-xs space-y-1.5 shadow-sm min-w-0 ${
                             isCompatible
                               ? 'bg-parchment-100 border-amber-900/30 hover:border-amber-800/60'
@@ -709,10 +797,43 @@ export const DetectiveDossier: React.FC<DetectiveDossierProps> = ({ onClose, onO
                               >
                                 {l.name}
                               </strong>
+                              {!isCompatible && (
+                                <span className="text-[8px] font-mono font-black uppercase px-1.5 py-0.5 rounded bg-crimson-800 text-white">
+                                  {roomStatus.isManual ? 'TACHADO' : 'DESCARTADO'}
+                                </span>
+                              )}
                             </div>
-                            <span className="font-mono text-[10px] font-bold px-2 py-0.5 rounded bg-parchment-200 text-ink-700 border border-amber-900/20 shrink-0">
-                              {l.floor}
-                            </span>
+                            <div className="flex items-center gap-1.5 shrink-0">
+                              <span className="font-mono text-[10px] font-bold px-2 py-0.5 rounded bg-parchment-200 text-ink-700 border border-amber-900/20 shrink-0">
+                                {l.floor}
+                              </span>
+                              <button
+                                type="button"
+                                data-toggle-room={l.id}
+                                onClick={() => toggleManualRoomElimination(l.id)}
+                                className={`p-1.5 rounded border transition shrink-0 ${
+                                  roomStatus.isManual
+                                    ? 'bg-crimson-100 border-crimson-400 text-crimson-800'
+                                    : 'bg-parchment-200/70 border-transparent text-ink-500 hover:text-ink-900'
+                                }`}
+                                title={
+                                  roomStatus.isManual
+                                    ? 'Quitar descarte manual'
+                                    : 'Tachar estancia manualmente'
+                                }
+                                aria-label={
+                                  roomStatus.isManual
+                                    ? `Quitar descarte manual de ${l.name}`
+                                    : `Tachar manualmente ${l.name}`
+                                }
+                              >
+                                {roomStatus.isEliminated ? (
+                                  <EyeOff className="w-3.5 h-3.5" />
+                                ) : (
+                                  <Eye className="w-3.5 h-3.5" />
+                                )}
+                              </button>
+                            </div>
                           </div>
                           <p className="text-ink-700 font-sans leading-relaxed">{l.description}</p>
                           <div className="pt-1.5 border-t border-amber-900/15 flex flex-wrap items-center gap-x-3 gap-y-1 text-[10px] font-mono text-ink-800">

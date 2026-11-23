@@ -9,9 +9,17 @@ interface SudokuProps {
   onSolve: () => void;
   isSolved: boolean;
   hints: string[];
+  gameMode?: 'auto' | 'manual';
 }
 
-export const SudokuPuzzle: React.FC<SudokuProps> = ({ config, onSolve, isSolved, hints }) => {
+export const SudokuPuzzle: React.FC<SudokuProps> = ({
+  config,
+  onSolve,
+  isSolved,
+  hints,
+  gameMode = 'auto',
+}) => {
+  const isManualMode = gameMode === 'manual';
   const { initialGrid, solution, keyCells, secretCodeMeaning } = config;
   const size = 9;
 
@@ -36,8 +44,10 @@ export const SudokuPuzzle: React.FC<SudokuProps> = ({ config, onSolve, isSolved,
     [initialGrid]
   );
 
-  const isKeyCell = (r: number, c: number) =>
-    keyCells.some(cell => cell.r === r && cell.c === c);
+  const getKeyCellOrder = (r: number, c: number) => {
+    const idx = keyCells.findIndex(cell => cell.r === r && cell.c === c);
+    return idx >= 0 ? idx + 1 : 0;
+  };
 
   const handleCellClick = (r: number, c: number) => {
     if (isSolved) return;
@@ -190,7 +200,7 @@ export const SudokuPuzzle: React.FC<SudokuProps> = ({ config, onSolve, isSolved,
               <AlertTriangle className="w-3 h-3" /> Conflicto
             </span>
           )}
-          {hints.length > 0 && (
+          {!isManualMode && hints.length > 0 && (
             <button
               type="button"
               onClick={() => {
@@ -218,7 +228,7 @@ export const SudokuPuzzle: React.FC<SudokuProps> = ({ config, onSolve, isSolved,
         </div>
       </div>
 
-      {showHint && (
+      {!isManualMode && showHint && (
         <div className="p-2 mb-1.5 text-xs rounded border border-gold-400 bg-gold-100/70 text-ink-800">
           <strong>Pista de Azlynn:</strong> {hints[activeHintIdx]}
         </div>
@@ -235,7 +245,8 @@ export const SudokuPuzzle: React.FC<SudokuProps> = ({ config, onSolve, isSolved,
           {displayGrid.map((row, r) =>
             row.map((val, c) => {
               const initial = isInitialCell(r, c);
-              const keyCell = isKeyCell(r, c);
+              const keyOrder = getKeyCellOrder(r, c);
+              const keyCell = keyOrder > 0;
               const isSelected = selectedCell?.r === r && selectedCell?.c === c;
               const isPeer =
                 selectedCell !== null &&
@@ -262,6 +273,7 @@ export const SudokuPuzzle: React.FC<SudokuProps> = ({ config, onSolve, isSolved,
                   key={`${r}-${c}`}
                   data-row={r}
                   data-col={c}
+                  data-key-cell={keyCell ? keyOrder : undefined}
                   data-given={initial ? 'true' : 'false'}
                   onClick={() => handleCellClick(r, c)}
                   className={`w-7 h-7 sm:w-8 sm:h-8 md:w-9 md:h-9 flex flex-col items-center justify-center relative cursor-pointer font-serif select-none transition ${borderBottom} ${borderRight} ${
@@ -279,7 +291,12 @@ export const SudokuPuzzle: React.FC<SudokuProps> = ({ config, onSolve, isSolved,
                   }`}
                 >
                   {keyCell && (
-                    <KeyRound className="w-2 h-2 absolute top-0.5 right-0.5 text-gold-700 pointer-events-none" />
+                    <>
+                      <span className="absolute top-0 left-0.5 text-[7px] font-mono font-black text-gold-900 leading-none pointer-events-none">
+                        {keyOrder}
+                      </span>
+                      <KeyRound className="w-2 h-2 absolute top-0.5 right-0.5 text-gold-700 pointer-events-none" />
+                    </>
                   )}
 
                   {val !== null ? (
@@ -339,17 +356,19 @@ export const SudokuPuzzle: React.FC<SudokuProps> = ({ config, onSolve, isSolved,
       </div>
 
       {/* Código secreto */}
-      <div className="mt-1.5 px-2 py-1.5 bg-gold-100/90 border border-gold-400 rounded flex flex-wrap items-center justify-between gap-2">
-        <div className="text-[11px] text-gold-900 font-medium flex items-center gap-1">
-          <KeyRound className="w-3.5 h-3.5 text-gold-700" />
-          <span>Celdas clave:</span>
+      {!isManualMode && (
+        <div className="mt-1.5 px-2 py-1.5 bg-gold-100/90 border border-gold-400 rounded flex flex-wrap items-center justify-between gap-2">
+          <div className="text-[11px] text-gold-900 font-medium flex items-center gap-1">
+            <KeyRound className="w-3.5 h-3.5 text-gold-700" />
+            <span>Celdas clave:</span>
+          </div>
+          <div className="font-mono text-xs sm:text-sm font-black tracking-widest text-crimson-900 px-2 py-0.5 bg-white/70 rounded border border-gold-300">
+            {secretCode}
+          </div>
         </div>
-        <div className="font-mono text-xs sm:text-sm font-black tracking-widest text-crimson-900 px-2 py-0.5 bg-white/70 rounded border border-gold-300">
-          {secretCode}
-        </div>
-      </div>
+      )}
 
-      {isSolved && (
+      {isSolved && !isManualMode && (
         <div className="mt-1.5 p-2 bg-gold-100 border-2 border-gold-500 rounded text-center animate-wax-pop">
           <div className="flex items-center justify-center gap-1 text-xs font-bold text-gold-800 uppercase tracking-widest mb-0.5">
             <CheckCircle2 className="w-4 h-4 text-gold-700" /> Sudoku 9×9 Resuelto

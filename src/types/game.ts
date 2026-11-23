@@ -239,12 +239,15 @@ export type DayPuzzle = PuzzlePayload & {
   hints: string[];
 };
 
+export type GameMode = 'auto' | 'manual';
+
 export interface PuzzleComponentProps<TConfig extends PuzzleConfig = PuzzleConfig> {
   config: TConfig;
   onSolve: () => void;
   isSolved: boolean;
   hints: string[];
   onAttempt?: () => void;
+  gameMode?: GameMode;
 }
 
 export interface VictimProfile {

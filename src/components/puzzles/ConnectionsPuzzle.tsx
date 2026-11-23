@@ -10,6 +10,7 @@ interface ConnectionsProps {
   onSolve: () => void;
   isSolved: boolean;
   hints: string[];
+  gameMode?: 'auto' | 'manual';
 }
 
 const GROUP_STYLES: Record<1 | 2 | 3 | 4, string> = {
@@ -19,7 +20,14 @@ const GROUP_STYLES: Record<1 | 2 | 3 | 4, string> = {
   4: 'bg-crimson-100 border-crimson-700 text-crimson-950',
 };
 
-export const ConnectionsPuzzle: React.FC<ConnectionsProps> = ({ config, onSolve, isSolved, hints }) => {
+export const ConnectionsPuzzle: React.FC<ConnectionsProps> = ({
+  config,
+  onSolve,
+  isSolved,
+  hints,
+  gameMode = 'auto',
+}) => {
+  const isManualMode = gameMode === 'manual';
   const { groups, maxMistakes = 4, secretMeaning } = config;
 
   const initialTiles = useMemo(() => {
@@ -119,7 +127,7 @@ export const ConnectionsPuzzle: React.FC<ConnectionsProps> = ({ config, onSolve,
       <div className="flex flex-wrap items-center justify-between gap-2 pb-2 mb-2 border-b border-parchment-300">
         <div className="flex items-center gap-2">
           <span className="text-xs uppercase tracking-wider font-semibold text-ink-700">
-            Connections (4×4)
+            Conexiones (4×4)
           </span>
           <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-parchment-200 text-ink-700 border border-parchment-300">
             Intentos restantes: {mistakesLeft}/{maxMistakes}
@@ -127,7 +135,7 @@ export const ConnectionsPuzzle: React.FC<ConnectionsProps> = ({ config, onSolve,
         </div>
 
         <div className="flex items-center gap-1.5">
-          {hints.length > 0 && (
+          {!isManualMode && hints.length > 0 && (
             <button
               type="button"
               onClick={() => {
@@ -148,14 +156,14 @@ export const ConnectionsPuzzle: React.FC<ConnectionsProps> = ({ config, onSolve,
             onClick={handleReset}
             disabled={isSolved}
             className="flex items-center gap-1 px-2 py-1 text-xs rounded bg-parchment-200 hover:bg-parchment-300 text-ink-600 disabled:opacity-40 transition"
-            title="Reiniciar Connections"
+            title="Reiniciar Conexiones"
           >
             <RotateCcw className="w-3.5 h-3.5" />
           </button>
         </div>
       </div>
 
-      {showHint && (
+      {!isManualMode && showHint && (
         <div className="p-2 mb-2 text-xs rounded border border-gold-400 bg-gold-100/70 text-ink-800">
           <strong>Pista de Azlynn:</strong> {hints[activeHintIdx]}
         </div>
@@ -241,7 +249,7 @@ export const ConnectionsPuzzle: React.FC<ConnectionsProps> = ({ config, onSolve,
         </div>
       )}
 
-      {isSolved && (
+      {isSolved && !isManualMode && (
         <div className="mt-2 p-2 bg-gold-100 border-2 border-gold-500 rounded text-center animate-wax-pop">
           <div className="flex items-center justify-center gap-1 text-xs font-bold text-gold-800 uppercase tracking-widest mb-0.5">
             <CheckCircle2 className="w-4 h-4 text-gold-700" /> Conexiones Completadas

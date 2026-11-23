@@ -9,11 +9,19 @@ interface NonogramProps {
   onSolve: () => void;
   isSolved: boolean;
   hints: string[];
+  gameMode?: 'auto' | 'manual';
 }
 
 type CellMark = 0 | 1 | 2; // 0 = empty, 1 = filled, 2 = crossed X
 
-export const NonogramPuzzle: React.FC<NonogramProps> = ({ config, onSolve, isSolved, hints }) => {
+export const NonogramPuzzle: React.FC<NonogramProps> = ({
+  config,
+  onSolve,
+  isSolved,
+  hints,
+  gameMode = 'auto',
+}) => {
+  const isManualMode = gameMode === 'manual';
   const { rows, cols, solution, rowClues, colClues, revealTitle, secretMeaning } = config;
 
   const [marks, setMarks] = useState<CellMark[][]>(() =>
@@ -101,7 +109,7 @@ export const NonogramPuzzle: React.FC<NonogramProps> = ({ config, onSolve, isSol
         </div>
 
         <div className="flex items-center gap-1.5">
-          {hints.length > 0 && (
+          {!isManualMode && hints.length > 0 && (
             <button
               type="button"
               onClick={() => {
@@ -129,7 +137,7 @@ export const NonogramPuzzle: React.FC<NonogramProps> = ({ config, onSolve, isSol
         </div>
       </div>
 
-      {showHint && (
+      {!isManualMode && showHint && (
         <div className="p-2 mb-2 text-xs rounded border border-gold-400 bg-gold-100/70 text-ink-800">
           <strong>Pista de Azlynn:</strong> {hints[activeHintIdx]}
         </div>
@@ -203,7 +211,7 @@ export const NonogramPuzzle: React.FC<NonogramProps> = ({ config, onSolve, isSol
         </div>
       </div>
 
-      {isSolved && (
+      {isSolved && !isManualMode && (
         <div className="mt-2 p-2 bg-gold-100 border-2 border-gold-500 rounded text-center animate-wax-pop">
           <div className="flex items-center justify-center gap-1 text-xs font-bold text-gold-800 uppercase tracking-widest mb-0.5">
             <CheckCircle2 className="w-4 h-4 text-gold-700" /> Silueta Revelada: {revealTitle}

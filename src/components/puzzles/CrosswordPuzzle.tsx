@@ -9,9 +9,17 @@ interface CrosswordProps {
   onSolve: () => void;
   isSolved: boolean;
   hints: string[];
+  gameMode?: 'auto' | 'manual';
 }
 
-export const CrosswordPuzzle: React.FC<CrosswordProps> = ({ config, onSolve, isSolved, hints }) => {
+export const CrosswordPuzzle: React.FC<CrosswordProps> = ({
+  config,
+  onSolve,
+  isSolved,
+  hints,
+  gameMode = 'auto',
+}) => {
+  const isManualMode = gameMode === 'manual';
   const { rows, cols, grid, entries, secretHighlightCells = [], secretWord, secretMeaning } = config;
 
   const [userGrid, setUserGrid] = useState<(string | null)[][]>(() =>
@@ -190,7 +198,7 @@ export const CrosswordPuzzle: React.FC<CrosswordProps> = ({ config, onSolve, isS
           </button>
         </div>
         <div className="flex items-center gap-1.5">
-          {hints.length > 0 && (
+          {!isManualMode && hints.length > 0 && (
             <button
               type="button"
               onClick={() => {
@@ -218,7 +226,7 @@ export const CrosswordPuzzle: React.FC<CrosswordProps> = ({ config, onSolve, isS
         </div>
       </div>
 
-      {showHint && (
+      {!isManualMode && showHint && (
         <div className="p-2 mb-1.5 text-xs rounded border border-gold-400 bg-gold-100/70 text-ink-800">
           <strong>Pista de Azlynn:</strong> {hints[activeHintIdx]}
         </div>
@@ -347,7 +355,7 @@ export const CrosswordPuzzle: React.FC<CrosswordProps> = ({ config, onSolve, isS
       </div>
 
       {/* Casillas Clave para descubrir la palabra oculta */}
-      {secretHighlightCells.length > 0 && (
+      {!isManualMode && secretHighlightCells.length > 0 && (
         <div className="mt-1.5 px-2.5 py-1.5 bg-parchment-200/85 border border-gold-500/70 rounded flex flex-wrap items-center justify-between gap-2 shrink-0">
           <span className="text-[10px] font-mono uppercase tracking-wider font-bold text-ink-800 inline-flex items-center gap-1">
             <KeyRound className="w-3.5 h-3.5 text-crimson-800" />
@@ -373,7 +381,7 @@ export const CrosswordPuzzle: React.FC<CrosswordProps> = ({ config, onSolve, isS
         </div>
       )}
 
-      {isSolved && (
+      {isSolved && !isManualMode && (
         <div className="mt-1.5 p-2 bg-gold-100 border-2 border-gold-500 rounded text-center animate-wax-pop">
           <div className="flex items-center justify-center gap-1 text-xs font-bold text-gold-800 uppercase tracking-widest mb-0.5">
             <CheckCircle2 className="w-4 h-4 text-gold-700" /> Crucigrama Completado

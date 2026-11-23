@@ -53,6 +53,7 @@ export const SuspectsAlbum: React.FC<SuspectsAlbumProps> = ({ onStartAdventure }
     unlockedClues,
     openedDoors,
     activeCase,
+    gameMode,
   } = useGameStore();
 
   const [searchQuery, setSearchQuery] = useState('');
@@ -79,7 +80,14 @@ export const SuspectsAlbum: React.FC<SuspectsAlbumProps> = ({ onStartAdventure }
 
     const list: Array<DirectorySuspect & { status: SuspectStatusResult }> = [];
     for (const s of SUSPECTS_DIRECTORY) {
-      const status = computeSuspectStatus(s, manualEliminations, unlockedClues, activeCase, openedDoors);
+      const status = computeSuspectStatus(
+        s,
+        manualEliminations,
+        unlockedClues,
+        activeCase,
+        openedDoors,
+        gameMode
+      );
       if (catMap[s.category]) {
         catMap[s.category].total++;
         if (!status.isEliminated) {
@@ -100,12 +108,19 @@ export const SuspectsAlbum: React.FC<SuspectsAlbumProps> = ({ onStartAdventure }
       eliminatedCount: eliminated,
       categoryStats: catMap,
     };
-  }, [manualEliminations, unlockedClues, activeCase, openedDoors]);
+  }, [manualEliminations, unlockedClues, activeCase, openedDoors, gameMode]);
 
   const selectedStatus = useMemo(() => {
     if (!selectedSuspect) return null;
-    return computeSuspectStatus(selectedSuspect, manualEliminations, unlockedClues, activeCase, openedDoors);
-  }, [selectedSuspect, manualEliminations, unlockedClues, activeCase, openedDoors]);
+    return computeSuspectStatus(
+      selectedSuspect,
+      manualEliminations,
+      unlockedClues,
+      activeCase,
+      openedDoors,
+      gameMode
+    );
+  }, [selectedSuspect, manualEliminations, unlockedClues, activeCase, openedDoors, gameMode]);
 
   // Estado de la fotografía sujeta con clip dentro del expediente
   const [isPhotoAside, setIsPhotoAside] = useState(false);
@@ -329,15 +344,28 @@ export const SuspectsAlbum: React.FC<SuspectsAlbumProps> = ({ onStartAdventure }
           <span className="truncate text-ink-600 uppercase tracking-tight">{s.category}</span>
           <button
             type="button"
+            disabled={Boolean(s.status.isVictim)}
             onClick={e => {
               e.stopPropagation();
               toggleManualElimination(s.id);
             }}
-            className={`p-1 rounded hover:bg-parchment-300 text-ink-600 hover:text-ink-950 transition shrink-0 ${
+            className={`p-1 rounded hover:bg-parchment-300 text-ink-600 hover:text-ink-950 disabled:opacity-40 disabled:cursor-not-allowed transition shrink-0 ${
               s.status.isManual ? 'text-crimson-800' : ''
             }`}
-            title={s.status.isManual ? 'Quitar descarte manual' : 'Tachar manualmente'}
-            aria-label={s.status.isManual ? 'Quitar descarte manual' : 'Tachar manualmente'}
+            title={
+              s.status.isVictim
+                ? 'Víctima fallecida (tachado automático)'
+                : s.status.isManual
+                ? 'Quitar descarte manual'
+                : 'Tachar manualmente'
+            }
+            aria-label={
+              s.status.isVictim
+                ? 'Víctima fallecida'
+                : s.status.isManual
+                ? 'Quitar descarte manual'
+                : 'Tachar manualmente'
+            }
           >
             {isEliminated ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
           </button>
@@ -782,7 +810,9 @@ export const SuspectsAlbum: React.FC<SuspectsAlbumProps> = ({ onStartAdventure }
                 <div className="mt-2 flex flex-wrap items-center gap-2">
                   {selectedStatus?.isEliminated ? (
                     <span className="inline-block px-2 py-0.5 bg-crimson-800 text-parchment-50 font-mono text-[9px] font-bold uppercase tracking-wider">
-                      {selectedStatus.dayEliminated
+                      {selectedStatus.isVictim
+                        ? `Fallecido · Acto ${selectedStatus.victimAct}`
+                        : selectedStatus.dayEliminated
                         ? `Exculpado · Día ${selectedStatus.dayEliminated}`
                         : 'Descartado manualmente'}
                     </span>
@@ -878,13 +908,19 @@ export const SuspectsAlbum: React.FC<SuspectsAlbumProps> = ({ onStartAdventure }
               </div>
 
               <div className="pt-2.5 flex justify-between items-center border-t border-[#c8bfae]">
-                <button
-                  type="button"
-                  onClick={() => toggleManualElimination(selectedSuspect.id)}
-                  className="text-xs font-desc font-semibold text-crimson-800 hover:text-crimson-950 underline"
-                >
-                  {selectedStatus?.isManual ? 'Deshacer tacha manual' : 'Tachar con lápiz del detective'}
-                </button>
+                {selectedStatus?.isVictim ? (
+                  <span className="text-xs font-mono uppercase tracking-wider text-crimson-800 font-semibold">
+                    Víctima fallecida (tachado automático)
+                  </span>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => toggleManualElimination(selectedSuspect.id)}
+                    className="text-xs font-desc font-semibold text-crimson-800 hover:text-crimson-950 underline"
+                  >
+                    {selectedStatus?.isManual ? 'Deshacer tacha manual' : 'Tachar con lápiz del detective'}
+                  </button>
+                )}
 
                 <button
                   type="button"

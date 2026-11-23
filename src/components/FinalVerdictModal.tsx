@@ -1,8 +1,12 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { WEAPONS, LOCATIONS } from '../data/narrativeBible';
 import { SUSPECTS_DIRECTORY } from '../data/suspectsDirectory';
-import { useGameStore } from '../store/useGameStore';
-import { evaluateCaseClues } from '../engine/caseGenerator';
+import {
+  computeRoomStatus,
+  computeSuspectStatus,
+  computeWeaponStatus,
+  useGameStore,
+} from '../store/useGameStore';
 import { sound } from '../utils/soundEffects';
 import type { VerdictResult } from '../types/game';
 import {
@@ -33,9 +37,13 @@ export const FinalVerdictModal: React.FC<FinalVerdictModalProps> = ({ onClose })
     activeCase,
     completedDays,
     unlockedClues,
+    openedDoors,
+    gameMode,
+    manualEliminations,
+    manualWeaponEliminations,
+    manualRoomEliminations,
     verifyVerdict,
     startNewCase,
-    getSuspectStatus,
   } = useGameStore();
 
   const [selectedSuspect, setSelectedSuspect] = useState<string>('');
@@ -53,16 +61,51 @@ export const FinalVerdictModal: React.FC<FinalVerdictModalProps> = ({ onClose })
     };
   }, []);
 
-  const clueEval = useMemo(() => evaluateCaseClues(unlockedClues), [unlockedClues]);
-  const matchingSuspectSet = useMemo(() => new Set(clueEval.matchingSuspectIds), [clueEval]);
-  const matchingWeaponSet = useMemo(() => new Set(clueEval.matchingWeaponIds), [clueEval]);
-  const matchingRoomSet = useMemo(() => new Set(clueEval.matchingRoomIds), [clueEval]);
+  const suspectStatusMap = useMemo(() => {
+    const map = new Map<string, ReturnType<typeof computeSuspectStatus>>();
+    for (const s of SUSPECTS_DIRECTORY) {
+      map.set(
+        s.id,
+        computeSuspectStatus(s, manualEliminations, unlockedClues, activeCase, openedDoors, gameMode)
+      );
+    }
+    return map;
+  }, [manualEliminations, unlockedClues, activeCase, openedDoors, gameMode]);
+
+  const weaponStatusMap = useMemo(() => {
+    const map = new Map<string, ReturnType<typeof computeWeaponStatus>>();
+    for (const w of WEAPONS) {
+      map.set(w.id, computeWeaponStatus(w.id, manualWeaponEliminations, unlockedClues, gameMode));
+    }
+    return map;
+  }, [manualWeaponEliminations, unlockedClues, gameMode]);
+
+  const roomStatusMap = useMemo(() => {
+    const map = new Map<string, ReturnType<typeof computeRoomStatus>>();
+    for (const l of LOCATIONS) {
+      map.set(l.id, computeRoomStatus(l.id, manualRoomEliminations, unlockedClues, gameMode));
+    }
+    return map;
+  }, [manualRoomEliminations, unlockedClues, gameMode]);
+
+  const compatibleSuspectCount = useMemo(
+    () => SUSPECTS_DIRECTORY.filter(s => !suspectStatusMap.get(s.id)?.isEliminated).length,
+    [suspectStatusMap]
+  );
+  const compatibleWeaponCount = useMemo(
+    () => WEAPONS.filter(w => !weaponStatusMap.get(w.id)?.isEliminated).length,
+    [weaponStatusMap]
+  );
+  const compatibleRoomCount = useMemo(
+    () => LOCATIONS.filter(l => !roomStatusMap.get(l.id)?.isEliminated).length,
+    [roomStatusMap]
+  );
 
   const filteredSuspects = useMemo(() => {
     const q = suspectSearch.trim().toLowerCase();
     return SUSPECTS_DIRECTORY.filter(s => {
       if (suspectCategory !== 'all' && s.category !== suspectCategory) return false;
-      if (onlyActiveSuspects && (!matchingSuspectSet.has(s.id) || getSuspectStatus(s).isEliminated)) {
+      if (onlyActiveSuspects && suspectStatusMap.get(s.id)?.isEliminated) {
         return false;
       }
       if (!q) return true;
@@ -74,7 +117,7 @@ export const FinalVerdictModal: React.FC<FinalVerdictModalProps> = ({ onClose })
         `#${numStr}`.includes(q)
       );
     });
-  }, [suspectSearch, suspectCategory, onlyActiveSuspects, matchingSuspectSet, getSuspectStatus]);
+  }, [suspectSearch, suspectCategory, onlyActiveSuspects, suspectStatusMap]);
 
   const selectedSuspectObj = SUSPECTS_DIRECTORY.find(s => s.id === selectedSuspect);
   const selectedWeaponObj = WEAPONS.find(w => w.id === selectedWeapon);
@@ -196,9 +239,9 @@ export const FinalVerdictModal: React.FC<FinalVerdictModalProps> = ({ onClose })
                       Advertencia Sumarial • Pruebas Incompletas ({unlockedClues.length}/{totalDays})
                     </span>
                     Actualmente quedan compatibles{' '}
-                    <strong>{clueEval.matchingSuspectIds.length} sospechosos</strong>,{' '}
-                    <strong>{clueEval.matchingWeaponIds.length} armas</strong> y{' '}
-                    <strong>{clueEval.matchingRoomIds.length} estancias</strong>. Acusar antes de reunir el 100% de las pruebas puede provocar un error judicial irreparable.
+                    <strong>{compatibleSuspectCount} sospechosos</strong>,{' '}
+                    <strong>{compatibleWeaponCount} armas</strong> y{' '}
+                    <strong>{compatibleRoomCount} estancias</strong>. Acusar antes de reunir el 100% de las pruebas puede provocar un error judicial irreparable.
                   </div>
                 </div>
               )}
@@ -250,7 +293,7 @@ export const FinalVerdictModal: React.FC<FinalVerdictModalProps> = ({ onClose })
                         : 'bg-parchment-50 text-ink-800 border-[#b5ab96] hover:bg-white'
                     }`}
                   >
-                    Compatibles ({clueEval.matchingSuspectIds.length})
+                    Compatibles ({compatibleSuspectCount})
                   </button>
                 </div>
 
@@ -260,7 +303,7 @@ export const FinalVerdictModal: React.FC<FinalVerdictModalProps> = ({ onClose })
                 >
                   {filteredSuspects.map(s => {
                     const isSelected = selectedSuspect === s.id;
-                    const isCompatible = matchingSuspectSet.has(s.id);
+                    const isCompatible = !suspectStatusMap.get(s.id)?.isEliminated;
                     return (
                       <button
                         type="button"
@@ -327,7 +370,7 @@ export const FinalVerdictModal: React.FC<FinalVerdictModalProps> = ({ onClose })
                 <div data-testid="verdict-weapon-section" className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                   {WEAPONS.map(w => {
                     const isSelected = selectedWeapon === w.id;
-                    const isCompatible = matchingWeaponSet.has(w.id);
+                    const isCompatible = !weaponStatusMap.get(w.id)?.isEliminated;
                     return (
                       <button
                         type="button"
@@ -393,7 +436,7 @@ export const FinalVerdictModal: React.FC<FinalVerdictModalProps> = ({ onClose })
                 <div data-testid="verdict-room-section" className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                   {LOCATIONS.map(l => {
                     const isSelected = selectedLocation === l.id;
-                    const isCompatible = matchingRoomSet.has(l.id);
+                    const isCompatible = !roomStatusMap.get(l.id)?.isEliminated;
                     return (
                       <button
                         type="button"

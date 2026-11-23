@@ -9,9 +9,17 @@ interface FutoshikiProps {
   onSolve: () => void;
   isSolved: boolean;
   hints: string[];
+  gameMode?: 'auto' | 'manual';
 }
 
-export const FutoshikiPuzzle: React.FC<FutoshikiProps> = ({ config, onSolve, isSolved, hints }) => {
+export const FutoshikiPuzzle: React.FC<FutoshikiProps> = ({
+  config,
+  onSolve,
+  isSolved,
+  hints,
+  gameMode = 'auto',
+}) => {
+  const isManualMode = gameMode === 'manual';
   const { size, initialGrid, solution, inequalities, keyCells, secretCodeMeaning } = config;
 
   const [grid, setGrid] = useState<(number | null)[][]>(() =>
@@ -134,7 +142,7 @@ export const FutoshikiPuzzle: React.FC<FutoshikiProps> = ({ config, onSolve, isS
               <AlertTriangle className="w-3 h-3" /> Inconsistencia
             </span>
           )}
-          {hints.length > 0 && (
+          {!isManualMode && hints.length > 0 && (
             <button
               type="button"
               onClick={() => {
@@ -162,7 +170,7 @@ export const FutoshikiPuzzle: React.FC<FutoshikiProps> = ({ config, onSolve, isS
         </div>
       </div>
 
-      {showHint && (
+      {!isManualMode && showHint && (
         <div className="p-2 mb-2 text-xs rounded border border-gold-400 bg-gold-100/70 text-ink-800">
           <strong>Pista de Azlynn:</strong> {hints[activeHintIdx]}
         </div>
@@ -208,7 +216,12 @@ export const FutoshikiPuzzle: React.FC<FutoshikiProps> = ({ config, onSolve, isS
                         }`}
                       >
                         {isKeyCell && (
-                          <KeyRound className="w-2.5 h-2.5 text-gold-700 absolute top-0.5 right-0.5 pointer-events-none" />
+                          <>
+                            <span className="absolute top-0 left-0.5 text-[8px] font-mono font-black text-gold-900 leading-none pointer-events-none">
+                              {keyOrder}
+                            </span>
+                            <KeyRound className="w-2.5 h-2.5 text-gold-700 absolute top-0.5 right-0.5 pointer-events-none" />
+                          </>
                         )}
                         {val ?? ''}
                       </button>
@@ -279,7 +292,7 @@ export const FutoshikiPuzzle: React.FC<FutoshikiProps> = ({ config, onSolve, isS
         </div>
       </div>
 
-      {isSolved && (
+      {isSolved && !isManualMode && (
         <div className="mt-2 p-2 bg-gold-100 border-2 border-gold-500 rounded text-center animate-wax-pop">
           <div className="flex items-center justify-center gap-1 text-xs font-bold text-gold-800 uppercase tracking-widest mb-0.5">
             <CheckCircle2 className="w-4 h-4 text-gold-700" /> Futoshiki Resuelto

@@ -282,6 +282,23 @@ function normalizeManualInput(raw: string): string {
   return toPuzzleText(raw).replace(/\s+/g, ' ').trim();
 }
 
+const NONOGRAM_VISUAL_SYNONYMS: Record<string, readonly string[]> = {
+  'LLAVE MAESTRA': ['LLAVE', 'LLAVERO', 'LLAVE ANTIGUA'],
+  'FRASCO DE VENENO': [
+    'BOTELLA',
+    'BOTELLA DE VENENO',
+    'BOTELLIN',
+    'AMPOLLA',
+    'AMPOLLETA',
+    'POCION',
+    'POMO',
+  ],
+  'DAGA DE PLATA': ['PUÑAL', 'PUNAL', 'CUCHILLO', 'ESPADA', 'ESTILETE', 'NAVAJA'],
+  'RELOJ DE ARENA': ['RELOJ', 'CLEPSIDRA', 'TEMPORIZADOR'],
+  'CALIZ DE OPORTO': ['COPA', 'COPA DE OPORTO', 'COPA DE VINO', 'VASO', 'TROFEO'],
+  'SOBRE LACRADO': ['CARTA', 'SOBRE DE CARTA', 'MISIVA', 'CORRESPONDENCIA'],
+};
+
 /**
  * Determina para cada uno de los 14 tipos de juegos cuál es el resultado concreto
  * que el jugador descubre visualmente en el tablero y que debe transcribir en el Modo Manual.
@@ -296,15 +313,10 @@ export function getPuzzleManualVerificationSpec(
   switch (puzzle.type) {
     case 'wordsearch': {
       const msg = normalizeManualInput(puzzle.config.leftoverMessage);
-      const wordCount = msg.split(' ').filter(Boolean).length;
-      const letterCount = msg.replace(/\s+/g, '').length;
       return {
         promptLabel:
           'Lee en orden las casillas doradas numeradas que quedaron libres en la cuadrícula y transcribe la clave descubierta:',
-        formatHint:
-          wordCount > 1
-            ? `${wordCount} palabras (${letterCount} letras en casillas doradas)`
-            : `Palabra de ${letterCount} letras`,
+        formatHint: 'Palabra o frase de las casillas doradas',
         expectedDisplay: msg,
         acceptedAnswers: [msg, msg.replace(/\s+/g, ''), ...clueNouns, clueKey].filter(Boolean),
       };
@@ -315,7 +327,7 @@ export function getPuzzleManualVerificationSpec(
       return {
         promptLabel:
           'Lee en orden las casillas clave doradas (numeradas) del crucigrama y escribe la palabra secreta formada:',
-        formatHint: `Palabra clave de ${secret.length} letras`,
+        formatHint: 'Palabra de las casillas clave doradas',
         expectedDisplay: secret,
         acceptedAnswers: [secret, clueKey, ...clueNouns].filter(Boolean),
       };
@@ -325,8 +337,8 @@ export function getPuzzleManualVerificationSpec(
       const secret = normalizeManualInput(puzzle.config.secretWord);
       return {
         promptLabel:
-          'Escribe la palabra secreta formada verticalmente por las 7 casillas sombreadas del Septagrama:',
-        formatHint: `Palabra de ${secret.length} letras`,
+          'Escribe la palabra secreta formada verticalmente por las casillas sombreadas del Septagrama:',
+        formatHint: 'Palabra de las casillas sombreadas',
         expectedDisplay: secret,
         acceptedAnswers: [secret, clueKey].filter(Boolean),
       };
@@ -337,7 +349,7 @@ export function getPuzzleManualVerificationSpec(
       return {
         promptLabel:
           'Lee en orden las casillas sombreadas de Encajados y escribe la palabra clave resultante:',
-        formatHint: `Palabra de ${secret.length} letras`,
+        formatHint: 'Palabra de las casillas sombreadas',
         expectedDisplay: secret,
         acceptedAnswers: [secret, clueKey, ...clueNouns].filter(Boolean),
       };
@@ -350,8 +362,8 @@ export function getPuzzleManualVerificationSpec(
         .join('');
       return {
         promptLabel:
-          'Transcribe la clave pericial desbloqueada al ensamblar las palabras largas del sumario:',
-        formatHint: `Clave: «${secret}»`,
+          'Lee en orden las sílabas destacadas en dorado de las palabras ensambladas y transcribe la clave resultante:',
+        formatHint: 'Secuencia de sílabas doradas',
         expectedDisplay: secret,
         acceptedAnswers: [secret, secret.replace(/\s+/g, ''), highlighted, ...clueNouns].filter(Boolean),
       };
@@ -362,8 +374,8 @@ export function getPuzzleManualVerificationSpec(
       const firstWords = full.split(' ').slice(0, 3).join(' ');
       return {
         promptLabel:
-          'Escribe las primeras palabras clave (o la frase) que acabas de descifrar en el criptograma:',
-        formatHint: `Inicio del mensaje descifrado (${firstWords.split(' ').length} palabras)`,
+          'Escribe las primeras palabras o la frase completa que acabas de descifrar en el criptograma:',
+        formatHint: 'Texto descifrado del criptograma',
         expectedDisplay: firstWords,
         acceptedAnswers: [firstWords, full, clueKey, ...clueNouns].filter(Boolean),
       };
@@ -373,8 +385,8 @@ export function getPuzzleManualVerificationSpec(
       const code = puzzle.config.secretCode.join('');
       return {
         promptLabel:
-          'Confirma escribiendo el código numérico de 4 cifras deducido de las 5 pistas lógicas:',
-        formatHint: 'Código de 4 cifras (ej. 1924)',
+          'Confirma escribiendo el código numérico deducido en el marcador superior:',
+        formatHint: 'Código numérico del marcador',
         expectedDisplay: code,
         acceptedAnswers: [code],
       };
@@ -384,8 +396,8 @@ export function getPuzzleManualVerificationSpec(
       const code = puzzle.config.targetCode.join('');
       return {
         promptLabel:
-          'Confirma escribiendo las 4 cifras obtenidas para los símbolos del marcador superior:',
-        formatHint: 'Código de 4 cifras (ej. 2345)',
+          'Confirma escribiendo las cifras obtenidas para los símbolos del marcador superior:',
+        formatHint: 'Código numérico del marcador',
         expectedDisplay: code,
         acceptedAnswers: [code],
       };
@@ -397,8 +409,8 @@ export function getPuzzleManualVerificationSpec(
         .join('');
       return {
         promptLabel:
-          'Lee en orden las 4 casillas clave doradas (marcadas con llave 1 a 4) del Sudoku y escribe el código de 4 cifras:',
-        formatHint: 'Código de 4 cifras de las casillas con llave',
+          'Lee en orden las casillas clave doradas (marcadas con llave 1 a 4) del Sudoku y escribe el código resultante:',
+        formatHint: 'Código numérico de las casillas con llave',
         expectedDisplay: code,
         acceptedAnswers: [code],
       };
@@ -410,8 +422,8 @@ export function getPuzzleManualVerificationSpec(
         .join('');
       return {
         promptLabel:
-          'Lee en orden las 4 casillas clave doradas (marcadas con llave 1 a 4) del Futoshiki y escribe el código de 4 cifras:',
-        formatHint: 'Código de 4 cifras de las casillas con llave',
+          'Lee en orden las casillas clave doradas (marcadas con llave 1 a 4) del Futoshiki y escribe el código resultante:',
+        formatHint: 'Código numérico de las casillas con llave',
         expectedDisplay: code,
         acceptedAnswers: [code],
       };
@@ -421,12 +433,13 @@ export function getPuzzleManualVerificationSpec(
       const title = normalizeManualInput(puzzle.config.revealTitle);
       return {
         promptLabel:
-          'Escribe el nombre de la prueba o silueta revelada en el lienzo del Nonograma:',
-        formatHint: `Objeto revelado: «${puzzle.config.revealTitle}»`,
+          'Escribe el nombre del objeto o silueta revelada en el lienzo del Nonograma:',
+        formatHint: 'Nombre de la figura revelada',
         expectedDisplay: title,
         acceptedAnswers: [
           title,
           ...title.split(' ').filter(w => w.length >= 4),
+          ...(NONOGRAM_VISUAL_SYNONYMS[title] ?? []),
           clueKey,
           ...clueNouns,
         ].filter(Boolean),
@@ -437,11 +450,13 @@ export function getPuzzleManualVerificationSpec(
       const display = clueKey || normalizeManualInput(puzzle.config.groups[0].category);
       return {
         promptLabel:
-          'Escribe la clave forense vinculada a las 4 categorías que acabas de clasificar:',
-        formatHint: `Clave forense: «${display}»`,
+          'Escribe el nombre de cualquiera de las categorías agrupadas en el tablero (o el hallazgo vinculado):',
+        formatHint: 'Categoría o hallazgo del tablero',
         expectedDisplay: display,
         acceptedAnswers: [
           display,
+          normalizeManualInput(clue.impact),
+          normalizeManualInput(puzzle.config.groups[0]?.category.split('·')[0] ?? ''),
           ...clueNouns,
           ...puzzle.config.groups.map(g => normalizeManualInput(g.category)),
         ].filter(Boolean),
@@ -453,9 +468,18 @@ export function getPuzzleManualVerificationSpec(
       const matchPair = puzzle.config.targetMatches.find(m => m.aId === firstA?.id);
       const matchedB = puzzle.config.groupB.items.find(b => b.id === matchPair?.bId);
       const matchedName = normalizeManualInput(matchedB?.name ?? clueKey);
+      const groupBFirstWord = puzzle.config.groupB.title.split(' ')[0].toLowerCase();
+      const groupBSingular =
+        groupBFirstWord === 'armas'
+          ? 'arma'
+          : groupBFirstWord === 'estancias'
+            ? 'estancia'
+            : groupBFirstWord === 'sospechosos'
+              ? 'sospechoso'
+              : groupBFirstWord;
       return {
         promptLabel: firstA
-          ? `Según tu matriz completada, escribe qué ${puzzle.config.groupB.title.split(' ')[0].toLowerCase()} corresponde a «${firstA.name}»:`
+          ? `Según tu matriz completada, escribe qué ${groupBSingular} corresponde a «${firstA.name}»:`
           : 'Escribe la asignación deducida en la matriz:',
         formatHint: matchedB ? `Asignación de ${firstA?.name}` : 'Término deducido',
         expectedDisplay: matchedB?.name ?? displayFallback(clueKey),
@@ -474,8 +498,8 @@ export function getPuzzleManualVerificationSpec(
       const code = `${safeCount}${puzzle.config.mines.length < 10 ? `0${puzzle.config.mines.length}` : puzzle.config.mines.length}`;
       return {
         promptLabel:
-          `Escribe el código de despeje perimetral (${safeCount} sectores seguros + ${puzzle.config.mines.length < 10 ? `0${puzzle.config.mines.length}` : puzzle.config.mines.length} trampas = ${code}) o la clave hallada:`,
-        formatHint: `Código de 4 cifras (${code}) o clave «${clueKey}»`,
+          'Escribe el código formado por el total de casillas seguras seguido del número de minas (en dos dígitos):',
+        formatHint: 'Código numérico (seguras + minas en dos dígitos)',
         expectedDisplay: code,
         acceptedAnswers: [code, String(safeCount), clueKey, ...clueNouns].filter(Boolean),
       };

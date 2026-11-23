@@ -9,6 +9,7 @@ interface EncajadosProps {
   onSolve: () => void;
   isSolved: boolean;
   hints: string[];
+  gameMode?: 'auto' | 'manual';
 }
 
 export const EncajadosPuzzle: React.FC<EncajadosProps> = ({
@@ -16,7 +17,9 @@ export const EncajadosPuzzle: React.FC<EncajadosProps> = ({
   onSolve,
   isSolved,
   hints,
+  gameMode = 'auto',
 }) => {
+  const isManualMode = gameMode === 'manual';
   const { rows, cols, grid, slots, wordBank, givenCells, keyCells, secretWord, secretMeaning } =
     config;
 
@@ -233,7 +236,7 @@ export const EncajadosPuzzle: React.FC<EncajadosProps> = ({
           )}
         </div>
         <div className="flex items-center gap-1.5">
-          {hints.length > 0 && (
+          {!isManualMode && hints.length > 0 && (
             <button
               type="button"
               onClick={() => {
@@ -261,7 +264,7 @@ export const EncajadosPuzzle: React.FC<EncajadosProps> = ({
         </div>
       </div>
 
-      {showHint && (
+      {!isManualMode && showHint && (
         <div className="p-2 mb-1.5 text-xs rounded border border-gold-400 bg-gold-100/70 text-ink-800">
           <strong>Pista de Azlynn:</strong> {hints[activeHintIdx]}
         </div>
@@ -361,30 +364,32 @@ export const EncajadosPuzzle: React.FC<EncajadosProps> = ({
       </div>
 
       {/* Casillas sombreadas inferiores que descubren la palabra oculta */}
-      <div className="mt-1.5 px-2.5 py-1.5 bg-parchment-200/90 border border-ink-800/40 rounded flex items-center justify-between gap-2 shrink-0">
-        <div className="flex items-center gap-1 text-[10px] font-mono uppercase tracking-wider font-bold text-ink-800">
-          <span className="w-6 h-6 rounded bg-ink-900 text-parchment-50 flex items-center justify-center shrink-0">
-            <MapPin className="w-3.5 h-3.5 text-gold-300" />
-          </span>
-          <span>Casillas sombreadas:</span>
+      {!isManualMode && (
+        <div className="mt-1.5 px-2.5 py-1.5 bg-parchment-200/90 border border-ink-800/40 rounded flex items-center justify-between gap-2 shrink-0">
+          <div className="flex items-center gap-1 text-[10px] font-mono uppercase tracking-wider font-bold text-ink-800">
+            <span className="w-6 h-6 rounded bg-ink-900 text-parchment-50 flex items-center justify-center shrink-0">
+              <MapPin className="w-3.5 h-3.5 text-gold-300" />
+            </span>
+            <span>Casillas sombreadas:</span>
+          </div>
+          <div className="flex items-center gap-1">
+            {keyCells.map((pos, idx) => {
+              const ch = displayGrid[pos.r]?.[pos.c] || '';
+              return (
+                <div
+                  key={`${pos.r}-${pos.c}-${idx}`}
+                  className="w-6 h-6 rounded-sm bg-ink-800/25 border-2 border-ink-900 flex items-center justify-center font-mono text-xs font-black text-crimson-950"
+                  title={`Casilla sombreada ${idx + 1}`}
+                >
+                  {ch || '·'}
+                </div>
+              );
+            })}
+          </div>
         </div>
-        <div className="flex items-center gap-1">
-          {keyCells.map((pos, idx) => {
-            const ch = displayGrid[pos.r]?.[pos.c] || '';
-            return (
-              <div
-                key={`${pos.r}-${pos.c}-${idx}`}
-                className="w-6 h-6 rounded-sm bg-ink-800/25 border-2 border-ink-900 flex items-center justify-center font-mono text-xs font-black text-crimson-950"
-                title={`Casilla sombreada ${idx + 1}`}
-              >
-                {ch || '·'}
-              </div>
-            );
-          })}
-        </div>
-      </div>
+      )}
 
-      {isSolved && (
+      {isSolved && !isManualMode && (
         <div className="mt-1.5 p-2 bg-gold-100 border-2 border-gold-500 rounded text-center animate-wax-pop">
           <div className="flex items-center justify-center gap-1 text-xs font-bold text-gold-800 uppercase tracking-widest mb-0.5">
             <CheckCircle2 className="w-4 h-4 text-gold-700" /> Encajados Completado: {secretWord}

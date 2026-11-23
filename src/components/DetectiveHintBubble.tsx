@@ -164,10 +164,14 @@ export const DetectiveHintBubble: React.FC<DetectiveHintBubbleProps> = ({
 }) => {
   const totalDays = useGameStore(state => state.totalDays);
   const caseSeed = useGameStore(state => state.caseSeed);
+  const gameMode = useGameStore(state => state.gameMode);
   const startNewCase = useGameStore(state => state.startNewCase);
   const resetGame = useGameStore(state => state.resetGame);
   const [isRadialOpen, setIsRadialOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState<'hints' | 'dialogue' | 'status' | null>(null);
+  const [tabState, setTabState] = useState<{
+    tab: 'hints' | 'dialogue' | 'status';
+    wasAlbum: boolean;
+  } | null>(null);
   const [dialogueIdx, setDialogueIdx] = useState(0);
   const [hintState, setHintState] = useState<{ day: number; completed: boolean; index: number }>({
     day: currentDay,
@@ -178,7 +182,18 @@ export const DetectiveHintBubble: React.FC<DetectiveHintBubbleProps> = ({
     hintState.day === currentDay && hintState.completed === isDayCompleted ? hintState.index : 0;
   const [desktopPos, setDesktopPos] = useState<DesktopBubblePos | null>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
-  const isOpen = isRadialOpen || activeTab !== null;
+  const hidePuzzleHints = gameMode === 'manual' && !isAlbum;
+  const activeTab =
+    tabState &&
+    !(hidePuzzleHints && tabState.tab === 'hints') &&
+    !(tabState.tab === 'hints' && tabState.wasAlbum !== isAlbum)
+      ? tabState.tab
+      : null;
+  const setActiveTab = (tab: 'hints' | 'dialogue' | 'status' | null) => {
+    setTabState(tab ? { tab, wasAlbum: isAlbum } : null);
+  };
+  const effectiveActiveTab = hidePuzzleHints && activeTab === 'hints' ? null : activeTab;
+  const isOpen = isRadialOpen || effectiveActiveTab !== null;
 
   const hints = useMemo<HintEntry[]>(() => {
     if (isAlbum) {
@@ -211,6 +226,10 @@ export const DetectiveHintBubble: React.FC<DetectiveHintBubbleProps> = ({
       );
 
       return albumHints;
+    }
+
+    if (gameMode === 'manual') {
+      return [];
     }
 
     if (!isDayCompleted) {
@@ -261,6 +280,7 @@ export const DetectiveHintBubble: React.FC<DetectiveHintBubbleProps> = ({
     return solvedHints;
   }, [
     isAlbum,
+    gameMode,
     isDayCompleted,
     dayData,
     completedDays.length,
@@ -333,7 +353,7 @@ export const DetectiveHintBubble: React.FC<DetectiveHintBubbleProps> = ({
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
         setIsRadialOpen(false);
-        setActiveTab(null);
+        setTabState(null);
       }
     };
 
@@ -346,7 +366,7 @@ export const DetectiveHintBubble: React.FC<DetectiveHintBubbleProps> = ({
   const handleDetectiveClick = () => {
     sound.playClick();
     updateDesktopPosition();
-    if (isRadialOpen || activeTab !== null) {
+    if (isRadialOpen || effectiveActiveTab !== null) {
       setIsRadialOpen(false);
       setActiveTab(null);
     } else {
@@ -355,6 +375,7 @@ export const DetectiveHintBubble: React.FC<DetectiveHintBubbleProps> = ({
   };
 
   const handleNextHint = () => {
+    if (hints.length === 0) return;
     sound.playClick();
     setHintState(prev => {
       const currentIdx =
@@ -376,9 +397,9 @@ export const DetectiveHintBubble: React.FC<DetectiveHintBubbleProps> = ({
   const activeDialogue = AZLYNN_DIALOGUES[dialogueIdx % AZLYNN_DIALOGUES.length];
 
   const currentMood: AzlynnMood =
-    activeTab === 'dialogue'
+    effectiveActiveTab === 'dialogue'
       ? activeDialogue.mood
-      : activeTab === 'status'
+      : effectiveActiveTab === 'status'
       ? completedDays.length >= totalDays
         ? 'feliz'
         : 'angustiada'
@@ -450,7 +471,7 @@ export const DetectiveHintBubble: React.FC<DetectiveHintBubbleProps> = ({
                 </span>
               </button>
 
-              {/* 4 nodos compactos orbitando alrededor del retrato grande */}
+              {/* Nodos compactos orbitando alrededor del retrato grande */}
               {[
                 {
                   id: 'hints' as const,
@@ -501,7 +522,9 @@ export const DetectiveHintBubble: React.FC<DetectiveHintBubbleProps> = ({
                     setActiveTab(null);
                   },
                 },
-              ].map(node => (
+              ]
+                .filter(node => !(hidePuzzleHints && node.id === 'hints'))
+                .map(node => (
                 <button
                   key={node.id}
                   type="button"
@@ -521,7 +544,7 @@ export const DetectiveHintBubble: React.FC<DetectiveHintBubbleProps> = ({
         )}
 
       {/* Panel activo elegido desde el Menú Radial */}
-      {activeTab !== null &&
+      {effectiveActiveTab !== null &&
         typeof document !== 'undefined' &&
         createPortal(
           <div
@@ -566,9 +589,9 @@ export const DetectiveHintBubble: React.FC<DetectiveHintBubbleProps> = ({
                       Detective de Homicidios Azlynn
                     </span>
                     <span className="inline-block text-[10px] font-mono uppercase tracking-wider text-gold-800 font-bold">
-                      {activeTab === 'hints'
+                      {effectiveActiveTab === 'hints'
                         ? activeHint.tag
-                        : activeTab === 'dialogue'
+                        : effectiveActiveTab === 'dialogue'
                         ? `${activeDialogue.title} · ${MOOD_LABELS[activeDialogue.mood]}`
                         : `Estado del Cerco · ${MOOD_LABELS[currentMood]}`}
                     </span>
@@ -586,7 +609,7 @@ export const DetectiveHintBubble: React.FC<DetectiveHintBubbleProps> = ({
                 </button>
               </div>
 
-              {activeTab === 'hints' && (
+              {effectiveActiveTab === 'hints' && !hidePuzzleHints && (
                 <>
                   <p className="font-reading text-xs sm:text-[13px] leading-snug text-ink-900 break-words">
                     {activeHint.text}
@@ -609,7 +632,7 @@ export const DetectiveHintBubble: React.FC<DetectiveHintBubbleProps> = ({
                 </>
               )}
 
-              {activeTab === 'dialogue' && (
+              {effectiveActiveTab === 'dialogue' && (
                 <>
                   <div className="space-y-1.5 max-h-52 overflow-y-auto pr-1">
                     {activeDialogue.lines.map((line, i) => (
@@ -647,7 +670,7 @@ export const DetectiveHintBubble: React.FC<DetectiveHintBubbleProps> = ({
                 </>
               )}
 
-              {activeTab === 'status' && (
+              {effectiveActiveTab === 'status' && (
                 <div className="space-y-2 text-xs font-reading text-ink-900">
                   <p className="font-mono text-[10px] uppercase tracking-wider text-crimson-900">
                     Expediente activo #{caseSeed % 10000}

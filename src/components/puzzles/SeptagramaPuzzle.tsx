@@ -9,6 +9,7 @@ interface SeptagramaProps {
   onSolve: () => void;
   isSolved: boolean;
   hints: string[];
+  gameMode?: 'auto' | 'manual';
 }
 
 export const SeptagramaPuzzle: React.FC<SeptagramaProps> = ({
@@ -16,7 +17,9 @@ export const SeptagramaPuzzle: React.FC<SeptagramaProps> = ({
   onSolve,
   isSolved,
   hints,
+  gameMode = 'auto',
 }) => {
+  const isManualMode = gameMode === 'manual';
   const { centerLetter, outerLetters, words, secretWord, secretMeaning } = config;
 
   const [userWords, setUserWords] = useState<Record<string, string>>(() => {
@@ -125,7 +128,7 @@ export const SeptagramaPuzzle: React.FC<SeptagramaProps> = ({
           </span>
         </div>
         <div className="flex items-center gap-1.5">
-          {hints.length > 0 && (
+          {!isManualMode && hints.length > 0 && (
             <button
               type="button"
               onClick={() => {
@@ -162,7 +165,7 @@ export const SeptagramaPuzzle: React.FC<SeptagramaProps> = ({
         </div>
       </div>
 
-      {showHint && (
+      {!isManualMode && showHint && (
         <div className="p-2 mb-1.5 text-xs rounded border border-gold-400 bg-gold-100/70 text-ink-800">
           <strong>Pista de Azlynn:</strong> {hints[activeHintIdx]}
         </div>
@@ -288,31 +291,33 @@ export const SeptagramaPuzzle: React.FC<SeptagramaProps> = ({
       </div>
 
       {/* Barra inferior de casillas sombreadas que revelan la palabra secreta */}
-      <div className="mt-1.5 px-2.5 py-1.5 bg-parchment-200/90 border border-ink-800/40 rounded flex items-center justify-between gap-2 shrink-0">
-        <div className="flex items-center gap-1 text-[10px] font-mono uppercase tracking-wider font-bold text-ink-800">
-          <span className="w-6 h-6 rounded bg-ink-900 text-parchment-50 flex items-center justify-center shrink-0">
-            <MapPin className="w-3.5 h-3.5 text-gold-300" />
-          </span>
-          <span>Casillas sombreadas:</span>
+      {!isManualMode && (
+        <div className="mt-1.5 px-2.5 py-1.5 bg-parchment-200/90 border border-ink-800/40 rounded flex items-center justify-between gap-2 shrink-0">
+          <div className="flex items-center gap-1 text-[10px] font-mono uppercase tracking-wider font-bold text-ink-800">
+            <span className="w-6 h-6 rounded bg-ink-900 text-parchment-50 flex items-center justify-center shrink-0">
+              <MapPin className="w-3.5 h-3.5 text-gold-300" />
+            </span>
+            <span>Casillas sombreadas:</span>
+          </div>
+          <div className="flex items-center gap-1">
+            {words.map((w, idx) => {
+              const typed = displayWords[w.id] ?? '';
+              const ch = typed[w.highlightIndex] ?? '';
+              return (
+                <div
+                  key={w.id}
+                  className="w-6 h-6 sm:w-7 sm:h-7 rounded-sm bg-ink-800/25 border-2 border-ink-900 flex items-center justify-center font-mono text-xs font-black text-crimson-950"
+                  title={`Letra clave de palabra ${idx + 1}`}
+                >
+                  {ch || '·'}
+                </div>
+              );
+            })}
+          </div>
         </div>
-        <div className="flex items-center gap-1">
-          {words.map((w, idx) => {
-            const typed = displayWords[w.id] ?? '';
-            const ch = typed[w.highlightIndex] ?? '';
-            return (
-              <div
-                key={w.id}
-                className="w-6 h-6 sm:w-7 sm:h-7 rounded-sm bg-ink-800/25 border-2 border-ink-900 flex items-center justify-center font-mono text-xs font-black text-crimson-950"
-                title={`Letra clave de palabra ${idx + 1}`}
-              >
-                {ch || '·'}
-              </div>
-            );
-          })}
-        </div>
-      </div>
+      )}
 
-      {isSolved && (
+      {isSolved && !isManualMode && (
         <div className="mt-1.5 p-2 bg-gold-100 border-2 border-gold-500 rounded text-center animate-wax-pop">
           <div className="flex items-center justify-center gap-1 text-xs font-bold text-gold-800 uppercase tracking-widest mb-0.5">
             <CheckCircle2 className="w-4 h-4 text-gold-700" /> Septagrama Resuelto: {secretWord}

@@ -1,19 +1,23 @@
 import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
+import { createJSONStorage, persist, type StateStorage } from 'zustand/middleware';
 import type {
   Clue,
   ClueEvaluationResult,
   DirectorySuspect,
+  GameMode,
   GeneratedCase,
   MatrixCellState,
   VerdictResult,
 } from '../types/game';
+import { LOCATIONS, WEAPONS } from '../data/narrativeBible';
 import {
   TOTAL_DAYS,
   createRandomSeed,
   evaluateCaseClues,
   getCaseForSeed,
+  roomMatches,
   verifyCaseVerdict,
+  weaponMatches,
 } from '../engine/caseGenerator';
 import { sound } from '../utils/soundEffects';
 
@@ -26,14 +30,24 @@ export interface SuspectStatus {
   isManual: boolean;
 }
 
+export interface ElementStatus {
+  isEliminated: boolean;
+  isManual: boolean;
+  isAutoEliminated: boolean;
+}
+
+export type WeaponStatus = ElementStatus;
+export type RoomStatus = ElementStatus;
+
 export function computeSuspectStatus(
   suspect: DirectorySuspect,
   manualEliminations: readonly string[],
   unlockedClues: readonly Clue[],
   activeCase: GeneratedCase,
-  openedDoors: readonly number[] = []
+  openedDoors: readonly number[] = [],
+  gameMode: GameMode = 'auto'
 ): SuspectStatus {
-  // Si el personaje cayó como víctima al abrirse una Puerta (Actos II–V), se tacha automáticamente
+  // Si el personaje cayó como víctima al abrirse una Puerta (Actos II–V), se tacha automáticamente en ambos modos
   for (const actFile of activeCase.acts) {
     if (actFile.act >= 2 && openedDoors.includes(actFile.act) && actFile.victimId === suspect.id) {
       return {
@@ -47,16 +61,18 @@ export function computeSuspectStatus(
     }
   }
 
-  for (const clue of unlockedClues) {
-    const dayRecord = activeCase.days.find(d => d.day === clue.day);
-    const eliminated = dayRecord?.unlockedClue.autoEliminations?.suspectsEliminated ?? [];
-    if (eliminated.includes(suspect.id)) {
-      return {
-        isEliminated: true,
-        reason: `Descartado por la pista del Día ${clue.day}: ${clue.impact}`,
-        dayEliminated: clue.day,
-        isManual: false,
-      };
+  if (gameMode === 'auto') {
+    for (const clue of unlockedClues) {
+      const dayRecord = activeCase.days.find(d => d.day === clue.day);
+      const eliminated = dayRecord?.unlockedClue.autoEliminations?.suspectsEliminated ?? [];
+      if (eliminated.includes(suspect.id)) {
+        return {
+          isEliminated: true,
+          reason: `Descartado por la pista del Día ${clue.day}: ${clue.impact}`,
+          dayEliminated: clue.day,
+          isManual: false,
+        };
+      }
     }
   }
 
@@ -71,6 +87,50 @@ export function computeSuspectStatus(
   return {
     isEliminated: false,
     isManual: false,
+  };
+}
+
+export function computeWeaponStatus(
+  weaponId: string,
+  manualWeaponEliminations: readonly string[],
+  unlockedClues: readonly Clue[],
+  gameMode: GameMode = 'auto'
+): ElementStatus {
+  const isManual = manualWeaponEliminations.includes(weaponId);
+  let isAutoEliminated = false;
+  if (gameMode === 'auto' && unlockedClues.length > 0) {
+    const weapon = WEAPONS.find(w => w.id === weaponId);
+    if (weapon) {
+      const preds = unlockedClues.flatMap(c => c.predicates ?? []);
+      isAutoEliminated = preds.some(p => !weaponMatches(p, weapon));
+    }
+  }
+  return {
+    isEliminated: isAutoEliminated || isManual,
+    isManual,
+    isAutoEliminated,
+  };
+}
+
+export function computeRoomStatus(
+  roomId: string,
+  manualRoomEliminations: readonly string[],
+  unlockedClues: readonly Clue[],
+  gameMode: GameMode = 'auto'
+): ElementStatus {
+  const isManual = manualRoomEliminations.includes(roomId);
+  let isAutoEliminated = false;
+  if (gameMode === 'auto' && unlockedClues.length > 0) {
+    const room = LOCATIONS.find(l => l.id === roomId);
+    if (room) {
+      const preds = unlockedClues.flatMap(c => c.predicates ?? []);
+      isAutoEliminated = preds.some(p => !roomMatches(p, room));
+    }
+  }
+  return {
+    isEliminated: isAutoEliminated || isManual,
+    isManual,
+    isAutoEliminated,
   };
 }
 
@@ -97,7 +157,7 @@ export function isDayUnlockedByDoors(day: number, completedDays: readonly number
   return isActUnlocked(act, completedDays);
 }
 
-interface GameStoreState {
+export interface GameStoreState {
   totalDays: number;
   caseSeed: number;
   activeCase: GeneratedCase;
@@ -108,17 +168,20 @@ interface GameStoreState {
   unlockedClues: Clue[];
   matrixCells: Record<string, MatrixCellState>;
   manualEliminations: string[];
+  manualWeaponEliminations: string[];
+  manualRoomEliminations: string[];
   notes: Record<number, string>;
   freePlayMode: boolean;
-  gameMode: 'auto' | 'manual';
+  gameMode: GameMode;
   hasSelectedGameMode: boolean;
+  gameSessionId: number;
   activeView: 'book' | 'calendar' | 'dossier' | 'verdict';
 
   // Acciones
   setCurrentDay: (day: number) => void;
   openDoor: (act: number) => void;
   setActiveView: (view: 'book' | 'calendar' | 'dossier' | 'verdict') => void;
-  setGameMode: (mode: 'auto' | 'manual') => void;
+  setGameMode: (mode: GameMode) => void;
   markDayCompleted: (
     day: number,
     clue: Clue,
@@ -132,6 +195,8 @@ interface GameStoreState {
   setMatrixCell: (key: string, state: MatrixCellState) => void;
   cycleMatrixCell: (key: string) => void;
   toggleManualElimination: (suspectId: string) => void;
+  toggleManualWeaponElimination: (weaponId: string) => void;
+  toggleManualRoomElimination: (roomId: string) => void;
   toggleFreePlayMode: () => void;
   setNote: (day: number, text: string) => void;
   startNewCase: (seed?: number) => void;
@@ -141,12 +206,32 @@ interface GameStoreState {
   // Selectores dinámicos basados en pistas desbloqueadas
   getClueEvaluation: () => ClueEvaluationResult;
   getSuspectStatus: (suspect: DirectorySuspect) => SuspectStatus;
+  getWeaponStatus: (weaponId: string) => ElementStatus;
+  getRoomStatus: (roomId: string) => ElementStatus;
 }
 
 sound.setMuted(false);
 
 const INITIAL_SEED = createRandomSeed();
 const INITIAL_CASE = getCaseForSeed(INITIAL_SEED);
+
+const memoryFallbackStore = new Map<string, string>();
+const fallbackMemoryStorage: StateStorage = {
+  getItem: name => memoryFallbackStore.get(name) ?? null,
+  setItem: (name, value) => {
+    memoryFallbackStore.set(name, value);
+  },
+  removeItem: name => {
+    memoryFallbackStore.delete(name);
+  },
+};
+
+function resolvePersistStorage(): StateStorage {
+  if (typeof window !== 'undefined' && typeof window.localStorage?.getItem === 'function') {
+    return window.localStorage;
+  }
+  return fallbackMemoryStorage;
+}
 
 export const useGameStore = create<GameStoreState>()(
   persist(
@@ -161,10 +246,13 @@ export const useGameStore = create<GameStoreState>()(
       unlockedClues: [],
       matrixCells: {},
       manualEliminations: [],
+      manualWeaponEliminations: [],
+      manualRoomEliminations: [],
       notes: {},
       freePlayMode: false,
       gameMode: 'auto',
       hasSelectedGameMode: false,
+      gameSessionId: 1,
       activeView: 'book',
 
       setCurrentDay: (day: number) => {
@@ -197,12 +285,13 @@ export const useGameStore = create<GameStoreState>()(
       },
 
       setGameMode: mode => {
+        if (get().hasSelectedGameMode) return;
         sound.playClick();
         set({ gameMode: mode, hasSelectedGameMode: true });
       },
 
       markDayCompleted: (day, clue, autoEliminations) => {
-        const { completedDays, unlockedDays, unlockedClues, matrixCells } = get();
+        const { completedDays, unlockedDays, unlockedClues, matrixCells, gameMode } = get();
 
         sound.playWaxSeal();
         sound.playMysteryBell();
@@ -216,7 +305,7 @@ export const useGameStore = create<GameStoreState>()(
           : [...unlockedClues, clue];
 
         const updatedCells = { ...matrixCells };
-        if (autoEliminations?.confirmedMatches) {
+        if (gameMode === 'auto' && autoEliminations?.confirmedMatches) {
           for (const match of autoEliminations.confirmedMatches) {
             if (match.suspect && match.weapon) {
               updatedCells[`${match.suspect}:${match.weapon}`] = 'check';
@@ -264,13 +353,45 @@ export const useGameStore = create<GameStoreState>()(
       },
 
       toggleManualElimination: suspectId => {
+        const { activeCase, openedDoors, manualEliminations } = get();
+        const isOpenedVictim = activeCase.acts.some(
+          actFile =>
+            actFile.act >= 2 &&
+            openedDoors.includes(actFile.act) &&
+            actFile.victimId === suspectId
+        );
+        if (isOpenedVictim) {
+          sound.playError();
+          return;
+        }
         sound.playPencil();
-        const current = get().manualEliminations;
-        const exists = current.includes(suspectId);
+        const exists = manualEliminations.includes(suspectId);
         set({
           manualEliminations: exists
-            ? current.filter(id => id !== suspectId)
-            : [...current, suspectId],
+            ? manualEliminations.filter(id => id !== suspectId)
+            : [...manualEliminations, suspectId],
+        });
+      },
+
+      toggleManualWeaponElimination: weaponId => {
+        sound.playPencil();
+        const current = get().manualWeaponEliminations;
+        const exists = current.includes(weaponId);
+        set({
+          manualWeaponEliminations: exists
+            ? current.filter(id => id !== weaponId)
+            : [...current, weaponId],
+        });
+      },
+
+      toggleManualRoomElimination: roomId => {
+        sound.playPencil();
+        const current = get().manualRoomEliminations;
+        const exists = current.includes(roomId);
+        set({
+          manualRoomEliminations: exists
+            ? current.filter(id => id !== roomId)
+            : [...current, roomId],
         });
       },
 
@@ -305,8 +426,11 @@ export const useGameStore = create<GameStoreState>()(
           unlockedClues: [],
           matrixCells: {},
           manualEliminations: [],
+          manualWeaponEliminations: [],
+          manualRoomEliminations: [],
           notes: {},
           hasSelectedGameMode: seed !== undefined ? get().hasSelectedGameMode : false,
+          gameSessionId: get().gameSessionId + 1,
           activeView: 'book',
         });
       },
@@ -321,7 +445,11 @@ export const useGameStore = create<GameStoreState>()(
           unlockedClues: [],
           matrixCells: {},
           manualEliminations: [],
+          manualWeaponEliminations: [],
+          manualRoomEliminations: [],
           notes: {},
+          hasSelectedGameMode: false,
+          gameSessionId: get().gameSessionId + 1,
           activeView: 'book',
         });
       },
@@ -337,12 +465,30 @@ export const useGameStore = create<GameStoreState>()(
       },
 
       getSuspectStatus: suspect => {
-        const { manualEliminations, unlockedClues, activeCase, openedDoors } = get();
-        return computeSuspectStatus(suspect, manualEliminations, unlockedClues, activeCase, openedDoors);
+        const { manualEliminations, unlockedClues, activeCase, openedDoors, gameMode } = get();
+        return computeSuspectStatus(
+          suspect,
+          manualEliminations,
+          unlockedClues,
+          activeCase,
+          openedDoors,
+          gameMode
+        );
+      },
+
+      getWeaponStatus: weaponId => {
+        const { manualWeaponEliminations, unlockedClues, gameMode } = get();
+        return computeWeaponStatus(weaponId, manualWeaponEliminations, unlockedClues, gameMode);
+      },
+
+      getRoomStatus: roomId => {
+        const { manualRoomEliminations, unlockedClues, gameMode } = get();
+        return computeRoomStatus(roomId, manualRoomEliminations, unlockedClues, gameMode);
       },
     }),
     {
       name: 'villa-acebo-game-storage',
+      storage: createJSONStorage(resolvePersistStorage),
       version: 3,
       partialize: state => ({
         caseSeed: state.caseSeed,
@@ -357,10 +503,13 @@ export const useGameStore = create<GameStoreState>()(
         unlockedClues: state.unlockedClues,
         matrixCells: state.matrixCells,
         manualEliminations: state.manualEliminations,
+        manualWeaponEliminations: state.manualWeaponEliminations,
+        manualRoomEliminations: state.manualRoomEliminations,
         notes: state.notes,
         freePlayMode: state.freePlayMode,
         gameMode: state.gameMode,
         hasSelectedGameMode: state.hasSelectedGameMode,
+        gameSessionId: state.gameSessionId,
         activeView: state.activeView,
       }),
       migrate: (persistedState, version) => {
@@ -375,8 +524,13 @@ export const useGameStore = create<GameStoreState>()(
             unlockedClues: [],
             matrixCells: {},
             manualEliminations: [],
+            manualWeaponEliminations: [],
+            manualRoomEliminations: [],
             notes: {},
             freePlayMode: false,
+            gameMode: 'auto' as GameMode,
+            hasSelectedGameMode: false,
+            gameSessionId: 1,
             activeView: 'book' as const,
           };
         }
@@ -388,11 +542,24 @@ export const useGameStore = create<GameStoreState>()(
           unlockedClues: Clue[];
           matrixCells: Record<string, MatrixCellState>;
           manualEliminations: string[];
+          manualWeaponEliminations?: string[];
+          manualRoomEliminations?: string[];
           notes: Record<number, string>;
           freePlayMode: boolean;
+          gameMode?: GameMode;
+          hasSelectedGameMode?: boolean;
+          gameSessionId?: number;
           activeView: 'book' | 'calendar' | 'dossier' | 'verdict';
         };
-        return p;
+        return {
+          ...p,
+          manualWeaponEliminations: Array.isArray(p.manualWeaponEliminations)
+            ? p.manualWeaponEliminations
+            : [],
+          manualRoomEliminations: Array.isArray(p.manualRoomEliminations)
+            ? p.manualRoomEliminations
+            : [],
+        };
       },
       merge: (persistedState, currentState) => {
         const persisted =
@@ -421,6 +588,28 @@ export const useGameStore = create<GameStoreState>()(
             ? 0
             : persistedDay;
 
+        const manualEliminations = Array.isArray(persisted.manualEliminations)
+          ? (persisted.manualEliminations.filter(x => typeof x === 'string') as string[])
+          : currentState.manualEliminations;
+        const manualWeaponEliminations = Array.isArray(persisted.manualWeaponEliminations)
+          ? (persisted.manualWeaponEliminations.filter(x => typeof x === 'string') as string[])
+          : currentState.manualWeaponEliminations;
+        const manualRoomEliminations = Array.isArray(persisted.manualRoomEliminations)
+          ? (persisted.manualRoomEliminations.filter(x => typeof x === 'string') as string[])
+          : currentState.manualRoomEliminations;
+        const gameMode: GameMode =
+          persisted.gameMode === 'auto' || persisted.gameMode === 'manual'
+            ? persisted.gameMode
+            : currentState.gameMode;
+        const hasSelectedGameMode =
+          typeof persisted.hasSelectedGameMode === 'boolean'
+            ? persisted.hasSelectedGameMode
+            : currentState.hasSelectedGameMode;
+        const gameSessionId =
+          typeof persisted.gameSessionId === 'number' && Number.isFinite(persisted.gameSessionId)
+            ? persisted.gameSessionId
+            : currentState.gameSessionId;
+
         return {
           ...currentState,
           ...(persisted as Partial<GameStoreState>),
@@ -429,6 +618,12 @@ export const useGameStore = create<GameStoreState>()(
           activeCase,
           currentDay: safeCurrentDay,
           openedDoors: validOpenedDoors,
+          manualEliminations,
+          manualWeaponEliminations,
+          manualRoomEliminations,
+          gameMode,
+          hasSelectedGameMode,
+          gameSessionId,
           freePlayMode: false,
         };
       },

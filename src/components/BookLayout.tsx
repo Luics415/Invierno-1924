@@ -1,6 +1,8 @@
 import React, { useState, useMemo, useRef, useEffect } from 'react';
 import {
+  computeRoomStatus,
   computeSuspectStatus,
+  computeWeaponStatus,
   isActUnlocked,
   isDayUnlockedByDoors,
   useGameStore,
@@ -8,7 +10,6 @@ import {
 import { BookDoorSpread } from './BookDoorSpread';
 import { SUSPECTS_DIRECTORY } from '../data/suspectsDirectory';
 import { WEAPONS, LOCATIONS } from '../data/narrativeBible';
-import { evaluateCaseClues } from '../engine/caseGenerator';
 import {
   getPuzzleManualVerificationSpec,
   verifyManualPuzzleInput,
@@ -68,6 +69,7 @@ import {
   Skull,
   PenTool,
   KeyRound,
+  Lock,
   X
 } from 'lucide-react';
 
@@ -101,7 +103,11 @@ export const BookLayout: React.FC<BookLayoutProps> = ({
     markDayCompleted,
     unlockedClues,
     manualEliminations,
+    manualWeaponEliminations,
+    manualRoomEliminations,
     gameMode,
+    hasSelectedGameMode,
+    gameSessionId,
     startNewCase,
   } = useGameStore();
 
@@ -204,25 +210,29 @@ export const BookLayout: React.FC<BookLayoutProps> = ({
   const [boardSolvedMap, setBoardSolvedMap] = useState<Record<string, boolean>>({});
   const [manualInputs, setManualInputs] = useState<Record<string, string>>({});
   const [manualErrorDayKey, setManualErrorDayKey] = useState<string | null>(null);
-  const [showManualHelperKey, setShowManualHelperKey] = useState<string | null>(null);
 
-  const currentDayKey = `${activeCase.config.seed}-${dayData.day}`;
+  const currentDayKey = `${gameSessionId}-${activeCase.config.seed}-${dayData.day}`;
   const isBoardSolved = isDayCompleted || Boolean(boardSolvedMap[currentDayKey]);
   const manualInput = manualInputs[currentDayKey] ?? '';
   const hasManualError = manualErrorDayKey === currentDayKey;
-  const showManualHelper = showManualHelperKey === currentDayKey;
   const manualSpec = useMemo(
     () => getPuzzleManualVerificationSpec(dayData.puzzle, dayData.unlockedClue),
     [dayData.puzzle, dayData.unlockedClue]
   );
 
-  const clueEval = useMemo(() => evaluateCaseClues(unlockedClues), [unlockedClues]);
-
-  // Cálculo reactivo del Embudo de Sospechosos (74 -> 1)
+  // Cálculo reactivo del Embudo de Sospechosos (74 -> 1), Armas (18 -> 1) y Estancias (9 -> 1)
   const suspectFunnel = useMemo(() => {
     const total = SUSPECTS_DIRECTORY.length;
     const remaining = SUSPECTS_DIRECTORY.filter(
-      suspect => !computeSuspectStatus(suspect, manualEliminations, unlockedClues, activeCase, openedDoors).isEliminated
+      suspect =>
+        !computeSuspectStatus(
+          suspect,
+          manualEliminations,
+          unlockedClues,
+          activeCase,
+          openedDoors,
+          gameMode
+        ).isEliminated
     ).length;
     const eliminated = total - remaining;
     const percentageRemaining = Math.round((remaining / total) * 100);
@@ -233,7 +243,34 @@ export const BookLayout: React.FC<BookLayoutProps> = ({
       percentageRemaining,
       hasManual: manualEliminations.length > 0,
     };
-  }, [unlockedClues, manualEliminations, activeCase, openedDoors]);
+  }, [unlockedClues, manualEliminations, activeCase, openedDoors, gameMode]);
+
+  const weaponFunnel = useMemo(() => {
+    const total = WEAPONS.length;
+    const remaining = WEAPONS.filter(
+      weapon =>
+        !computeWeaponStatus(weapon.id, manualWeaponEliminations, unlockedClues, gameMode)
+          .isEliminated
+    ).length;
+    return {
+      total,
+      remaining,
+      eliminated: total - remaining,
+    };
+  }, [manualWeaponEliminations, unlockedClues, gameMode]);
+
+  const roomFunnel = useMemo(() => {
+    const total = LOCATIONS.length;
+    const remaining = LOCATIONS.filter(
+      room =>
+        !computeRoomStatus(room.id, manualRoomEliminations, unlockedClues, gameMode).isEliminated
+    ).length;
+    return {
+      total,
+      remaining,
+      eliminated: total - remaining,
+    };
+  }, [manualRoomEliminations, unlockedClues, gameMode]);
 
   const navigateToDay = (nextDay: number) => {
     if (nextDay < 0 || nextDay > totalDays) return;
@@ -427,16 +464,21 @@ export const BookLayout: React.FC<BookLayoutProps> = ({
   };
 
   const renderPuzzleEngine = () => {
-    const puzzleKey = `${activeCase.config.seed}-${dayData.day}-${dayData.puzzle.type}`;
+    const puzzleKey = `${gameSessionId}-${activeCase.config.seed}-${dayData.day}-${dayData.puzzle.type}`;
+    const sharedPuzzleProps = {
+      onSolve: handlePuzzleBoardSolved,
+      isSolved: isBoardSolved,
+      hints: dayData.puzzle.hints,
+      gameMode,
+    };
+
     switch (dayData.puzzle.type) {
       case 'wordsearch':
         return (
           <WordSearchPuzzle
             key={puzzleKey}
             config={dayData.puzzle.config}
-            onSolve={handlePuzzleBoardSolved}
-            isSolved={isBoardSolved}
-            hints={dayData.puzzle.hints}
+            {...sharedPuzzleProps}
           />
         );
       case 'syllables':
@@ -444,9 +486,7 @@ export const BookLayout: React.FC<BookLayoutProps> = ({
           <SyllablesPuzzle
             key={puzzleKey}
             config={dayData.puzzle.config}
-            onSolve={handlePuzzleBoardSolved}
-            isSolved={isBoardSolved}
-            hints={dayData.puzzle.hints}
+            {...sharedPuzzleProps}
           />
         );
       case 'cryptogram':
@@ -454,9 +494,7 @@ export const BookLayout: React.FC<BookLayoutProps> = ({
           <CryptogramPuzzle
             key={puzzleKey}
             config={dayData.puzzle.config}
-            onSolve={handlePuzzleBoardSolved}
-            isSolved={isBoardSolved}
-            hints={dayData.puzzle.hints}
+            {...sharedPuzzleProps}
           />
         );
       case 'sudoku':
@@ -464,9 +502,7 @@ export const BookLayout: React.FC<BookLayoutProps> = ({
           <SudokuPuzzle
             key={puzzleKey}
             config={dayData.puzzle.config}
-            onSolve={handlePuzzleBoardSolved}
-            isSolved={isBoardSolved}
-            hints={dayData.puzzle.hints}
+            {...sharedPuzzleProps}
           />
         );
       case 'murdoku':
@@ -474,9 +510,7 @@ export const BookLayout: React.FC<BookLayoutProps> = ({
           <MurdokuPuzzle
             key={puzzleKey}
             config={dayData.puzzle.config}
-            onSolve={handlePuzzleBoardSolved}
-            isSolved={isBoardSolved}
-            hints={dayData.puzzle.hints}
+            {...sharedPuzzleProps}
           />
         );
       case 'crossword':
@@ -484,9 +518,7 @@ export const BookLayout: React.FC<BookLayoutProps> = ({
           <CrosswordPuzzle
             key={puzzleKey}
             config={dayData.puzzle.config}
-            onSolve={handlePuzzleBoardSolved}
-            isSolved={isBoardSolved}
-            hints={dayData.puzzle.hints}
+            {...sharedPuzzleProps}
           />
         );
       case 'futoshiki':
@@ -494,9 +526,7 @@ export const BookLayout: React.FC<BookLayoutProps> = ({
           <FutoshikiPuzzle
             key={puzzleKey}
             config={dayData.puzzle.config}
-            onSolve={handlePuzzleBoardSolved}
-            isSolved={isBoardSolved}
-            hints={dayData.puzzle.hints}
+            {...sharedPuzzleProps}
           />
         );
       case 'connections':
@@ -504,9 +534,7 @@ export const BookLayout: React.FC<BookLayoutProps> = ({
           <ConnectionsPuzzle
             key={puzzleKey}
             config={dayData.puzzle.config}
-            onSolve={handlePuzzleBoardSolved}
-            isSolved={isBoardSolved}
-            hints={dayData.puzzle.hints}
+            {...sharedPuzzleProps}
           />
         );
       case 'nonogram':
@@ -514,9 +542,7 @@ export const BookLayout: React.FC<BookLayoutProps> = ({
           <NonogramPuzzle
             key={puzzleKey}
             config={dayData.puzzle.config}
-            onSolve={handlePuzzleBoardSolved}
-            isSolved={isBoardSolved}
-            hints={dayData.puzzle.hints}
+            {...sharedPuzzleProps}
           />
         );
       case 'minesweeper':
@@ -524,9 +550,7 @@ export const BookLayout: React.FC<BookLayoutProps> = ({
           <MinesweeperPuzzle
             key={puzzleKey}
             config={dayData.puzzle.config}
-            onSolve={handlePuzzleBoardSolved}
-            isSolved={isBoardSolved}
-            hints={dayData.puzzle.hints}
+            {...sharedPuzzleProps}
           />
         );
       case 'septagrama':
@@ -534,9 +558,7 @@ export const BookLayout: React.FC<BookLayoutProps> = ({
           <SeptagramaPuzzle
             key={puzzleKey}
             config={dayData.puzzle.config}
-            onSolve={handlePuzzleBoardSolved}
-            isSolved={isBoardSolved}
-            hints={dayData.puzzle.hints}
+            {...sharedPuzzleProps}
           />
         );
       case 'codificados':
@@ -544,9 +566,7 @@ export const BookLayout: React.FC<BookLayoutProps> = ({
           <CodificadosPuzzle
             key={puzzleKey}
             config={dayData.puzzle.config}
-            onSolve={handlePuzzleBoardSolved}
-            isSolved={isBoardSolved}
-            hints={dayData.puzzle.hints}
+            {...sharedPuzzleProps}
           />
         );
       case 'ecuaciones':
@@ -554,9 +574,7 @@ export const BookLayout: React.FC<BookLayoutProps> = ({
           <EcuacionesPuzzle
             key={puzzleKey}
             config={dayData.puzzle.config}
-            onSolve={handlePuzzleBoardSolved}
-            isSolved={isBoardSolved}
-            hints={dayData.puzzle.hints}
+            {...sharedPuzzleProps}
           />
         );
       case 'encajados':
@@ -564,9 +582,7 @@ export const BookLayout: React.FC<BookLayoutProps> = ({
           <EncajadosPuzzle
             key={puzzleKey}
             config={dayData.puzzle.config}
-            onSolve={handlePuzzleBoardSolved}
-            isSolved={isBoardSolved}
-            hints={dayData.puzzle.hints}
+            {...sharedPuzzleProps}
           />
         );
     }
@@ -786,17 +802,27 @@ export const BookLayout: React.FC<BookLayoutProps> = ({
               <button
                 type="button"
                 tabIndex={!isHeaderExpanded ? -1 : undefined}
+                disabled={hasSelectedGameMode}
                 onClick={() => {
+                  if (hasSelectedGameMode) return;
                   onOpenGameMode?.();
                 }}
-                className={`flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-sm text-xs sm:text-sm font-desc font-medium transition ${
+                className={`flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-sm text-xs sm:text-sm font-desc font-medium transition disabled:opacity-75 disabled:cursor-not-allowed ${
                   gameMode === 'manual'
                     ? 'bg-[#3f1419] border border-gold-500/70 text-gold-200 shadow-sm'
                     : 'btn-ledger text-gold-200'
                 }`}
-                title="Cambiar entre Modo Automático y Modo Manual de transcripción de resultados"
+                title={
+                  hasSelectedGameMode
+                    ? 'El modo de investigación está bloqueado durante la partida actual. Para cambiarlo, inicia un Nuevo Caso o reinicia el juego.'
+                    : 'Elegir entre Modo Automático y Modo Manual de investigación'
+                }
               >
-                <PenTool className="w-3.5 h-3.5 text-gold-400" />
+                {hasSelectedGameMode ? (
+                  <Lock className="w-3.5 h-3.5 text-gold-400/80" />
+                ) : (
+                  <PenTool className="w-3.5 h-3.5 text-gold-400" />
+                )}
                 <span className="hidden xl:inline">
                   Modo: {gameMode === 'manual' ? 'Manual' : 'Automático'}
                 </span>
@@ -1428,15 +1454,10 @@ export const BookLayout: React.FC<BookLayoutProps> = ({
                   {gameMode === 'manual' && !isDayCompleted && (
                     <div className="mt-2 shrink-0">
                       {!isBoardSolved ? (
-                        <div className="px-3 py-2 rounded-sm bg-parchment-200/85 border border-amber-900/35 text-[11px] font-desc text-ink-800 flex items-center justify-between gap-2">
-                          <div className="flex items-center gap-1.5 min-w-0">
-                            <PenTool className="w-3.5 h-3.5 text-crimson-800 shrink-0" />
-                            <span>
-                              <strong>Modo Manual (Paso 1/2):</strong> Resuelve el ejercicio superior para revelar la clave en el tablero y habilitar su escritura manual.
-                            </span>
-                          </div>
-                          <span className="text-[10px] font-mono uppercase tracking-wider px-1.5 py-0.5 rounded bg-parchment-300 text-ink-700 shrink-0">
-                            {manualSpec.formatHint}
+                        <div className="px-3 py-2 rounded-sm bg-parchment-200/85 border border-amber-900/35 text-[11px] font-desc text-ink-800 flex items-center gap-2">
+                          <PenTool className="w-3.5 h-3.5 text-crimson-800 shrink-0" />
+                          <span>
+                            <strong>Modo Manual (Paso 1/2):</strong> Resuelve el ejercicio superior para revelar la clave en el tablero y habilitar su escritura manual.
                           </span>
                         </div>
                       ) : (
@@ -1449,40 +1470,11 @@ export const BookLayout: React.FC<BookLayoutProps> = ({
                               <KeyRound className="w-3.5 h-3.5 text-crimson-800 shrink-0" />
                               Modo Manual (Paso 2/2) • Escribe el Resultado Descubierto
                             </span>
-                            <button
-                              type="button"
-                              onClick={() => {
-                                sound.playClick();
-                                setShowManualHelperKey(
-                                  showManualHelper ? null : currentDayKey
-                                );
-                              }}
-                              className="text-[10px] font-mono underline text-amber-900 hover:text-crimson-900"
-                            >
-                              {showManualHelper ? 'Ocultar guía de lectura' : '¿De dónde sale el resultado?'}
-                            </button>
                           </div>
 
                           <p className="text-xs font-reading text-ink-900 leading-snug">
                             {manualSpec.promptLabel}
                           </p>
-
-                          {showManualHelper && (
-                            <div className="p-2 rounded bg-gold-100/90 border border-gold-500 text-[11px] font-sans text-ink-900 space-y-0.5">
-                              <div>
-                                <strong>Formato esperado:</strong> {manualSpec.formatHint}
-                              </div>
-                              <div>
-                                <strong>Resultado leído del tablero:</strong>{' '}
-                                <span className="font-mono font-bold text-crimson-900">
-                                  «{manualSpec.expectedDisplay}»
-                                </span>{' '}
-                                <span className="text-ink-700">
-                                  (Vinculado con: {dayData.unlockedClue.impact})
-                                </span>
-                              </div>
-                            </div>
-                          )}
 
                           <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
                             <input
@@ -1495,7 +1487,7 @@ export const BookLayout: React.FC<BookLayoutProps> = ({
                                 }));
                                 if (hasManualError) setManualErrorDayKey(null);
                               }}
-                              placeholder={`Escribe el resultado (${manualSpec.formatHint})...`}
+                              placeholder="Escribe aquí el resultado descubierto..."
                               aria-label="Escribir resultado manual del ejercicio"
                               className="flex-1 px-2.5 py-1.5 text-xs sm:text-sm font-mono font-bold uppercase rounded-sm bg-white border border-amber-900/50 text-ink-950 placeholder:text-ink-400 placeholder:font-normal focus:outline-none focus:border-crimson-800"
                             />
@@ -1510,7 +1502,7 @@ export const BookLayout: React.FC<BookLayoutProps> = ({
 
                           {hasManualError && (
                             <p className="text-[11px] font-sans font-semibold text-crimson-800">
-                              El término o código escrito no coincide con el resultado revelado en el tablero ({manualSpec.formatHint}). Revisa las casillas clave o pulsa «¿De dónde sale el resultado?».
+                              El término o código escrito no coincide con el resultado revelado en el tablero. Revisa las casillas clave del ejercicio e inténtalo de nuevo.
                             </p>
                           )}
                         </form>
@@ -1648,12 +1640,14 @@ export const BookLayout: React.FC<BookLayoutProps> = ({
                     <div>
                       <strong className="font-serif text-sm block">Sospechosos Compatibles con las Pruebas</strong>
                       <span className="text-[11px] font-desc italic text-ink-700 block">
-                        {suspectFunnel.eliminated} descartados entre pruebas y notas manuales
+                        {gameMode === 'manual'
+                          ? `${suspectFunnel.eliminated} descartados entre notas manuales y víctimas`
+                          : `${suspectFunnel.eliminated} descartados entre pruebas, víctimas y notas manuales`}
                       </span>
                     </div>
                   </div>
                   <span className="font-mono text-base font-bold text-crimson-800">
-                    {clueEval.matchingSuspectIds.length} / 74
+                    {suspectFunnel.remaining} / {suspectFunnel.total}
                   </span>
                 </div>
 
@@ -1672,7 +1666,7 @@ export const BookLayout: React.FC<BookLayoutProps> = ({
                     </div>
                   </div>
                   <span className="font-mono text-base font-bold text-ink-950">
-                    {clueEval.matchingWeaponIds.length} / {WEAPONS.length}
+                    {weaponFunnel.remaining} / {weaponFunnel.total}
                   </span>
                 </div>
 
@@ -1689,7 +1683,7 @@ export const BookLayout: React.FC<BookLayoutProps> = ({
                     </div>
                   </div>
                   <span className="font-mono text-base font-bold text-ink-950">
-                    {clueEval.matchingRoomIds.length} / {LOCATIONS.length}
+                    {roomFunnel.remaining} / {roomFunnel.total}
                   </span>
                 </div>
 

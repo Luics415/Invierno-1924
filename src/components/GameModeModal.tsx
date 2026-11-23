@@ -8,6 +8,7 @@ import {
   ShieldCheck,
   KeyRound,
   Scale,
+  Lock,
   X,
 } from 'lucide-react';
 
@@ -18,8 +19,14 @@ interface GameModeModalProps {
 export const GameModeModal: React.FC<GameModeModalProps> = ({ onClose }) => {
   const { gameMode, hasSelectedGameMode, setGameMode } = useGameStore();
   const [selected, setSelected] = useState<'auto' | 'manual'>(gameMode);
+  const activeSelection = hasSelectedGameMode ? gameMode : selected;
 
   const handleConfirm = () => {
+    if (hasSelectedGameMode) {
+      sound.playClick();
+      onClose?.();
+      return;
+    }
     sound.playWaxSeal();
     setGameMode(selected);
     onClose?.();
@@ -78,22 +85,27 @@ export const GameModeModal: React.FC<GameModeModalProps> = ({ onClose }) => {
           <p className="text-xs sm:text-sm text-ink-900 leading-relaxed bg-[#e5decb] p-3.5 rounded-[3px] border border-[#b5ab96]">
             Antes de abrir el expediente de los <strong>74 sospechosos</strong> y enfrentarte a los{' '}
             <strong>14 tipos de acertijos</strong> de las 30 jornadas, elige cómo deseas registrar los
-            hallazgos periciales de cada día. Puedes cambiar este modo en cualquier momento desde la barra
-            superior.
+            hallazgos periciales de cada día.{' '}
+            <strong>
+              Esta elección quedará bloqueada durante toda la partida; solo podrás cambiar de modo al
+              iniciar un Nuevo Caso o Reiniciar el juego.
+            </strong>
           </p>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {/* OPCIÓN 1: MODO AUTOMÁTICO */}
             <button
               type="button"
+              disabled={hasSelectedGameMode}
               onClick={() => {
+                if (hasSelectedGameMode) return;
                 sound.playClick();
                 setSelected('auto');
               }}
-              className={`text-left p-4 sm:p-5 rounded-md border-2 transition flex flex-col justify-between gap-3 shadow-sm ${
-                selected === 'auto'
+              className={`text-left p-4 sm:p-5 rounded-md border-2 transition flex flex-col justify-between gap-3 shadow-sm disabled:cursor-not-allowed ${
+                activeSelection === 'auto'
                   ? 'bg-[#faf6ec] border-crimson-800 ring-2 ring-gold-500 shadow-md'
-                  : 'bg-[#f3ede0] border-[#bfb49d] hover:border-amber-900/60 opacity-90'
+                  : 'bg-[#f3ede0] border-[#bfb49d] hover:border-amber-900/60 opacity-90 disabled:opacity-65'
               }`}
             >
               <div className="space-y-2.5">
@@ -102,7 +114,7 @@ export const GameModeModal: React.FC<GameModeModalProps> = ({ onClose }) => {
                     <Sparkles className="w-3 h-3 text-gold-300" />
                     Asistencia Forense
                   </span>
-                  {selected === 'auto' && (
+                  {activeSelection === 'auto' && (
                     <span className="inline-flex items-center gap-1 text-xs font-mono font-bold text-crimson-800">
                       <CheckCircle2 className="w-4 h-4 text-crimson-800" /> Seleccionado
                     </span>
@@ -145,14 +157,16 @@ export const GameModeModal: React.FC<GameModeModalProps> = ({ onClose }) => {
             {/* OPCIÓN 2: MODO MANUAL */}
             <button
               type="button"
+              disabled={hasSelectedGameMode}
               onClick={() => {
+                if (hasSelectedGameMode) return;
                 sound.playClick();
                 setSelected('manual');
               }}
-              className={`text-left p-4 sm:p-5 rounded-md border-2 transition flex flex-col justify-between gap-3 shadow-sm ${
-                selected === 'manual'
+              className={`text-left p-4 sm:p-5 rounded-md border-2 transition flex flex-col justify-between gap-3 shadow-sm disabled:cursor-not-allowed ${
+                activeSelection === 'manual'
                   ? 'bg-[#faf6ec] border-crimson-800 ring-2 ring-gold-500 shadow-md'
-                  : 'bg-[#f3ede0] border-[#bfb49d] hover:border-amber-900/60 opacity-90'
+                  : 'bg-[#f3ede0] border-[#bfb49d] hover:border-amber-900/60 opacity-90 disabled:opacity-65'
               }`}
             >
               <div className="space-y-2.5">
@@ -161,7 +175,7 @@ export const GameModeModal: React.FC<GameModeModalProps> = ({ onClose }) => {
                     <PenTool className="w-3 h-3 text-gold-300" />
                     Control Total del Detective
                   </span>
-                  {selected === 'manual' && (
+                  {activeSelection === 'manual' && (
                     <span className="inline-flex items-center gap-1 text-xs font-mono font-bold text-crimson-800">
                       <CheckCircle2 className="w-4 h-4 text-crimson-800" /> Seleccionado
                     </span>
@@ -203,16 +217,26 @@ export const GameModeModal: React.FC<GameModeModalProps> = ({ onClose }) => {
             </button>
           </div>
 
-          <div className="pt-2 flex items-center justify-center">
+          <div className="pt-2 flex flex-col items-center justify-center gap-2">
             <button
               type="button"
+              disabled={hasSelectedGameMode}
               onClick={handleConfirm}
-              className="px-6 py-2.5 btn-crimson-wax text-parchment-50 rounded-[3px] font-serif font-bold text-xs sm:text-sm flex items-center gap-2 shadow-lg transition hover:scale-[1.01]"
+              className="px-6 py-2.5 btn-crimson-wax text-parchment-50 rounded-[3px] font-serif font-bold text-xs sm:text-sm flex items-center gap-2 shadow-lg transition hover:scale-[1.01] disabled:opacity-65 disabled:cursor-not-allowed disabled:hover:scale-100"
             >
-              <CheckCircle2 className="w-4 h-4 text-[#e5ca8f]" />
-              <span>
-                Confirmar {selected === 'manual' ? 'Modo Manual' : 'Modo Automático'} e Iniciar
-              </span>
+              {hasSelectedGameMode ? (
+                <>
+                  <Lock className="w-4 h-4 text-[#e5ca8f]" />
+                  <span>Modo bloqueado para esta partida</span>
+                </>
+              ) : (
+                <>
+                  <CheckCircle2 className="w-4 h-4 text-[#e5ca8f]" />
+                  <span>
+                    Confirmar {activeSelection === 'manual' ? 'Modo Manual' : 'Modo Automático'} e Iniciar
+                  </span>
+                </>
+              )}
             </button>
           </div>
         </div>
