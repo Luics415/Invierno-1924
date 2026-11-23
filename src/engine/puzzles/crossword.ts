@@ -8,9 +8,10 @@ interface ClueWord {
   clue: string;
 }
 
-const NOIR_CROSSWORD_SETS: readonly { meaning: string; words: ClueWord[] }[] = [
+const NOIR_CROSSWORD_SETS: readonly { meaning: string; candidateSecrets: string[]; words: ClueWord[] }[] = [
   {
     meaning: 'Claves cruzadas del expediente de Villa Acebo',
+    candidateSecrets: ['TORRE', 'LACRE', 'SOTANO', 'LLAVE'],
     words: [
       { word: 'TESTAMENTO', clue: 'Última voluntad notarial de Arturo Valdemar' },
       { word: 'COARTADA', clue: 'Declaración horaria que exculpa a un sospechoso' },
@@ -26,6 +27,7 @@ const NOIR_CROSSWORD_SETS: readonly { meaning: string; words: ClueWord[] }[] = [
   },
   {
     meaning: 'Rastros documentales de la noche del crimen',
+    candidateSecrets: ['CARTA', 'RELOJ', 'CAPILLA', 'CENIZA'],
     words: [
       { word: 'INVERNADERO', clue: 'Cúpula acristalada de orquídeas y tierra húmeda' },
       { word: 'NOCHEBUENA', clue: 'Velada del 23 al 24 de diciembre en la mansión' },
@@ -41,6 +43,7 @@ const NOIR_CROSSWORD_SETS: readonly { meaning: string; words: ClueWord[] }[] = [
   },
   {
     meaning: 'Vocabulario forense del sumario judicial',
+    candidateSecrets: ['SALON', 'TINTA', 'CRIMEN', 'BARRO'],
     words: [
       { word: 'INVESTIGACION', clue: 'Pesquisa metódica liderada por la detective Azlynn' },
       { word: 'SOSPECHOSO', clue: 'Persona presente en la finca bajo escrutinio' },
@@ -229,7 +232,46 @@ export function generateCrossword(seed: number, day = 1): CrosswordConfig {
     })
     .sort((a, b) => (a.direction !== b.direction ? (a.direction === 'across' ? -1 : 1) : a.number - b.number));
 
-  const secretHighlightCells = entries.slice(0, 4).map(e => ({ r: e.row, c: e.col }));
+  // Seleccionar casillas clave distribuidas por la cuadrícula que formen una palabra secreta
+  const letterCells = new Map<string, { r: number; c: number }[]>();
+  for (let r = 0; r < grid.length; r++) {
+    for (let c = 0; c < (grid[0]?.length ?? 0); c++) {
+      const ch = grid[r][c];
+      if (ch) {
+        const list = letterCells.get(ch) ?? [];
+        list.push({ r, c });
+        letterCells.set(ch, list);
+      }
+    }
+  }
+
+  let secretWord = '';
+  let secretHighlightCells: { r: number; c: number }[] = [];
+
+  for (const cand of pack.candidateSecrets) {
+    const used = new Set<string>();
+    const coords: { r: number; c: number }[] = [];
+    let ok = true;
+    for (const ch of cand) {
+      const avail = (letterCells.get(ch) ?? []).find(pos => !used.has(`${pos.r}:${pos.c}`));
+      if (!avail) {
+        ok = false;
+        break;
+      }
+      used.add(`${avail.r}:${avail.c}`);
+      coords.push(avail);
+    }
+    if (ok) {
+      secretWord = cand;
+      secretHighlightCells = coords;
+      break;
+    }
+  }
+
+  if (!secretWord) {
+    secretHighlightCells = entries.slice(0, 5).map(e => ({ r: e.row, c: e.col }));
+    secretWord = secretHighlightCells.map(pos => grid[pos.r][pos.c] ?? '').join('');
+  }
 
   return {
     rows: grid.length,
@@ -237,6 +279,7 @@ export function generateCrossword(seed: number, day = 1): CrosswordConfig {
     grid,
     entries,
     secretHighlightCells,
+    secretWord,
     secretMeaning: pack.meaning,
   };
 }

@@ -9,6 +9,10 @@ import { generateFutoshiki } from './puzzles/futoshiki';
 import { generateConnections } from './puzzles/connections';
 import { generateNonogram } from './puzzles/nonogram';
 import { generateMinesweeper } from './puzzles/minesweeper';
+import { generateSeptagrama } from './puzzles/septagrama';
+import { generateCodificados } from './puzzles/codificados';
+import { generateEcuaciones } from './puzzles/ecuaciones';
+import { generateEncajados } from './puzzles/encajados';
 
 export function buildDayPuzzle(
   type: PuzzleType,
@@ -174,6 +178,70 @@ export function buildDayPuzzle(
         hints: [
           'Cada número indica cuántas trampas rodean a esa casilla en sus 8 vecinas.',
           'Marca primero las esquinas evidentes alrededor de los números 1 y 2.',
+          focusHint,
+        ],
+      };
+    }
+
+    case 'septagrama': {
+      const config = generateSeptagrama(seed, day);
+      return {
+        type: 'septagrama',
+        config,
+        solution: config.words.map(w => w.answer),
+        instructions:
+          `Forma las ${config.words.length} palabras usando únicamente las 7 letras del Septagrama (incluyendo siempre la letra central «${config.centerLetter}») para descubrir la palabra de las casillas sombreadas.`,
+        hints: [
+          `Todas las palabras incluyen la letra central «${config.centerLetter}».`,
+          'Las letras colocadas en las casillas sombreadas revelan una palabra clave en la barra inferior.',
+          focusHint,
+        ],
+      };
+    }
+
+    case 'codificados': {
+      const config = generateCodificados(seed, day);
+      return {
+        type: 'codificados',
+        config,
+        solution: config.secretCode,
+        instructions:
+          'Deduce el código de 4 cifras analizando las 5 pistas lógicas sobre cifras bien o mal colocadas.',
+        hints: [
+          'Empieza por la pista donde ninguna cifra pertenece al código para tachar esos dígitos.',
+          'Cruza las pistas con cifras bien colocadas para fijar su posición exacta.',
+          focusHint,
+        ],
+      };
+    }
+
+    case 'ecuaciones': {
+      const config = generateEcuaciones(seed, day);
+      return {
+        type: 'ecuaciones',
+        config,
+        solution: config.targetCode,
+        instructions:
+          'Deduce el valor numérico (0–9) de cada símbolo forense resolviendo las 6 ecuaciones y coloca las 4 cifras en el marcador superior.',
+        hints: [
+          'Empieza por la primera ecuación con símbolos repetidos o resta directa.',
+          'Sustituye los valores obtenidos en las siguientes filas hasta despejar los 4 iconos del marcador.',
+          focusHint,
+        ],
+      };
+    }
+
+    case 'encajados': {
+      const config = generateEncajados(seed, day);
+      return {
+        type: 'encajados',
+        config,
+        solution: config.grid,
+        instructions:
+          'Encaja todas las palabras del banco inferior en la cuadrícula apoyándote en su longitud y en las letras iniciales para descubrir la palabra de las casillas sombreadas.',
+        hints: [
+          'Selecciona primero los huecos de longitud única o los que ya tienen una letra inicial colocada.',
+          'Toca cualquier palabra del banco inferior para encajarla directamente en el hueco activo.',
           focusHint,
         ],
       };

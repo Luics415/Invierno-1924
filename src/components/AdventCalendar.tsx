@@ -45,6 +45,10 @@ const PUZZLE_TYPE_LABELS: Record<PuzzleType, string> = {
   connections: 'Connections',
   nonogram: 'Nonograma',
   minesweeper: 'Buscaminas',
+  septagrama: 'Septagrama',
+  codificados: 'Codificados',
+  ecuaciones: 'Ecuaciones',
+  encajados: 'Encajados',
 };
 
 export const AdventCalendar: React.FC<AdventCalendarProps> = ({ onClose, onOpenActDoor }) => {

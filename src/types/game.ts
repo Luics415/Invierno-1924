@@ -8,7 +8,11 @@ export type PuzzleType =
   | 'futoshiki'
   | 'connections'
   | 'nonogram'
-  | 'minesweeper';
+  | 'minesweeper'
+  | 'septagrama'
+  | 'codificados'
+  | 'ecuaciones'
+  | 'encajados';
 
 export interface WordSearchConfig {
   grid: string[][];
@@ -74,6 +78,7 @@ export interface CrosswordConfig {
   grid: (string | null)[][];
   entries: CrosswordEntry[];
   secretHighlightCells?: { r: number; c: number }[];
+  secretWord?: string;
   secretMeaning?: string;
 }
 
@@ -126,6 +131,77 @@ export interface MinesweeperConfig {
   secretMeaning?: string;
 }
 
+export interface SeptagramaWordEntry {
+  id: string;
+  number: number;
+  answer: string;
+  clue: string;
+  highlightIndex: number;
+}
+
+export interface SeptagramaConfig {
+  centerLetter: string;
+  outerLetters: [string, string, string, string, string, string];
+  words: SeptagramaWordEntry[];
+  secretWord: string;
+  secretMeaning: string;
+}
+
+export interface CodificadosClue {
+  id: string;
+  attempt: [number, number, number, number];
+  exactCount: number;
+  misplacedCount: number;
+  text: string;
+}
+
+export interface CodificadosConfig {
+  secretCode: [number, number, number, number];
+  clues: CodificadosClue[];
+  secretMeaning: string;
+}
+
+export interface EcuacionesSymbol {
+  id: string;
+  label: string;
+  iconName: 'venom' | 'candle' | 'snowman' | 'ornament' | 'boot' | 'dagger' | 'key' | 'bell';
+  value: number;
+}
+
+export interface EcuacionesRow {
+  id: string;
+  terms: { symbolId: string; op: '+' | '-' }[];
+  result: number;
+}
+
+export interface EcuacionesConfig {
+  symbols: EcuacionesSymbol[];
+  equations: EcuacionesRow[];
+  targetSymbols: [string, string, string, string];
+  targetCode: [number, number, number, number];
+  secretMeaning: string;
+}
+
+export interface EncajadosSlot {
+  id: string;
+  row: number;
+  col: number;
+  direction: 'across' | 'down';
+  answer: string;
+}
+
+export interface EncajadosConfig {
+  rows: number;
+  cols: number;
+  grid: (string | null)[][];
+  slots: EncajadosSlot[];
+  wordBank: string[];
+  givenCells: { r: number; c: number; letter: string }[];
+  keyCells: { r: number; c: number }[];
+  secretWord: string;
+  secretMeaning: string;
+}
+
 export type PuzzleConfig =
   | SudokuConfig
   | WordSearchConfig
@@ -136,7 +212,11 @@ export type PuzzleConfig =
   | FutoshikiConfig
   | ConnectionsConfig
   | NonogramConfig
-  | MinesweeperConfig;
+  | MinesweeperConfig
+  | SeptagramaConfig
+  | CodificadosConfig
+  | EcuacionesConfig
+  | EncajadosConfig;
 
 export type PuzzlePayload =
   | { type: 'sudoku'; config: SudokuConfig; solution?: number[][] | null }
@@ -148,7 +228,11 @@ export type PuzzlePayload =
   | { type: 'futoshiki'; config: FutoshikiConfig; solution?: number[][] | null }
   | { type: 'connections'; config: ConnectionsConfig; solution?: ConnectionsGroup[] | null }
   | { type: 'nonogram'; config: NonogramConfig; solution?: boolean[][] | null }
-  | { type: 'minesweeper'; config: MinesweeperConfig; solution?: { r: number; c: number }[] | null };
+  | { type: 'minesweeper'; config: MinesweeperConfig; solution?: { r: number; c: number }[] | null }
+  | { type: 'septagrama'; config: SeptagramaConfig; solution?: string[] | null }
+  | { type: 'codificados'; config: CodificadosConfig; solution?: [number, number, number, number] | null }
+  | { type: 'ecuaciones'; config: EcuacionesConfig; solution?: [number, number, number, number] | null }
+  | { type: 'encajados'; config: EncajadosConfig; solution?: (string | null)[][] | null };
 
 export type DayPuzzle = PuzzlePayload & {
   instructions: string;

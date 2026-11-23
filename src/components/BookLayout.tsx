@@ -23,6 +23,10 @@ import { FutoshikiPuzzle } from './puzzles/FutoshikiPuzzle';
 import { ConnectionsPuzzle } from './puzzles/ConnectionsPuzzle';
 import { NonogramPuzzle } from './puzzles/NonogramPuzzle';
 import { MinesweeperPuzzle } from './puzzles/MinesweeperPuzzle';
+import { SeptagramaPuzzle } from './puzzles/SeptagramaPuzzle';
+import { CodificadosPuzzle } from './puzzles/CodificadosPuzzle';
+import { EcuacionesPuzzle } from './puzzles/EcuacionesPuzzle';
+import { EncajadosPuzzle } from './puzzles/EncajadosPuzzle';
 
 // Álbum de Sospechosos, Globo del Detective y Manos Paranormales
 import { SuspectsAlbum } from './SuspectsAlbum';
@@ -474,6 +478,46 @@ export const BookLayout: React.FC<BookLayoutProps> = ({
       case 'minesweeper':
         return (
           <MinesweeperPuzzle
+            key={puzzleKey}
+            config={dayData.puzzle.config}
+            onSolve={handleSolveCurrentPuzzle}
+            isSolved={isDayCompleted}
+            hints={dayData.puzzle.hints}
+          />
+        );
+      case 'septagrama':
+        return (
+          <SeptagramaPuzzle
+            key={puzzleKey}
+            config={dayData.puzzle.config}
+            onSolve={handleSolveCurrentPuzzle}
+            isSolved={isDayCompleted}
+            hints={dayData.puzzle.hints}
+          />
+        );
+      case 'codificados':
+        return (
+          <CodificadosPuzzle
+            key={puzzleKey}
+            config={dayData.puzzle.config}
+            onSolve={handleSolveCurrentPuzzle}
+            isSolved={isDayCompleted}
+            hints={dayData.puzzle.hints}
+          />
+        );
+      case 'ecuaciones':
+        return (
+          <EcuacionesPuzzle
+            key={puzzleKey}
+            config={dayData.puzzle.config}
+            onSolve={handleSolveCurrentPuzzle}
+            isSolved={isDayCompleted}
+            hints={dayData.puzzle.hints}
+          />
+        );
+      case 'encajados':
+        return (
+          <EncajadosPuzzle
             key={puzzleKey}
             config={dayData.puzzle.config}
             onSolve={handleSolveCurrentPuzzle}

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { sound } from '../../utils/soundEffects';
-import { RotateCcw, Lightbulb, CheckCircle2, ArrowRight, ArrowDown } from 'lucide-react';
+import { RotateCcw, Lightbulb, CheckCircle2, ArrowRight, ArrowDown, KeyRound } from 'lucide-react';
 import type { CrosswordConfig, CrosswordEntry } from '../../types/game';
 import { validateCrossword } from '../../engine/puzzles/crossword';
 
@@ -12,7 +12,7 @@ interface CrosswordProps {
 }
 
 export const CrosswordPuzzle: React.FC<CrosswordProps> = ({ config, onSolve, isSolved, hints }) => {
-  const { rows, cols, grid, entries, secretMeaning } = config;
+  const { rows, cols, grid, entries, secretHighlightCells = [], secretWord, secretMeaning } = config;
 
   const [userGrid, setUserGrid] = useState<(string | null)[][]>(() =>
     grid.map(row => row.map(cell => (cell === null ? null : '')))
@@ -34,6 +34,14 @@ export const CrosswordPuzzle: React.FC<CrosswordProps> = ({ config, onSolve, isS
     }
     return map;
   }, [entries]);
+
+  const highlightIndexMap = useMemo(() => {
+    const map = new Map<string, number>();
+    secretHighlightCells.forEach((pos, idx) => {
+      map.set(`${pos.r}-${pos.c}`, idx + 1);
+    });
+    return map;
+  }, [secretHighlightCells]);
 
   const activeEntry = useMemo<CrosswordEntry | null>(() => {
     if (!selectedCell) return null;
@@ -247,6 +255,7 @@ export const CrosswordPuzzle: React.FC<CrosswordProps> = ({ config, onSolve, isS
                 );
               }
               const cellNum = cellNumberMap.get(`${r}-${c}`);
+              const keyIdx = highlightIndexMap.get(`${r}-${c}`);
               const isSelected = selectedCell?.r === r && selectedCell?.c === c;
               const inEntry = isCellInActiveEntry(r, c);
               const val = displayGrid[r][c] ?? '';
@@ -256,12 +265,15 @@ export const CrosswordPuzzle: React.FC<CrosswordProps> = ({ config, onSolve, isS
                   type="button"
                   key={`${r}-${c}`}
                   data-crossword-cell={`${r}-${c}`}
+                  data-key-cell={keyIdx !== undefined ? String(keyIdx) : undefined}
                   onClick={() => handleCellClick(r, c)}
                   className={`${
                     cols > 11 ? 'w-5 h-5 sm:w-6 sm:h-6 text-[10px] sm:text-xs' : 'w-6 h-6 sm:w-7 sm:h-7 text-xs sm:text-sm'
                   } relative flex items-center justify-center font-bold font-mono uppercase transition ${
                     isSelected
                       ? 'bg-crimson-200 text-crimson-950 ring-2 ring-inset ring-crimson-700'
+                      : keyIdx !== undefined
+                      ? 'bg-gold-200/95 text-ink-950 ring-1 ring-inset ring-gold-600'
                       : inEntry
                       ? 'bg-gold-100 text-ink-950'
                       : 'bg-parchment-50 text-ink-900 hover:bg-parchment-100'
@@ -270,6 +282,11 @@ export const CrosswordPuzzle: React.FC<CrosswordProps> = ({ config, onSolve, isS
                   {cellNum !== undefined && (
                     <span className="absolute top-0 left-0.5 text-[7px] font-mono text-ink-500 leading-none">
                       {cellNum}
+                    </span>
+                  )}
+                  {keyIdx !== undefined && (
+                    <span className="absolute bottom-0 right-0.5 text-[6.5px] font-mono font-black text-crimson-800 leading-none">
+                      {keyIdx}
                     </span>
                   )}
                   <span>{val}</span>
@@ -329,10 +346,38 @@ export const CrosswordPuzzle: React.FC<CrosswordProps> = ({ config, onSolve, isS
         </div>
       </div>
 
+      {/* Casillas Clave para descubrir la palabra oculta */}
+      {secretHighlightCells.length > 0 && (
+        <div className="mt-1.5 px-2.5 py-1.5 bg-parchment-200/85 border border-gold-500/70 rounded flex flex-wrap items-center justify-between gap-2 shrink-0">
+          <span className="text-[10px] font-mono uppercase tracking-wider font-bold text-ink-800 inline-flex items-center gap-1">
+            <KeyRound className="w-3.5 h-3.5 text-crimson-800" />
+            <span>Palabra en casillas clave:</span>
+          </span>
+          <div className="flex items-center gap-1">
+            {secretHighlightCells.map((pos, idx) => {
+              const ch = displayGrid[pos.r]?.[pos.c] || '';
+              return (
+                <div
+                  key={`${pos.r}-${pos.c}-${idx}`}
+                  className="w-6 h-6 rounded-sm bg-gold-200/90 border border-gold-600 flex items-center justify-center font-mono text-xs font-black text-crimson-950 relative shadow-inner"
+                  title={`Casilla clave ${idx + 1}`}
+                >
+                  <span className="absolute top-0 left-0.5 text-[6px] text-ink-600 leading-none">
+                    {idx + 1}
+                  </span>
+                  <span>{ch || '·'}</span>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
       {isSolved && (
         <div className="mt-1.5 p-2 bg-gold-100 border-2 border-gold-500 rounded text-center animate-wax-pop">
           <div className="flex items-center justify-center gap-1 text-xs font-bold text-gold-800 uppercase tracking-widest mb-0.5">
             <CheckCircle2 className="w-4 h-4 text-gold-700" /> Crucigrama Completado
+            {secretWord ? ` • Palabra Clave: ${secretWord}` : ''}
           </div>
           {secretMeaning && (
             <p className="font-serif text-xs font-semibold italic text-crimson-950">

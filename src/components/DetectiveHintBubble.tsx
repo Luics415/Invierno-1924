@@ -142,6 +142,14 @@ const PUZZLE_STRATEGY_TIPS: Record<PuzzleType, string> = {
     'Estrategia: marca primero las filas y columnas con bloques grandes que se solapan en el centro y señala con X los espacios vacíos seguros.',
   minesweeper:
     'Estrategia: deduce qué casillas adyacentes a los números descubiertos contienen minas seguras usando banderas antes de revelar celdas vecinas.',
+  septagrama:
+    'Estrategia: todas las palabras usan las 7 letras de la flor e incluyen obligatoriamente la letra central; las casillas sombreadas revelan la palabra clave inferior.',
+  codificados:
+    'Estrategia: tacha primero las cifras de la pista donde ninguna pertenece al código y luego cruza las pistas con cifras bien colocadas.',
+  ecuaciones:
+    'Estrategia: despeja primero la ecuación con un solo icono repetido y sustituye su valor en las siguientes filas hasta hallar los 4 iconos del marcador.',
+  encajados:
+    'Estrategia: comienza por las palabras cuya longitud sea única o que coincidan con las letras ya reveladas en el tablero.',
 };
 
 export const DetectiveHintBubble: React.FC<DetectiveHintBubbleProps> = ({

@@ -30,20 +30,20 @@ export const TOTAL_DAYS = 30;
 export const DAYS_PER_ACT = 6;
 
 /**
- * Calendario de pasatiempos: 10 tipos x 3 apariciones = 30 días.
+ * Calendario de pasatiempos: 14 tipos de juegos repartidos en las 30 jornadas.
  * Ningún tipo se repite en días consecutivos.
  */
 export const PUZZLE_SCHEDULE: readonly PuzzleType[] = [
-  // Acto I
-  'wordsearch', 'sudoku', 'cryptogram', 'murdoku', 'syllables', 'connections',
-  // Acto II
-  'crossword', 'futoshiki', 'nonogram', 'minesweeper', 'wordsearch', 'sudoku',
-  // Acto III
-  'cryptogram', 'connections', 'murdoku', 'crossword', 'syllables', 'futoshiki',
-  // Acto IV
-  'nonogram', 'minesweeper', 'sudoku', 'wordsearch', 'cryptogram', 'murdoku',
-  // Acto V
-  'syllables', 'crossword', 'connections', 'futoshiki', 'nonogram', 'minesweeper',
+  // Acto I (Días 1–6)
+  'wordsearch', 'codificados', 'septagrama', 'ecuaciones', 'encajados', 'crossword',
+  // Acto II (Días 7–12)
+  'sudoku', 'cryptogram', 'murdoku', 'syllables', 'connections', 'futoshiki',
+  // Acto III (Días 13–18)
+  'nonogram', 'minesweeper', 'septagrama', 'codificados', 'ecuaciones', 'encajados',
+  // Acto IV (Días 19–24)
+  'crossword', 'wordsearch', 'sudoku', 'cryptogram', 'murdoku', 'syllables',
+  // Acto V (Días 25–30)
+  'connections', 'futoshiki', 'nonogram', 'minesweeper', 'codificados', 'encajados',
 ];
 
 /**
