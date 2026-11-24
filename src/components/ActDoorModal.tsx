@@ -95,7 +95,7 @@ export const ActDoorModal: React.FC<ActDoorModalProps> = ({
         <div className="pointer-events-none absolute inset-0 book-arcane-wear z-0" />
 
         {/* Cabecera */}
-        <div className="relative z-10 header-leather-bar p-3.5 sm:p-5 border-b border-[#b79b65]/35 text-gold-300 flex flex-wrap items-center justify-between gap-2.5 shrink-0">
+        <div className="landscape-door-modal-header relative z-10 header-leather-bar p-3.5 sm:p-5 border-b border-[#b79b65]/35 text-gold-300 flex flex-wrap items-center justify-between gap-2.5 shrink-0">
           <div className="flex items-center gap-3 min-w-0">
             <div className="w-10 h-10 rounded-full border border-[#c5a059]/75 bg-[#08090c] flex items-center justify-center shadow-md shrink-0">
               {isActOpenable ? (
@@ -130,7 +130,7 @@ export const ActDoorModal: React.FC<ActDoorModalProps> = ({
         </div>
 
         {/* Selector de las 5 Puertas */}
-        <div className="relative z-10 flex items-center gap-1.5 px-3 py-2 bg-[#12141a] border-b border-[#b79b65]/30 overflow-x-auto shrink-0">
+        <div className="landscape-door-modal-tabs relative z-10 flex items-center gap-1.5 px-3 py-2 bg-[#12141a] border-b border-[#b79b65]/30 overflow-x-auto shrink-0">
           {acts.map(a => {
             const active = a.act === selectedAct;
             const doneInAct = completedDays.filter(d => d >= a.dayStart && d <= a.dayEnd).length;

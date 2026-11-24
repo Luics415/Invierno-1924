@@ -6,6 +6,7 @@ export default defineConfig({
   base: './',
   plugins: [react()],
   build: {
+    cssTarget: 'chrome90',
     rolldownOptions: {
       output: {
         codeSplitting: {

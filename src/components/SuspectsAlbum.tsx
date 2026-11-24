@@ -627,7 +627,7 @@ export const SuspectsAlbum: React.FC<SuspectsAlbumProps> = ({ onStartAdventure }
               <h2 className="font-title text-2xl sm:text-4xl text-ink-950 leading-none">
                 Álbum de Sospechosos
               </h2>
-              <p className="text-xs font-desc italic text-ink-700 mt-0.5">
+              <p className="landscape-album-subtitle text-xs font-desc italic text-ink-700 mt-0.5">
                 Censo oficial de los 74 implicados en la noche del 23 de diciembre de 1924
               </p>
             </div>
@@ -782,7 +782,7 @@ export const SuspectsAlbum: React.FC<SuspectsAlbumProps> = ({ onStartAdventure }
           </div>
 
           {/* Filtro por Categoría de Villa Acebo */}
-          <div className="flex flex-wrap items-center gap-1.5 text-[10px] font-mono">
+          <div className="landscape-album-cats flex flex-wrap items-center gap-1.5 text-[10px] font-mono">
             {categories.map(cat => (
               <button
                 type="button"

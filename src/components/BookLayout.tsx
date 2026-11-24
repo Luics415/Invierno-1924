@@ -651,7 +651,7 @@ export const BookLayout: React.FC<BookLayoutProps> = ({
               <div className="landscape-header-title text-center px-1 sm:px-3 min-w-0 flex-1 sm:flex-none sm:min-w-[170px]">
                 {isAlbum ? (
                   <>
-                    <span className="text-[9px] uppercase font-mono tracking-widest text-gold-400 block truncate">
+                    <span className="landscape-header-sub text-[9px] uppercase font-mono tracking-widest text-gold-400 block truncate">
                       Censo Criminal • 1924
                     </span>
                     <span className="font-desc font-bold text-sm sm:text-base text-parchment-100 flex items-center justify-center gap-1.5 min-w-0">
@@ -661,7 +661,7 @@ export const BookLayout: React.FC<BookLayoutProps> = ({
                   </>
                 ) : (
                   <>
-                    <span className="text-[9px] uppercase font-mono tracking-widest text-gold-400 block truncate">
+                    <span className="landscape-header-sub text-[9px] uppercase font-mono tracking-widest text-gold-400 block truncate">
                       Día {currentDay < 10 ? `0${currentDay}` : currentDay} · {dayData.hourStr}
                     </span>
                     <span className="font-desc font-bold text-sm sm:text-base text-parchment-100 block truncate">
@@ -1150,19 +1150,19 @@ export const BookLayout: React.FC<BookLayoutProps> = ({
             </div>
           </div>
         ) : (
-        <div className="relative w-full h-full min-h-0 max-h-[880px] rounded-lg sm:rounded-xl book-cover-leather p-1.5 sm:p-3.5 border-2 border-[#08090c] flex">
+        <div className="landscape-book-leather relative w-full h-full min-h-0 max-h-[880px] rounded-lg sm:rounded-xl book-cover-leather p-1.5 sm:p-3.5 border-2 border-[#08090c] flex">
           {/* Detalles de desgaste pictórico y marco de filete dorado interior */}
           <div className="pointer-events-none absolute inset-0 rounded-lg sm:rounded-xl book-arcane-wear z-0" />
           <div className="pointer-events-none absolute inset-1 sm:inset-1.5 rounded-md sm:rounded-lg border border-[#b79b65]/40 z-20" />
 
-          {/* Hojas laterales decorativas contenidas dentro del borde exterior */}
-          <div className="hidden sm:block pointer-events-none absolute -left-2 sm:-left-2.5 top-16 w-4 sm:w-5 h-36 bg-[#ede6d6] border border-[#b8ab96] rounded-l-sm -rotate-[1.5deg] shadow-[0_4px_12px_rgba(0,0,0,0.5)] z-0" />
-          <div className="hidden sm:block pointer-events-none absolute -left-1.5 sm:-left-2 top-56 w-3.5 sm:w-4 h-44 bg-[#e5decd] border border-[#a89c85] rounded-l-sm rotate-[1deg] shadow-[0_4px_10px_rgba(0,0,0,0.45)] z-0" />
-          <div className="hidden sm:block pointer-events-none absolute -left-1 sm:-left-1.5 bottom-16 w-3 sm:w-4 h-28 bg-[#dfd6c3] border border-[#9e927c] rounded-l-sm -rotate-[1.5deg] shadow-[0_4px_8px_rgba(0,0,0,0.4)] z-0" />
+          {/* Hojas laterales decorativas contenidas dentro del borde exterior (ocultas en celular horizontal) */}
+          <div className="landscape-hide hidden sm:block pointer-events-none absolute -left-2 sm:-left-2.5 top-16 w-4 sm:w-5 h-36 bg-[#ede6d6] border border-[#b8ab96] rounded-l-sm -rotate-[1.5deg] shadow-[0_4px_12px_rgba(0,0,0,0.5)] z-0" />
+          <div className="landscape-hide hidden sm:block pointer-events-none absolute -left-1.5 sm:-left-2 top-56 w-3.5 sm:w-4 h-44 bg-[#e5decd] border border-[#a89c85] rounded-l-sm rotate-[1deg] shadow-[0_4px_10px_rgba(0,0,0,0.45)] z-0" />
+          <div className="landscape-hide hidden sm:block pointer-events-none absolute -left-1 sm:-left-1.5 bottom-16 w-3 sm:w-4 h-28 bg-[#dfd6c3] border border-[#9e927c] rounded-l-sm -rotate-[1.5deg] shadow-[0_4px_8px_rgba(0,0,0,0.4)] z-0" />
 
-          <div className="hidden sm:block pointer-events-none absolute -right-2 sm:-right-2.5 top-20 w-4 sm:w-5 h-40 bg-[#ede6d6] border border-[#b8ab96] rounded-r-sm rotate-[1.5deg] shadow-[0_4px_12px_rgba(0,0,0,0.5)] z-0" />
-          <div className="hidden sm:block pointer-events-none absolute -right-1.5 sm:-right-2 top-64 w-3.5 sm:w-4 h-36 bg-[#e5decd] border border-[#a89c85] rounded-r-sm -rotate-[1deg] shadow-[0_4px_10px_rgba(0,0,0,0.45)] z-0" />
-          <div className="hidden sm:block pointer-events-none absolute -right-1 sm:-right-1.5 bottom-20 w-3 sm:w-4 h-32 bg-[#dfd6c3] border border-[#9e927c] rounded-r-sm rotate-[1.5deg] shadow-[0_4px_8px_rgba(0,0,0,0.4)] z-0" />
+          <div className="landscape-hide hidden sm:block pointer-events-none absolute -right-2 sm:-right-2.5 top-20 w-4 sm:w-5 h-40 bg-[#ede6d6] border border-[#b8ab96] rounded-r-sm rotate-[1.5deg] shadow-[0_4px_12px_rgba(0,0,0,0.5)] z-0" />
+          <div className="landscape-hide hidden sm:block pointer-events-none absolute -right-1.5 sm:-right-2 top-64 w-3.5 sm:w-4 h-36 bg-[#e5decd] border border-[#a89c85] rounded-r-sm -rotate-[1deg] shadow-[0_4px_10px_rgba(0,0,0,0.45)] z-0" />
+          <div className="landscape-hide hidden sm:block pointer-events-none absolute -right-1 sm:-right-1.5 bottom-20 w-3 sm:w-4 h-32 bg-[#dfd6c3] border border-[#9e927c] rounded-r-sm rotate-[1.5deg] shadow-[0_4px_8px_rgba(0,0,0,0.4)] z-0" />
 
           {/* Video chroma-key de manos sujetando el libro desde atrás (solo con libreta abierta) */}
           <ParanormalHandsVideo
@@ -1414,7 +1414,7 @@ export const BookLayout: React.FC<BookLayoutProps> = ({
                   </div>
 
                   {/* Pie de Página Izquierda compacto y siempre táctil en móvil */}
-                  <div className="mt-1.5 pt-1.5 border-t border-parchment-400/70 shrink-0">
+                  <div className="landscape-page-footer mt-1.5 pt-1.5 border-t border-parchment-400/70 shrink-0">
                     <div className="flex items-center justify-between gap-2 text-xs font-desc text-ink-700">
                       <button
                         type="button"
@@ -1451,52 +1451,52 @@ export const BookLayout: React.FC<BookLayoutProps> = ({
                     mobilePage === 'right' ? 'flex animate-mobile-flip-3d lg:animate-none' : 'hidden lg:flex'
                   }`}
                 >
-                  <div className="shrink-0">
-                    <div className="flex flex-wrap items-center justify-between gap-x-2 gap-y-0.5 text-[10px] font-mono uppercase tracking-[0.14em] text-ink-600 border-b border-parchment-400/70 pb-1 mb-2">
-                      <span>Gabinete de Criptografía y Lógica</span>
-                      <span>Expediente N.º {dayData.day < 10 ? `0${dayData.day}` : dayData.day}/{totalDays}</span>
-                    </div>
-
-                    <div className="landscape-puzzle-header border-b border-parchment-300 pb-1.5 mb-1.5 sm:pb-2 sm:mb-2 flex flex-col sm:flex-row sm:items-start sm:justify-between gap-1.5 sm:gap-2">
-                      <div className="min-w-0 flex-1">
-                        <span className="text-[10px] uppercase font-mono tracking-widest text-gold-700 font-bold block">
-                          Desafío Mental de Adviento
-                        </span>
-                        <h2 className="font-desc text-xs sm:text-base font-medium italic text-ink-950 leading-snug mt-0.5 break-words">
-                          {dayData.puzzle.instructions}
-                        </h2>
+                  {/* Cabecera + Puzzle + Panel Manual juntos en el área scrollable para aprovechar el 100% de altura en celular horizontal */}
+                  <div className="flex-1 min-h-0 overflow-y-auto mobile-scroll-page pr-1 pb-6 lg:pb-3 flex flex-col w-full">
+                    <div className="shrink-0">
+                      <div className="flex flex-wrap items-center justify-between gap-x-2 gap-y-0.5 text-[10px] font-mono uppercase tracking-[0.14em] text-ink-600 border-b border-parchment-400/70 pb-1 mb-1.5 lg:mb-2">
+                        <span>Gabinete de Criptografía y Lógica</span>
+                        <span>Expediente N.º {dayData.day < 10 ? `0${dayData.day}` : dayData.day}/{totalDays}</span>
                       </div>
 
-                      {isDayCompleted ? (
-                        <div className="self-start flex items-center gap-1 text-[11px] font-bold text-gold-100 wax-seal-badge px-2.5 py-0.5 rounded-full shadow-sm shrink-0 animate-wax-pop">
-                          <CheckCircle className="w-3 h-3 text-gold-200" />
-                          <span>Lacrado</span>
+                      <div className="landscape-puzzle-header border-b border-parchment-300 pb-1.5 mb-1.5 sm:pb-2 sm:mb-2 flex flex-col sm:flex-row sm:items-start sm:justify-between gap-1.5 sm:gap-2">
+                        <div className="min-w-0 flex-1">
+                          <span className="text-[10px] uppercase font-mono tracking-widest text-gold-700 font-bold block">
+                            Desafío Mental de Adviento
+                          </span>
+                          <h2 className="font-desc text-xs sm:text-base font-medium italic text-ink-950 leading-snug mt-0.5 break-words">
+                            {dayData.puzzle.instructions}
+                          </h2>
                         </div>
-                      ) : (
-                        <div className="flex flex-wrap items-center gap-1.5 shrink-0">
-                          <button
-                            type="button"
-                            onClick={handleSolveCurrentPuzzle}
-                            className="px-2 py-0.5 sm:py-1 rounded bg-amber-400 hover:bg-amber-300 text-ink-950 font-mono text-[9.5px] sm:text-[10px] font-black uppercase tracking-wider border border-ink-900 shadow-sm transition"
-                            title="[TEST TEMPORAL] Completar acertijo de este día automáticamente"
-                          >
-                            [TEST] Omitir Día
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => handleTestCompleteAct(dayData.act)}
-                            className="px-2 py-0.5 sm:py-1 rounded bg-emerald-400 hover:bg-emerald-300 text-ink-950 font-mono text-[9.5px] sm:text-[10px] font-black uppercase tracking-wider border border-ink-900 shadow-sm transition"
-                            title="[TEST TEMPORAL] Completar los 6 acertijos de este acto automáticamente"
-                          >
-                            [TEST] Completar Acto {dayData.act}
-                          </button>
-                        </div>
-                      )}
-                    </div>
-                  </div>
 
-                  {/* Renderizado del Puzzle + Panel Manual dentro del área scrollable en celular */}
-                  <div className="flex-1 min-h-0 overflow-y-auto mobile-scroll-page pr-1 pb-6 lg:pb-3 flex flex-col w-full">
+                        {isDayCompleted ? (
+                          <div className="self-start flex items-center gap-1 text-[11px] font-bold text-gold-100 wax-seal-badge px-2.5 py-0.5 rounded-full shadow-sm shrink-0 animate-wax-pop">
+                            <CheckCircle className="w-3 h-3 text-gold-200" />
+                            <span>Lacrado</span>
+                          </div>
+                        ) : (
+                          <div className="flex flex-wrap items-center gap-1.5 shrink-0">
+                            <button
+                              type="button"
+                              onClick={handleSolveCurrentPuzzle}
+                              className="px-2 py-0.5 sm:py-1 rounded bg-amber-400 hover:bg-amber-300 text-ink-950 font-mono text-[9.5px] sm:text-[10px] font-black uppercase tracking-wider border border-ink-900 shadow-sm transition"
+                              title="[TEST TEMPORAL] Completar acertijo de este día automáticamente"
+                            >
+                              [TEST] Omitir Día
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handleTestCompleteAct(dayData.act)}
+                              className="px-2 py-0.5 sm:py-1 rounded bg-emerald-400 hover:bg-emerald-300 text-ink-950 font-mono text-[9.5px] sm:text-[10px] font-black uppercase tracking-wider border border-ink-900 shadow-sm transition"
+                              title="[TEST TEMPORAL] Completar los 6 acertijos de este acto automáticamente"
+                            >
+                              [TEST] Completar Acto {dayData.act}
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
                     <div className="lg:my-auto w-full">
                       {renderPuzzleEngine()}
 
@@ -1562,7 +1562,7 @@ export const BookLayout: React.FC<BookLayoutProps> = ({
                     </div>
                   </div>
 
-                  <div data-toolbar="true" className="pt-2 mt-1.5 border-t border-parchment-400/70 flex items-center justify-between gap-2 shrink-0">
+                  <div data-toolbar="true" className="landscape-page-footer pt-2 mt-1.5 border-t border-parchment-400/70 flex items-center justify-between gap-2 shrink-0">
                     <button
                       type="button"
                       onClick={handlePrevDay}
