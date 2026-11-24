@@ -133,6 +133,7 @@ export const SuspectsAlbum: React.FC<SuspectsAlbumProps> = ({ onStartAdventure }
   const [isDraggingPhoto, setIsDraggingPhoto] = useState(false);
   const photoDragStartRef = useRef<{ x: number; y: number } | null>(null);
   const photoDidDragRef = useRef(false);
+  const mobileGalleryRef = useRef<HTMLDivElement | null>(null);
 
   const openSuspectModal = (s: DirectorySuspect) => {
     sound.playPageTurn();
@@ -227,6 +228,7 @@ export const SuspectsAlbum: React.FC<SuspectsAlbumProps> = ({ onStartAdventure }
     sound.playPageTurn();
     setTurnDirection(nextIdx > safeSpreadIndex ? 'next' : 'prev');
     setAlbumPage(nextIdx);
+    mobileGalleryRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const categories = [
@@ -381,7 +383,228 @@ export const SuspectsAlbum: React.FC<SuspectsAlbumProps> = ({ onStartAdventure }
   };
 
   return (
-    <div className="w-full h-full flex flex-col lg:grid lg:grid-cols-2 flex-1 min-h-0 relative overflow-y-auto mobile-scroll-page lg:overflow-hidden">
+    <div className="w-full h-full flex flex-col flex-1 min-h-0 relative overflow-hidden">
+      {/* ================================================================
+          VISTA UNIFICADA MÓVIL / TABLET (< lg): 1 SOLO SCROLL, FILTROS
+          UNIFICADOS Y PAGINACIÓN 3D JUNTA (ESCRITORIO INTACTO ABAJO)
+         ================================================================ */}
+      <div className="landscape-hide flex lg:hidden flex-col w-full h-full flex-1 min-h-0 page-verso overflow-hidden">
+        {/* Cabecera fija y compacta del Álbum en móvil/tablet */}
+        <div className="shrink-0 p-2.5 sm:p-3.5 pb-2 border-b border-parchment-400/75 space-y-2 bg-parchment-100/70">
+          <div className="flex items-center justify-between gap-2">
+            <div className="min-w-0">
+              <div className="flex items-center gap-1.5 text-[9.5px] font-mono uppercase tracking-[0.14em] text-ink-600">
+                <Camera className="w-3 h-3 text-crimson-800 shrink-0" />
+                <span className="truncate">Archivo Fotográfico • 1924</span>
+              </div>
+              <div className="flex items-baseline gap-2 mt-0.5">
+                <h2 className="font-title text-2xl sm:text-3xl text-ink-950 leading-none truncate">
+                  Álbum de Sospechosos
+                </h2>
+                <span className="text-[10px] font-mono font-bold text-crimson-800 shrink-0">
+                  {activeCount}/{totalSuspects}
+                </span>
+              </div>
+            </div>
+
+            {/* Placa compacta interactiva de Don Arturo Valdemar */}
+            <button
+              type="button"
+              onClick={() => {
+                sound.playPageTurn();
+                setIsVictimModalOpen(true);
+              }}
+              title="Ver perfil completo de la primera víctima: Don Arturo Valdemar"
+              className="group flex items-center gap-1.5 px-1.5 py-1 bg-ink-900 hover:bg-crimson-950 text-parchment-100 rounded-sm border border-gold-500/60 shadow-sm transition text-left shrink-0"
+            >
+              <div className="w-8 h-10 rounded-[2px] overflow-hidden border border-gold-400/70 bg-ink-950 shrink-0">
+                <VictimAnimatedPortrait
+                  src={VICTIM.portrait}
+                  alt={`Retrato de ${VICTIM.name}`}
+                  interactive={false}
+                />
+              </div>
+              <div className="leading-tight max-w-[106px] sm:max-w-[150px]">
+                <span className="text-[7.5px] font-mono uppercase tracking-wider text-crimson-300 flex items-center gap-0.5">
+                  <Skull className="w-2.5 h-2.5 text-crimson-400 shrink-0" />
+                  <span className="truncate">1.ª Víctima</span>
+                </span>
+                <span className="font-desc font-semibold text-[11px] text-parchment-50 block truncate">
+                  Arturo Valdemar
+                </span>
+                <span className="text-[7.5px] font-mono uppercase text-gold-300 block">
+                  Ver perfil · {VICTIM.age}a
+                </span>
+              </div>
+            </button>
+          </div>
+
+          {/* Buscador + Filtro de Estado */}
+          <div className="flex flex-wrap items-center gap-1.5">
+            <div className="relative flex-1 min-w-[130px]">
+              <Search className="w-3.5 h-3.5 absolute left-2 top-1/2 -translate-y-1/2 text-ink-500" />
+              <input
+                type="text"
+                placeholder="Buscar nombre, oficio o #..."
+                value={searchQuery}
+                onChange={e => {
+                  setSearchQuery(e.target.value);
+                  setAlbumPage(0);
+                }}
+                className="w-full pl-7 pr-6 py-1 text-xs rounded-sm bg-parchment-50/95 border border-parchment-400 text-ink-950 placeholder:text-ink-400 focus:outline-none focus:border-ink-800"
+              />
+              {searchQuery && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSearchQuery('');
+                    setAlbumPage(0);
+                  }}
+                  className="absolute right-1.5 top-1/2 -translate-y-1/2 text-ink-500 hover:text-ink-900"
+                >
+                  <X className="w-3 h-3" />
+                </button>
+              )}
+            </div>
+
+            <div className="flex items-center bg-parchment-300/75 p-0.5 rounded-sm border border-parchment-400 text-[10px] font-mono shrink-0">
+              <button
+                type="button"
+                onClick={() => {
+                  sound.playClick();
+                  setStatusFilter('all');
+                  setAlbumPage(0);
+                }}
+                className={`px-1.5 py-0.5 rounded-sm transition ${
+                  statusFilter === 'all' ? 'bg-ink-900 text-gold-200 font-bold' : 'text-ink-700'
+                }`}
+              >
+                Todos
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  sound.playClick();
+                  setStatusFilter('active');
+                  setAlbumPage(0);
+                }}
+                className={`px-1.5 py-0.5 rounded-sm transition ${
+                  statusFilter === 'active' ? 'bg-emerald-900 text-white font-bold' : 'text-ink-700'
+                }`}
+              >
+                Act. ({activeCount})
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  sound.playClick();
+                  setStatusFilter('eliminated');
+                  setAlbumPage(0);
+                }}
+                className={`px-1.5 py-0.5 rounded-sm transition ${
+                  statusFilter === 'eliminated' ? 'bg-crimson-800 text-white font-bold' : 'text-ink-700'
+                }`}
+              >
+                Desc. ({eliminatedCount})
+              </button>
+            </div>
+          </div>
+
+          {/* Tira horizontal de grupos (1 sola línea deslizable, sin estorbar al centro) */}
+          <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar pb-0.5 text-[10px] font-mono">
+            {categories.map(cat => (
+              <button
+                type="button"
+                key={`mob-${cat.id}`}
+                onClick={() => {
+                  sound.playClick();
+                  setCategoryFilter(cat.id);
+                  setAlbumPage(0);
+                  mobileGalleryRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
+                }}
+                className={`px-2 py-0.5 rounded-sm transition border whitespace-nowrap shrink-0 ${
+                  categoryFilter === cat.id
+                    ? 'bg-ink-900 text-gold-200 font-bold border-gold-500/60 shadow-sm'
+                    : 'bg-parchment-50/85 text-ink-700 border-parchment-400'
+                }`}
+              >
+                {cat.label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Galería única fluida (12 retratos por pliego, 2 cols celular / 3 cols tablet) */}
+        <div
+          ref={mobileGalleryRef}
+          className="flex-1 min-h-0 overflow-y-auto mobile-scroll-page p-2.5 sm:p-3.5"
+        >
+          <div
+            key={`mob-${safeSpreadIndex}-${statusFilter}-${categoryFilter}-${searchQuery}`}
+            className={`grid grid-cols-2 sm:grid-cols-3 gap-2 ${
+              turnDirection === 'next' ? 'animate-page-turn' : 'animate-page-turn-prev'
+            }`}
+          >
+            {spreadSuspects.map(renderPhotoCard)}
+          </div>
+
+          {filteredSuspects.length === 0 && (
+            <div className="text-center py-8 text-ink-600 text-sm font-desc italic">
+              Ningún expediente coincide con el filtro actual.
+            </div>
+          )}
+
+          <p className="text-[11px] font-desc italic text-ink-700 leading-snug text-center mt-2.5 pb-1">
+            Toca cualquier retrato para inspeccionar su testimonio o el ojo para tacharlo.
+          </p>
+        </div>
+
+        {/* Barra inferior fija unificada: Paginación completa + Abrir Día 01 */}
+        <div className="shrink-0 p-2 sm:p-2.5 border-t border-parchment-400/80 bg-parchment-200/85 space-y-1.5">
+          <div className="flex items-center justify-between gap-2">
+            <button
+              type="button"
+              onClick={() => handleSpreadChange(safeSpreadIndex - 1)}
+              disabled={safeSpreadIndex <= 0}
+              className="btn-3d-tile flex items-center gap-1 px-2.5 py-1 rounded-md text-gold-200 disabled:opacity-35 text-[10.5px] font-mono font-bold uppercase tracking-wider"
+            >
+              <ChevronLeft className="w-3.5 h-3.5" />
+              <span>Ant.</span>
+            </button>
+
+            <span className="font-mono text-[10px] font-bold tracking-widest uppercase text-ink-700">
+              Pliego {safeSpreadIndex + 1} / {totalSpreads}
+            </span>
+
+            <button
+              type="button"
+              onClick={() => handleSpreadChange(safeSpreadIndex + 1)}
+              disabled={safeSpreadIndex >= totalSpreads - 1}
+              className="btn-3d-tile flex items-center gap-1 px-2.5 py-1 rounded-md text-gold-200 disabled:opacity-35 text-[10.5px] font-mono font-bold uppercase tracking-wider"
+            >
+              <span>Sig.</span>
+              <ChevronRight className="w-3.5 h-3.5" />
+            </button>
+          </div>
+
+          <button
+            type="button"
+            onClick={() => {
+              sound.playPageTurn();
+              onStartAdventure();
+            }}
+            className="btn-3d-crimson w-full flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-md text-parchment-50 font-desc font-bold text-xs sm:text-sm"
+          >
+            <span>Abrir Día 01: El Relato</span>
+            <ChevronRight className="w-4 h-4 text-gold-300" />
+          </button>
+        </div>
+      </div>
+
+      {/* ================================================================
+          VISTA DE ESCRITORIO INTACTA Y CELULAR HORIZONTAL (doble pliego 6 + 6)
+         ================================================================ */}
+      <div className="landscape-album-spread hidden lg:grid lg:grid-cols-2 w-full h-full flex-1 min-h-0 relative overflow-hidden">
       {/* ================================================================
           PÁGINA IZQUIERDA DEL ÁLBUM: CABECERA, VÍCTIMA Y RETRATOS
          ================================================================ */}
@@ -621,6 +844,7 @@ export const SuspectsAlbum: React.FC<SuspectsAlbumProps> = ({ onStartAdventure }
           </button>
         </div>
       </section>
+      </div>
 
       {/* ================================================================
           MODAL DE EXPEDIENTE OFICIAL (FOTO CON CLIP + HOJA ARRANCADA)

@@ -555,13 +555,13 @@ export const DetectiveHintBubble: React.FC<DetectiveHintBubbleProps> = ({
         typeof document !== 'undefined' &&
         createPortal(
           <div
-            className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex flex-col justify-center sm:justify-start sm:items-end items-center p-4 sm:pt-16 sm:pr-14 lg:pr-24 transition-all duration-300"
+            className="landscape-radial-overlay fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex flex-col justify-center sm:justify-start sm:items-end items-center p-4 sm:pt-16 sm:pr-14 lg:pr-24 transition-all duration-300"
             onClick={() => setIsRadialOpen(false)}
           >
             <div
               data-testid="detective-radial-menu"
               onClick={e => e.stopPropagation()}
-              className="relative w-[332px] h-[332px] sm:w-[460px] sm:h-[460px] flex items-center justify-center"
+              className="landscape-radial-wheel relative w-[332px] h-[332px] sm:w-[460px] sm:h-[460px] flex items-center justify-center"
             >
               {/* Anillos giratorios 3D estilo brújula / Arcane */}
               <div className="pointer-events-none absolute inset-2 rounded-full border-2 border-[#b79b65]/40 shadow-[0_0_95px_rgba(124,25,37,0.45),inset_0_0_40px_rgba(0,0,0,0.85)] bg-[radial-gradient(circle,rgba(26,14,18,0.45)_0%,rgba(6,7,10,0.82)_72%,transparent_100%)]" />
@@ -576,7 +576,7 @@ export const DetectiveHintBubble: React.FC<DetectiveHintBubbleProps> = ({
                   setIsRadialOpen(false);
                 }}
                 title="Cerrar menú radial"
-                className="animate-azlynn-float relative z-10 w-44 h-44 sm:w-60 sm:h-60 rounded-full border-[4px] border-[#e5ca8f] ring-4 ring-[#090a0d] overflow-hidden shadow-[0_18px_46px_rgba(0,0,0,0.95),0_0_60px_rgba(140,24,38,0.75)] bg-ink-950 hover:scale-[1.03] active:scale-[0.98] transition-transform duration-300"
+                className="landscape-radial-center animate-azlynn-float relative z-10 w-44 h-44 sm:w-60 sm:h-60 rounded-full border-[4px] border-[#e5ca8f] ring-4 ring-[#090a0d] overflow-hidden shadow-[0_18px_46px_rgba(0,0,0,0.95),0_0_60px_rgba(140,24,38,0.75)] bg-ink-950 hover:scale-[1.03] active:scale-[0.98] transition-transform duration-300"
               >
                 <img
                   src={AZLYNN_EMOTION_IMAGES[currentMood]}
@@ -652,7 +652,7 @@ export const DetectiveHintBubble: React.FC<DetectiveHintBubbleProps> = ({
                     key={node.id}
                     type="button"
                     onClick={node.onClick}
-                    className={`absolute ${node.posClass} ${node.toneClass} w-16 h-16 sm:w-20 sm:h-20 rounded-full flex flex-col items-center justify-center gap-0.5 text-parchment-100`}
+                    className={`landscape-radial-node absolute ${node.posClass} ${node.toneClass} w-16 h-16 sm:w-20 sm:h-20 rounded-full flex flex-col items-center justify-center gap-0.5 text-parchment-100`}
                     title={node.label}
                   >
                     {node.icon}
@@ -682,15 +682,15 @@ export const DetectiveHintBubble: React.FC<DetectiveHintBubbleProps> = ({
             }
             className={
               desktopPos
-                ? 'fixed z-40 pointer-events-none flex justify-center sm:block'
-                : 'fixed inset-x-2.5 bottom-3 pb-[env(safe-area-inset-bottom)] sm:inset-x-auto sm:bottom-auto sm:right-6 sm:top-28 z-40 pointer-events-none flex justify-center sm:justify-end'
+                ? 'landscape-azlynn-portal fixed z-40 pointer-events-none flex justify-center sm:block'
+                : 'landscape-azlynn-portal fixed inset-x-2.5 bottom-3 pb-[env(safe-area-inset-bottom)] sm:inset-x-auto sm:bottom-auto sm:right-6 sm:top-28 z-40 pointer-events-none flex justify-center sm:justify-end'
             }
           >
             <div
               data-testid="detective-hint-bubble"
               role="status"
               aria-live="polite"
-              className={`pointer-events-auto relative overflow-visible w-full mt-9 ml-3 sm:mt-7 sm:ml-0 ${
+              className={`landscape-azlynn-card pointer-events-auto relative overflow-visible w-full mt-9 ml-3 sm:mt-7 sm:ml-0 ${
                 desktopPos ? 'sm:w-full' : 'max-w-md sm:w-96 md:w-[440px]'
               } bg-gradient-to-br from-[#faf6ec] via-[#f2ead9] to-[#e4d9c2] border-2 border-gold-600/90 rounded-xl p-3.5 shadow-[0_22px_52px_rgba(0,0,0,0.88),0_4px_0_#3f2f12] text-ink-950 animate-page-turn`}
             >
@@ -705,7 +705,7 @@ export const DetectiveHintBubble: React.FC<DetectiveHintBubbleProps> = ({
               <div className="flex items-start justify-between gap-2.5 pb-2.5 mb-2.5 border-b border-parchment-300/90">
                 <div className="flex items-start gap-3 min-w-0">
                   {/* Medallón circular 3D sobresaliendo por fuera del borde superior izquierdo */}
-                  <div className="relative -mt-12 -ml-5 sm:-mt-14 sm:-ml-6 shrink-0 z-20 select-none">
+                  <div className="landscape-azlynn-popout-wrap relative -mt-12 -ml-5 sm:-mt-14 sm:-ml-6 shrink-0 z-20 select-none">
                     {/* Halo cálido 3D detrás del medallón */}
                     <div
                       aria-hidden="true"
@@ -717,7 +717,7 @@ export const DetectiveHintBubble: React.FC<DetectiveHintBubbleProps> = ({
                       className="pointer-events-none absolute -bottom-2.5 left-1/2 -translate-x-1/2 w-[82%] h-3.5 rounded-full bg-black/45 blur-[4px]"
                     />
                     {/* Disco 3D con bisel dorado y carmesí (recorte circular limpio sin esquinas blancas) */}
-                    <div className="azlynn-popout-3d relative w-24 h-24 sm:w-[114px] sm:h-[114px] rounded-full overflow-hidden border-[3.5px] border-[#ecd399] ring-[3px] ring-[#4b0c12] bg-ink-950">
+                    <div className="landscape-azlynn-popout azlynn-popout-3d relative w-24 h-24 sm:w-[114px] sm:h-[114px] rounded-full overflow-hidden border-[3.5px] border-[#ecd399] ring-[3px] ring-[#4b0c12] bg-ink-950">
                       <img
                         src={AZLYNN_EMOTION_IMAGES[currentMood]}
                         alt={`Azlynn ${MOOD_LABELS[currentMood]}`}
@@ -837,7 +837,7 @@ export const DetectiveHintBubble: React.FC<DetectiveHintBubbleProps> = ({
 
               {effectiveActiveTab === 'dialogue' && (
                 <>
-                  <div className="space-y-1.5 max-h-52 overflow-y-auto pr-1">
+                  <div className="landscape-azlynn-scroll space-y-1.5 max-h-52 overflow-y-auto pr-1">
                     {activeDialogue.lines.map((line, i) => (
                       <p
                         key={i}

@@ -39,12 +39,12 @@ export const BookDoorSpread: React.FC<BookDoorSpreadProps> = ({
   const doorImageSrc = `./portraits/door-${actFile.doorNumber}.png`;
 
   return (
-    <div className="w-full h-full flex flex-col lg:flex-row flex-1 min-h-0">
+    <div className="landscape-two-page-spread w-full h-full flex flex-col lg:flex-row flex-1 min-h-0">
       {/* ====================================================================
           PÁGINA IZQUIERDA (VERSO): IMAGEN DE LA PUERTA CENTRADA CON BORDE DE HOJA
           ==================================================================== */}
       <section
-        className={`page-verso flex-1 h-full lg:w-1/2 p-3 sm:p-4 lg:p-5 lg:pr-7 flex flex-col items-center justify-between font-reading min-w-0 min-h-0 relative overflow-hidden ${
+        className={`landscape-show-page page-verso flex-1 h-full lg:w-1/2 p-3 sm:p-4 lg:p-5 lg:pr-7 flex flex-col items-center justify-between font-reading min-w-0 min-h-0 relative overflow-hidden ${
           mobilePage === 'left' ? 'flex animate-mobile-flip-3d lg:animate-none' : 'hidden lg:flex'
         }`}
       >
@@ -182,11 +182,11 @@ export const BookDoorSpread: React.FC<BookDoorSpreadProps> = ({
           PÁGINA DERECHA (RECTO): EXPEDIENTE TIPO MAPA CON FOTOGRAFÍAS INSTANTÁNEAS
           ==================================================================== */}
       <section
-        className={`page-recto flex-1 h-full lg:w-1/2 p-3.5 sm:p-5 lg:p-6 lg:pl-8 flex flex-col justify-between font-reading border-t lg:border-t-0 border-parchment-400/70 relative min-w-0 min-h-0 ${
+        className={`landscape-show-page page-recto flex-1 h-full lg:w-1/2 p-3.5 sm:p-5 lg:p-6 lg:pl-8 flex flex-col justify-between font-reading border-t lg:border-t-0 border-parchment-400/70 relative min-w-0 min-h-0 overflow-hidden ${
           mobilePage === 'right' ? 'flex animate-mobile-flip-3d lg:animate-none' : 'hidden lg:flex'
         }`}
       >
-        <div className="flex-1 min-h-0 overflow-y-auto mobile-scroll-page pr-1 pb-3 space-y-2.5 flex flex-col">
+        <div className="flex-1 min-h-0 overflow-y-auto mobile-scroll-page pr-1 pb-6 lg:pb-3 space-y-2.5 flex flex-col">
           {/* Cabecera estilo hoja de diario con clip */}
           <div className="flex flex-wrap items-center justify-between gap-2 text-[10px] font-mono uppercase tracking-[0.16em] text-ink-600 border-b border-parchment-400/70 pb-1 shrink-0">
             <span className="inline-flex items-center gap-1">

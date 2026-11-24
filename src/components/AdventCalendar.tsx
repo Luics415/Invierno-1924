@@ -87,7 +87,7 @@ export const AdventCalendar: React.FC<AdventCalendarProps> = ({ onClose, onOpenA
         <div className="pointer-events-none absolute inset-1.5 rounded-lg border border-[#b79b65]/35 z-20" />
 
         {/* Cabecera del Archivo Cronológico */}
-        <div className="relative z-10 header-leather-bar p-4 sm:p-5 border-b border-[#b79b65]/30 flex flex-wrap items-center justify-between gap-3">
+        <div className="relative z-10 header-leather-bar p-3 sm:p-5 border-b border-[#b79b65]/30 flex flex-wrap items-center justify-between gap-2.5 shrink-0">
           <div>
             <div className="flex items-center gap-3">
               <div className="w-11 h-11 rounded-full overflow-hidden bg-[#08090c] border border-[#c5a059]/75 flex items-center justify-center shadow-md shrink-0">

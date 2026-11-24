@@ -79,6 +79,16 @@ describe('Release 1.0 — Libro Cerrado, Víctima Don Arturo, Azlynn, Manos y M�
     expect(bookSrc).toContain('page-verso flex-1 h-full');
     expect(bookSrc).toContain('page-recto flex-1 h-full');
     expect(bookSrc).toContain('mobile-scroll-page');
+    expect(bookSrc).toContain('landscape-two-page-spread');
+    expect(bookSrc).toContain('landscape-show-page');
+    expect(bookSrc).toContain('pb-[max(4.5rem,calc(env(safe-area-inset-bottom)+3.25rem))]');
+
+    const albumSrc = readFile('src/components/SuspectsAlbum.tsx');
+    expect(albumSrc).toContain('landscape-hide flex lg:hidden');
+    expect(albumSrc).toContain('landscape-album-spread hidden lg:grid lg:grid-cols-2');
+
+    const cssSrc = readFile('src/index.css');
+    expect(cssSrc).toContain('@media (orientation: landscape) and (max-height: 540px) and (min-width: 560px)');
   });
 
   it('amplía diálogos de Azlynn con tono defensivo/inseguro y momentos de alivio por no estar sola', () => {

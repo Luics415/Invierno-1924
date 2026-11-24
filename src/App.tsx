@@ -77,7 +77,7 @@ export const App: React.FC = () => {
   }, [isBookOpen]);
 
   return (
-    <div className="relative h-[100dvh] w-full font-serif overflow-hidden flex flex-col justify-center items-center">
+    <div className="relative min-h-[100dvh] lg:h-[100dvh] w-full font-serif overflow-x-hidden lg:overflow-hidden flex flex-col justify-start lg:justify-center items-center">
       {/* Fondos de la mansión cargados progresivamente para rendimiento óptimo en móvil */}
       {ROOM_BACKGROUNDS.map((bgUrl, idx) =>
         mountedBgIndices.includes(idx) ? (

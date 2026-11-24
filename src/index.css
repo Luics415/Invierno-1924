@@ -4,8 +4,14 @@
 
 @layer base {
   html, body, #root {
-    height: 100%;
-    height: 100dvh;
+    min-height: 100%;
+    min-height: 100dvh;
+  }
+  @media (min-width: 1024px) {
+    html, body, #root {
+      height: 100%;
+      height: 100dvh;
+    }
   }
   body {
     background-color: #090a0c;
@@ -926,4 +932,217 @@
 .mobile-scroll-page {
   -webkit-overflow-scrolling: touch;
   overscroll-behavior-y: contain;
+}
+
+/* ============================================================================
+   MODO CELULAR HORIZONTAL (LANDSCAPE) — DOBLE PLIEGO FIEL AL ESCRITORIO
+   (Solo aplica a teléfonos en horizontal: ancho >= 560px y alto <= 540px;
+    el escritorio >= 1024px × > 540px permanece 100% intacto)
+   ============================================================================ */
+@media (orientation: landscape) and (max-height: 540px) and (min-width: 560px) {
+  html,
+  body,
+  #root {
+    height: 100dvh !important;
+    overflow: hidden !important;
+  }
+
+  .landscape-shell {
+    height: 100dvh !important;
+    min-height: 100dvh !important;
+    overflow: hidden !important;
+    justify-content: space-between !important;
+    padding: 4px 10px max(4px, env(safe-area-inset-bottom)) 10px !important;
+  }
+
+  .landscape-header {
+    flex-wrap: nowrap !important;
+    padding: 3px 8px !important;
+    margin-bottom: 4px !important;
+    gap: 6px !important;
+  }
+
+  .landscape-header-nav {
+    flex: 0 1 auto !important;
+    min-width: 0 !important;
+    max-width: 220px !important;
+    gap: 4px !important;
+    overflow: hidden !important;
+  }
+
+  .landscape-header-title {
+    min-width: 0 !important;
+    padding-left: 4px !important;
+    padding-right: 4px !important;
+  }
+
+  .landscape-header-controls {
+    order: 2 !important;
+    flex-direction: row !important;
+    flex-wrap: nowrap !important;
+    align-items: center !important;
+    flex: 1 1 auto !important;
+    flex-basis: auto !important;
+    gap: 5px !important;
+    overflow-x: auto !important;
+    scrollbar-width: none;
+  }
+
+  .landscape-header-controls::-webkit-scrollbar {
+    display: none;
+  }
+
+  .landscape-header-grid {
+    display: flex !important;
+    flex-wrap: nowrap !important;
+    width: auto !important;
+    gap: 4px !important;
+  }
+
+  .landscape-header-btn {
+    flex-direction: row !important;
+    padding: 4px 7px !important;
+    flex-shrink: 0 !important;
+  }
+
+  .landscape-header-btn-label {
+    display: none !important;
+  }
+
+  .landscape-header-right {
+    order: 3 !important;
+    margin-left: 0 !important;
+    gap: 5px !important;
+  }
+
+  .landscape-header-right .azlynn-medallion-3d {
+    width: 34px !important;
+    height: 34px !important;
+    margin-top: -2px !important;
+    margin-bottom: -2px !important;
+  }
+
+  .landscape-radial-overlay {
+    padding: 8px !important;
+    justify-content: center !important;
+    align-items: center !important;
+  }
+
+  .landscape-radial-wheel {
+    width: 300px !important;
+    height: 300px !important;
+  }
+
+  .landscape-radial-center {
+    width: 136px !important;
+    height: 136px !important;
+  }
+
+  .landscape-radial-node {
+    width: 58px !important;
+    height: 58px !important;
+  }
+
+  .landscape-azlynn-portal {
+    top: 46px !important;
+    max-height: calc(100dvh - 52px) !important;
+  }
+
+  .landscape-azlynn-card {
+    margin-top: 12px !important;
+    padding: 10px 12px !important;
+  }
+
+  .landscape-azlynn-popout-wrap {
+    margin-top: -32px !important;
+    margin-left: -14px !important;
+  }
+
+  .landscape-azlynn-popout {
+    width: 68px !important;
+    height: 68px !important;
+  }
+
+  .landscape-azlynn-scroll {
+    max-height: 92px !important;
+  }
+
+  .landscape-puzzle-header {
+    padding-bottom: 4px !important;
+    margin-bottom: 4px !important;
+    gap: 4px !important;
+  }
+
+  .landscape-puzzle-header h2 {
+    font-size: 11px !important;
+    line-height: 1.2 !important;
+  }
+
+  .landscape-hide {
+    display: none !important;
+  }
+
+  .landscape-main {
+    flex: 1 1 0% !important;
+    height: auto !important;
+    min-height: 0 !important;
+    padding-bottom: 2px !important;
+    overflow: hidden !important;
+  }
+
+  .landscape-two-page-spread {
+    flex-direction: row !important;
+  }
+
+  .landscape-show-page {
+    display: flex !important;
+    width: 50% !important;
+    height: 100% !important;
+    padding: 8px 14px !important;
+    border-top-width: 0 !important;
+    animation: none !important;
+  }
+
+  .landscape-center-seam {
+    display: block !important;
+  }
+
+  .landscape-album-spread {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    height: 100% !important;
+    min-height: 0 !important;
+    overflow: hidden !important;
+  }
+
+  .landscape-album-spread > section {
+    padding: 6px 10px !important;
+    min-height: 0 !important;
+    overflow: hidden !important;
+  }
+
+  .landscape-album-spread > section > div:first-child {
+    flex: 1 1 0% !important;
+    min-height: 0 !important;
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .landscape-album-spread > section > div:last-child {
+    flex-wrap: nowrap !important;
+    gap: 6px !important;
+    padding-top: 4px !important;
+    margin-top: 4px !important;
+  }
+
+  .landscape-album-spread > section > div:last-child button {
+    padding: 4px 8px !important;
+    font-size: 10px !important;
+    white-space: nowrap !important;
+  }
+
+  .landscape-closed-cover {
+    height: 78dvh !important;
+    max-height: 78dvh !important;
+  }
 }
